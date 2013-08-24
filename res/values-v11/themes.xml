@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<style name="ThemeMobile" parent="android:style/Theme.Holo">
+		<!-- item name="android:windowTitleSize">20dip</item-->
+	    <item name="android:buttonStyle">@style/button</item>
+        <item name="android:buttonStyleSmall">@style/button</item>
+        <item name="android:buttonStyleInset">@style/button</item>
+	    <item name="android:textViewStyle">@style/text</item>
+	    <item name="android:editTextStyle">@style/edittext</item>
+	    <item name="android:listViewStyle">@style/list</item>
+	    <item name="android:listSelector">@drawable/list_selector</item>	    
+	    <!--item name="android:spinnerItemStyle">@style/spinner_statuses</item-->
+	    
+	    <!-- item name="android:spinnerStyle">@style/spinner</item>
+	    <item name="android:spinnerItemStyle">@style/spinner_item</item-->
+   	</style>
+	
+</resources>

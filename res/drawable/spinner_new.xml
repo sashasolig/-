@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+  <item android:state_pressed="true">
+	<nine-patch android:src="@drawable/spinner_pressed" android:dither="false" />
+  </item>
+  <item android:state_focused="true">
+	<nine-patch android:src="@drawable/spinner_focused" android:dither="false" />
+  </item>
+  <item android:state_enabled="false">
+	<nine-patch android:src="@drawable/spinner_disable" android:dither="false" />
+  </item>
+  <item>
+	<nine-patch android:src="@drawable/spinner" android:dither="false" />
+  </item>
+</selector>

@@ -1,0 +1,236 @@
+package com.coolchoice.monumentphoto;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.coolchoice.monumentphoto.SyncTaskHandler.SyncCompleteListener;
+import com.coolchoice.monumentphoto.dal.DB;
+import com.coolchoice.monumentphoto.dal.MonumentDB;
+import com.coolchoice.monumentphoto.data.BaseDTO;
+import com.coolchoice.monumentphoto.data.Cemetery;
+import com.coolchoice.monumentphoto.task.BaseTask;
+import com.coolchoice.monumentphoto.task.TaskResult;
+import com.j256.ormlite.dao.RuntimeExceptionDao;
+import com.j256.ormlite.stmt.QueryBuilder;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+public class CemeteryListActivity extends Activity implements SyncTaskHandler.SyncCompleteListener {
+	
+	private ListView lvCemetery;
+	
+	private Button btnAddCemetery;
+	
+	private static Cemetery mChoosedCemetery;
+	
+	private static SyncTaskHandler mSyncTaskHandler;
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.cemetery_list_activity);
+		this.lvCemetery = (ListView) findViewById(R.id.lvCemetery);
+		this.btnAddCemetery = (Button) findViewById(R.id.btnAddCemetery);
+		
+		if(mSyncTaskHandler == null){
+			mSyncTaskHandler = new SyncTaskHandler();
+		}
+		mSyncTaskHandler.setContext(this);
+		mSyncTaskHandler.checkResumeDataOperation(this);
+		mSyncTaskHandler.setOnSyncCompleteListener(this);
+	}
+	
+	@Override
+	public void onComplete(int type, TaskResult taskResult) {
+		this.updateCemeteryList();		
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		this.updateCemeteryList();
+		this.btnAddCemetery.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent(CemeteryListActivity.this, AddObjectActivity.class);
+				intent.putExtra(AddObjectActivity.EXTRA_TYPE, AddObjectActivity.ADD_CEMETERY);
+				startActivity(intent);				
+			}
+		});
+		registerForContextMenu(this.lvCemetery);
+
+	}
+	
+	private void updateCemeteryList(){
+		RuntimeExceptionDao<Cemetery, Integer> cemeteryDAO = DB.dao(Cemetery.class);
+    	QueryBuilder<Cemetery, Integer> cemeteryBuilder = cemeteryDAO.queryBuilder();
+		cemeteryBuilder.orderBy(BaseDTO.COLUMN_NAME, true);
+		List<Cemetery> cemeteryList = new ArrayList<Cemetery>();
+		try {
+			cemeteryList = cemeteryDAO.query(cemeteryBuilder.prepare());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		CemeteryGridAdapter adapter = new CemeteryGridAdapter(cemeteryList);
+		this.lvCemetery.setAdapter(adapter);		
+		this.lvCemetery.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
+				Cemetery cemetery = (Cemetery) lvCemetery.getAdapter().getItem(pos);
+				Intent intent = new Intent(CemeteryListActivity.this, BrowserCemeteryActivity.class);
+				intent.putExtra(BrowserCemeteryActivity.EXTRA_CEMETERY_ID, cemetery.Id);
+				intent.putExtra(BrowserCemeteryActivity.EXTRA_TYPE, AddObjectActivity.ADD_CEMETERY);
+				startActivity(intent);
+			}
+		});
+	}
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.menu_monument_list, menu);
+		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+	    super.onOptionsItemSelected(item);
+	    switch (item.getItemId()) {
+		case R.id.action_settings:
+			actionSettings();
+			break;
+		case R.id.action_get:
+			mSyncTaskHandler.startGetCemetery();
+			mSyncTaskHandler.setOnSyncCompleteListener(new SyncCompleteListener() {				
+				@Override
+				public void onComplete(int type, TaskResult taskResult) {
+					updateCemeteryList();					
+				}
+			});
+			break;
+		case R.id.action_upload:
+			break;
+		}	    
+	    return true;
+	}
+	
+	private void actionSettings(){
+		Intent intent = new Intent(this, SettingsActivity.class);
+		startActivity(intent);
+	}
+	
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+	    //super.onCreateContextMenu(menu, v, menuInfo);
+	    //MenuInflater inflater = getMenuInflater();
+	    //inflater.inflate(R.menu.edit_context_menu, menu);
+		if (v.getId() == R.id.lvCemetery) {
+		    AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+		    Cemetery cemetery = (Cemetery) this.lvCemetery.getAdapter().getItem(info.position);
+		    MenuInflater inflater = getMenuInflater();
+		    inflater.inflate(R.menu.edit_context_menu, menu);
+		    menu.setHeaderTitle(cemetery.Name);
+		    mChoosedCemetery = cemetery;
+		}
+	}
+	
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+	    AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();	        
+	    switch (item.getItemId()) {
+	        case R.id.action_edit:
+	            actionCemeteryEdit(mChoosedCemetery);
+	            return true;
+	        case R.id.action_remove:
+	        	DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+		    	    @Override
+		    	    public void onClick(DialogInterface dialog, int which) {
+		    	        switch (which){
+		    	        case DialogInterface.BUTTON_POSITIVE:
+		    	        	MonumentDB.deleteCemetery(mChoosedCemetery.Id);
+		    	        	onResume();
+		    	            break;
+		    	        case DialogInterface.BUTTON_NEGATIVE:
+		    	            //do nothing
+		    	            break;
+		    	        }
+		    	    }
+		    	};	
+		    	AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		    	String titleConfirmDeleteDialog = String.format(getString(R.string.deleteItemQuestion), mChoosedCemetery.Name);
+		    	builder.setMessage(titleConfirmDeleteDialog).setPositiveButton(getString(R.string.yes), dialogClickListener)
+		    	    .setNegativeButton(getString(R.string.no), dialogClickListener).show();
+	            return true;
+	        default:
+	            return super.onContextItemSelected(item);
+	    }
+	}
+	
+	private void actionCemeteryEdit(Cemetery cemetery){
+		Intent intent = new Intent(this, AddObjectActivity.class);
+		intent.putExtra(AddObjectActivity.EXTRA_TYPE, AddObjectActivity.ADD_CEMETERY);
+		intent.putExtra(AddObjectActivity.EXTRA_EDIT, true);
+		intent.putExtra(AddObjectActivity.EXTRA_ID, cemetery.Id);		
+		startActivity(intent);
+	}
+	
+	
+	public class CemeteryGridAdapter extends BaseAdapter {
+		
+		private List<Cemetery> mItems;
+		
+        public CemeteryGridAdapter(List<Cemetery> items) {
+        	this.mItems = items;
+        }        
+
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+            	LayoutInflater inflater = (LayoutInflater) CemeteryListActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                convertView = inflater.inflate(R.layout.cemetery_item, parent, false);
+            }
+            TextView tvIndex = (TextView) convertView.findViewById(R.id.tvIndex);
+            TextView tvCemetery = (TextView) convertView.findViewById(R.id.tvCemetery);
+            String value = mItems.get(position).Name;
+            tvCemetery.setText(value);
+            tvIndex.setText(Integer.toString(position + 1));
+            return convertView;
+        }
+        
+        public final int getCount() {
+            return mItems.size();
+        }
+
+        public final Object getItem(int position) {
+            return mItems.get(position);
+        }
+
+        public final long getItemId(int position) {
+            return position;
+        }
+    }	
+
+}

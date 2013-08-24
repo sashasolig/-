@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Фотографии памятников</string>
+    <string name="action_settings">Настройки</string>
+    <string name="action_next_point">К след. могиле</string>
+    <string name="action_edit">Редактировать</string>
+    <string name="action_get">Загрузить</string>
+    <string name="action_upload">Отправить</string>
+    <string name="action_remove">Удалить</string>
+    <string name="settings_title">Настройки</string>
+    <string name="monument_info_title">Фотографии памятников</string>
+    
+    <string name="turnOnGPSQuestion">Для корректной работы программы вам необходимо включить GPS. Включить GPS?</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <string name="notDetectGPS">Еще не удалось определить координаты GPS. Подождите некоторое время, затем сделайте фотографию.(Для определения координат GPS вам необходимо выйти в открытое место)</string>
+    <string name="deleteSendedMonumentQuestion">Вы действительно хотите удалить все данные с телефона?</string>
+    <string name="deleteItemQuestion">Вы действительно хотите удалить %s?</string>
+    
+    <string name="serverStatusDefault">Для определения доступности сервера нажмите кнопку "Проверить".</string>
+    <string name="serverStatusUnavalaible">Сервер не доступен. Пожалуйста, проверьте соединение с интернетом.</string>
+    <string name="serverStatusLoginFailed">Логин или пароль неверны.</string>
+    <string name="serverStatusLoginSuccess">Авторизация прошла успешно</string>
+    <string name="serverAutorisationProggress">Идет процесс авторизации. Подождите...</string>
+</resources>

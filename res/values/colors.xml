@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ownerless_color">#FF0</color>
+    <color name="unused_grave_color">#FF0</color>
+    <color name="text_view_color">#FFF</color> 
+	<color name="white">#FF000000</color>
+	<color name="green">#FF00FF00</color>
+	<color name="black">#FF000000</color>
+	<color name="transparent">#00000000</color>
+	<color name="blue_light">#0008E8DE</color>
+	<color name="blue">#00ACE5EE</color>
+	<color name="blue_dark">#000247FE</color>
+	<color name="steel_blue">#4682B4</color>
+	<color name="light_steel_blue">#afeeee</color>
+	<color name="dark_steel_blue">#191970</color>
+	
+	<color name="table_header">#496b90</color>
+	<color name="tab_active_down">#86bbf3</color>
+	<color name="tab_active_up">#315173</color>
+	<color name="tab_inactive">#00000000</color>
+	<color name="clr_outle_inactive">#808080</color>
+	<color name="clr_visit_out_of_plan">#0000EE</color>
+	<color name="clr_outle_in_stop_list">#FF0000</color>
+	<color name="clr_outle">#8BA6CE</color>
+	
+	
+	<color name="clr_context_menu_item_disabled">#FF0000</color>
+	<color name="clr_context_menu_item_enabled">#FFFFFF</color>
+	
+	
+	<color name="button_focused_color_start">#7FA40E</color> 
+	<color name="button_focused_color_end">#79C83F</color> 
+	<color name="button_normal_color_start">#1f71df</color> 
+	<color name="button_normal_color_end">#619be9</color> 
+	<color name="button_pressed_color_start">#7FA40E</color> 
+	<color name="button_pressed_color_end">#79C83F</color>
+	<color name="button_disabled_color_start">#777777</color> 
+	<color name="button_disabled_color_end">#888888</color>  
+	<color name="White">#FFFFFF</color> 
+		
+</resources>

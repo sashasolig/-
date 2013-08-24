@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@drawable/monument_bg"
+    android:fadeScrollbars="false" >
+
+    <LinearLayout
+        style="@style/ThemeMobile"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:orientation="vertical"
+        android:padding="20dp">
+        
+        <!--  <LinearLayout android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/border"
+            android:padding="5dp" >
+-->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="20dp"
+            android:text="Имя пользователя:"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/etLogin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:ems="20"
+            android:inputType="textEmailAddress" >
+        </EditText>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="20dp"
+            android:layout_marginTop="20dp"
+            android:text="Пароль:"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/etPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:ems="20"
+            android:inputType="textPassword" />
+        
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="20dp"
+            android:layout_marginTop="20dp"
+            android:text="Aдрес сервера:"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/etServerAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:ems="20"
+            android:inputType="text" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="20dp"
+            android:layout_marginTop="10dp"
+            android:textSize="20sp"
+            android:text="Доступность сервера:"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="10dp">
+
+            <ImageView
+                android:id="@+id/ivStatusServer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:src="@drawable/status_server" />
+            
+            <TextView
+                android:id="@+id/tvStatusServer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:text="@string/serverStatusDefault" />
+            
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnCheck"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="10dp"
+            android:minWidth="270dp"
+            android:text="Проверить" />
+        
+   <!--       </LinearLayout>
+-->
+        <CheckBox
+            android:id="@+id/cbAutoSenverdPhotoToServer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Aвтоматически отправлять фотографии на сервер"
+            android:visibility="gone" />
+        
+        <CheckBox
+            android:id="@+id/cbAutoDownloadData"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Aвтоматическая загрузка данных" 
+            android:visibility="gone"/>
+        
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="20dp"
+            android:layout_marginTop="20dp"
+            android:text="Интервал времени обновления GPS(в сек.):"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/etGPSInterval"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:ems="20"
+            android:inputType="number" />
+        
+        <LinearLayout android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+        	<Button
+	            android:id="@+id/btnClearHistory"
+	            android:visibility="gone"
+	            android:layout_width="0dp"
+	            android:layout_height="fill_parent"
+	            android:layout_weight="1"
+	            android:layout_gravity="center"
+	            android:layout_margin="10dp"
+	            android:minWidth="270dp"
+	            android:drawableTop="@android:drawable/ic_menu_delete"
+	            android:text="Удалить все данные" />
+	        
+	        <Button
+	            android:id="@+id/btnSyncData"
+	            android:layout_width="0dp"
+	            android:layout_height="fill_parent"
+	            android:layout_weight="1"
+	            android:layout_gravity="center"
+	            android:layout_margin="10dp"
+	            android:minWidth="270dp"
+	            android:drawableTop="@android:drawable/ic_popup_sync"
+	            android:text="Загрузить данные с сервера" />
+	        
+	        <Button
+	            android:id="@+id/btnUploadData"
+	            android:layout_width="0dp"
+	            android:layout_height="fill_parent"
+	            android:layout_weight="1"
+	            android:layout_gravity="center"
+	            android:layout_margin="10dp"
+	            android:minWidth="270dp"
+	            android:drawableTop="@android:drawable/ic_popup_sync"
+	            android:text="Отправить данные на сервер" />
+	            
+        </LinearLayout>
+        
+        
+                
+    </LinearLayout>
+
+</ScrollView>

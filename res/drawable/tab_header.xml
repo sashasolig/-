@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--  Active tab -->
+	<item android:state_selected="true">
+		<layer-list>
+		    <item>
+		    	<shape>
+		        	<gradient 
+		             android:type="linear"
+		             android:startColor="@color/tab_active_up" 
+		             android:endColor="@color/tab_active_down" 
+		             android:angle="-90.0" />
+		        </shape>
+		    </item>
+		</layer-list>
+	</item>
+	<!--  Inactive tab -->
+	<item android:state_selected="false" android:state_focused="false" android:state_pressed="false">
+		<layer-list>
+		    <item>
+		    	<shape>
+		    	    <solid android:color="#00000000"/>
+		    	</shape>
+		    </item>
+		</layer-list>
+	</item>
+	<item android:state_focused="true">
+		<layer-list>
+		    <item>
+		    	<shape>
+		        	<gradient 
+		             android:type="linear"
+		             android:startColor="@color/tab_active_up" 
+		             android:endColor="@color/tab_active_down" 
+		             android:angle="-90.0" />
+		    	</shape>
+		    </item>
+		</layer-list>
+	</item>
+	<item android:state_pressed="true">
+		<layer-list>
+		    <item>
+		    	<shape>
+		        	<gradient 
+		             android:type="linear"
+		             android:startColor="@color/tab_active_up" 
+		             android:endColor="@color/tab_active_down" 
+		             android:angle="-90.0" />
+		    	</shape>
+		    </item>
+		</layer-list>
+	</item>
+</selector>
