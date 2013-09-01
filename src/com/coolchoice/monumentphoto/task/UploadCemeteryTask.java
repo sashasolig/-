@@ -60,7 +60,13 @@ public class UploadCemeteryTask extends BaseTask {
     	StringBuilder sbJSON = new StringBuilder();
         if (params.length == 1) {        	
         	List<Cemetery> cemeteryList = DB.dao(Cemetery.class).queryForEq("IsChanged", 1);
+        	result.setUploadCount(cemeteryList.size());
+        	int successCount = 0;
+        	int processedCount = 0;
+        	boolean isSuccessUpload = false;
         	for(Cemetery cem : cemeteryList){
+        		isSuccessUpload = false;
+        		processedCount++;
 	            try {
 	            	Dictionary<String, String> dictPostData = new Hashtable<String, String>();
 	            	dictPostData.put("cemeteryId", Integer.toString(cem.ServerId));
@@ -72,6 +78,8 @@ public class UploadCemeteryTask extends BaseTask {
 	            		result.setError(true);
 	            		result.setStatus(TaskResult.Status.HANDLE_ERROR);
 	            	}
+	            	successCount++;
+	            	isSuccessUpload = true;
 	            } catch (AuthorizationException e) {                
 	                result.setError(true);
 	                result.setStatus(TaskResult.Status.LOGIN_FAILED);
@@ -80,13 +88,15 @@ public class UploadCemeteryTask extends BaseTask {
 	                result.setError(true);
 	                result.setStatus(TaskResult.Status.HANDLE_ERROR);
 	            }
-	            DB.dao(Cemetery.class).refresh(cem);
-	            cem.IsChanged = 0;
-	            DB.dao(Cemetery.class).update(cem);
-        	}
-        	if(!result.isError()){
-        		DB.db().execManualSQL("update cemetery set IsChanged = 0;");
-        	}
+	            if(isSuccessUpload){
+		            DB.dao(Cemetery.class).refresh(cem);
+		            cem.IsChanged = 0;
+		            DB.dao(Cemetery.class).update(cem);
+	            }
+	            result.setUploadCountSuccess(successCount);
+	            result.setUploadCountError(processedCount - successCount);
+	            publishUploadProgress("Отправлено кладбищ: %d  из %d...", result);
+        	}        	
         }else{
         	throw new IllegalArgumentException("Needs 1 param: url");
         }

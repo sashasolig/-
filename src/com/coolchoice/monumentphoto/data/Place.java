@@ -14,6 +14,9 @@ public class Place extends BaseDTO {
 	@DatabaseField
 	public boolean IsOwnerLess;
 	
+	@DatabaseField
+	public String OldName;
+	
 	@DatabaseField(foreign = true, foreignAutoRefresh = false, index = true)
 	public Row Row;
 	

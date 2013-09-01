@@ -62,8 +62,14 @@ public class UploadRegionTask extends BaseTask {
         	for(Region region : regionList){
     			DB.dao(Cemetery.class).refresh(region.Cemetery);
     		}
+        	int successCount = 0;
+        	int processedCount = 0;
+        	result.setUploadCount(regionList.size());
+        	boolean isSuccessUpload = false;
         	for(Region region : regionList){
         		if(region.Cemetery == null) continue;
+        		processedCount++;
+        		isSuccessUpload = false;
 	            try {
 	            	Dictionary<String, String> dictPostData = new Hashtable<String, String>();
 	            	dictPostData.put("cemeteryId", Integer.toString(region.Cemetery.ServerId));
@@ -76,6 +82,8 @@ public class UploadRegionTask extends BaseTask {
 	            		result.setError(true);
 	            		result.setStatus(TaskResult.Status.HANDLE_ERROR);
 	            	}
+	            	successCount++;
+	            	isSuccessUpload = true;
 	            } catch (AuthorizationException e) {                
 	                result.setError(true);
 	                result.setStatus(TaskResult.Status.LOGIN_FAILED);
@@ -84,12 +92,14 @@ public class UploadRegionTask extends BaseTask {
 	                result.setError(true);
 	                result.setStatus(TaskResult.Status.HANDLE_ERROR);
 	            }
-	            DB.dao(Region.class).refresh(region);
-	            region.IsChanged = 0;
-	            DB.dao(Region.class).update(region);
-        	}
-        	if(!result.isError()){
-        		DB.db().execManualSQL("update region set IsChanged = 0;");
+	            if(isSuccessUpload){
+		            DB.dao(Region.class).refresh(region);
+		            region.IsChanged = 0;
+		            DB.dao(Region.class).update(region);
+	            }
+	            result.setUploadCountSuccess(successCount);
+	            result.setUploadCountError(processedCount - successCount);
+	            publishUploadProgress("Отправлено участков: %d  из %d...", result);
         	}
         }else{
         	throw new IllegalArgumentException("Needs 1 param: url");

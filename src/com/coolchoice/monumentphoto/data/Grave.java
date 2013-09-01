@@ -17,5 +17,8 @@ public class Grave extends BaseDTO {
 	
 	@ForeignCollectionField
 	public Collection<GPSGrave> GPSGraveList;
+	
+	@ForeignCollectionField
+	public Collection<Burial> BurialList;
 
 }

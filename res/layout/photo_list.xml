@@ -79,6 +79,19 @@
                 android:layout_height="wrap_content"
                 android:text="  Бесхозное место"
                 android:textSize="@dimen/header_text_size" />
+    
+    <TextView
+        		android:layout_marginLeft="10dp"
+        		android:layout_marginRight="10dp"
+        		android:textColor="@color/ownerless_color"
+        		android:id="@+id/tvPersons"
+        		android:padding="5dp"
+        		android:singleLine="false"
+        		android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="ФИО: Дата захоранения:"
+                android:textSize="@dimen/header_text_size"
+                android:background="@drawable/border" />
 
     <GridView        
         android:id="@+id/gvPhotos"

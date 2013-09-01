@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -37,6 +39,7 @@ import org.json.JSONTokener;
 import com.coolchoice.monumentphoto.Settings;
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.data.BaseDTO;
+import com.coolchoice.monumentphoto.data.Burial;
 import com.coolchoice.monumentphoto.data.Cemetery;
 import com.coolchoice.monumentphoto.data.Grave;
 import com.coolchoice.monumentphoto.data.GravePhoto;
@@ -45,6 +48,7 @@ import com.coolchoice.monumentphoto.data.Place;
 import com.coolchoice.monumentphoto.data.Region;
 import com.coolchoice.monumentphoto.data.Row;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
+import com.j256.ormlite.stmt.DeleteBuilder;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.UpdateBuilder;
 
@@ -61,6 +65,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     AsyncTaskProgressListener progressListener;
     AsyncTaskCompleteListener<TaskResult> callback;
     Context mainContext;
+    TaskResult mTaskResult;
     protected String mTaskName = null;
     public static final String ARG_CEMETERY_ID = "cemeteryId";
     public static final String ARG_AREA_ID = "areaId";
@@ -77,6 +82,14 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         callback = cb;
         progressListener = pl;
         init();
+    }
+    
+    public TaskResult getTaskResult(){
+    	return mTaskResult;
+    }
+    
+    public void setTaskResult(TaskResult result){
+    	this.mTaskResult = result;
     }
     
     public String getTaskName(){
@@ -103,6 +116,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 
     @Override
     protected void onPostExecute(TaskResult result) {
+    	this.mTaskResult = result;
     	if(callback!=null) callback.onTaskComplete(this, result);
     }
     
@@ -111,6 +125,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     	TaskResult result = new TaskResult();
     	result.setError(true);
     	result.setStatus(TaskResult.Status.CANCEL_TASK);
+    	this.mTaskResult = result;
     	if(callback!=null) callback.onTaskComplete(this, result);
     }
     
@@ -118,6 +133,11 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     	if(this.isCancelled()){
     		throw new CancelTaskException();
     	}
+    }
+    
+    protected void publishUploadProgress(String formatString, TaskResult taskResult){
+    	String progress = String.format(formatString, taskResult.getUploadCountSuccess(), taskResult.getUploadCount());
+    	publishProgress(progress);
     }
     
     protected String getJSON(String url) throws ClientProtocolException, IOException, AuthorizationException{
@@ -225,12 +245,26 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	Cemetery cemetery = cemeteryList.get(i);
         	RuntimeExceptionDao<Cemetery, Integer> dao = DB.dao(Cemetery.class);
 			QueryBuilder<Cemetery, Integer> builder = dao.queryBuilder();
-			builder.where().eq("ServerId", cemetery.ServerId); //.and().eq("Name", cemetery.Name);
+			builder.where().eq("ServerId", cemetery.ServerId); 
 			List<Cemetery> findedCemeteries = dao.query(builder.prepare());
-			if(findedCemeteries.size() == 1){
-				cemetery.Id = findedCemeteries.get(0).Id;
+			Cemetery findedCemetery = null;
+			if(findedCemeteries.size() > 0){
+				findedCemetery = findedCemeteries.get(0);
+				cemetery.Id = findedCemetery.Id;
+				if(findedCemetery.IsChanged == 0){
+					dao.createOrUpdate(cemetery);
+				}
+			} else {
+				builder = dao.queryBuilder();
+				builder.where().eq("Name", cemetery.Name);
+				findedCemeteries = dao.query(builder.prepare());
+				if(findedCemeteries.size() > 0){
+					findedCemetery = findedCemeteries.get(0);
+					cemetery.Id = findedCemetery.Id;					
+				}
+				dao.createOrUpdate(cemetery);
 			}
-			dao.createOrUpdate(cemetery);
+			
         }    
 	}
 	
@@ -278,10 +312,16 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	QueryBuilder<Region, Integer> builder = dao.queryBuilder();
 			builder.where().eq("ServerId", region.ServerId); //.and().eq("Name", region.Name);
 			List<Region> findedRegions = dao.query(builder.prepare());
-			if(findedRegions.size() == 1){
+			Region findedRegion = null;
+			if(findedRegions.size() > 0){
+				findedRegion = findedRegions.get(0);
 				region.Id = findedRegions.get(0).Id;
-			}
-			dao.createOrUpdate(region);
+				if(findedRegion.IsChanged == 0){
+					dao.createOrUpdate(region);
+				}
+			} else {
+				dao.createOrUpdate(region);
+			}			
         }
 	}
 	
@@ -308,7 +348,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         }
 	}
 	
-	private ArrayList<Place> parsePlaceJSON(String placeJSON, ArrayList<Integer> unownedPlaceServerIdList) throws Exception {	
+	private ArrayList<Place> parsePlaceJSON(String placeJSON, ArrayList<Integer> unownedPlaceServerIdList, ArrayList<Integer> ownedPlaceServerIdList) throws Exception {	
 		JSONTokener tokener = new JSONTokener(placeJSON);
         JSONArray jsonArray = new JSONArray(tokener);
         ArrayList<Place> placeList = new ArrayList<Place>();
@@ -320,13 +360,22 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	if(modelName.equalsIgnoreCase("burials.placestatus")){
         		JSONObject fieldsPlaceStatus = jsonObj.getJSONObject("fields");
         		int placeServerId = fieldsPlaceStatus.getInt("place");
-        		unownedPlaceServerIdList.add(placeServerId);
+        		String status = fieldsPlaceStatus.getString("status");
+        		if((status != null) && status.equalsIgnoreCase("found-unowned")){
+        			unownedPlaceServerIdList.add(placeServerId);
+        		} else {
+        			ownedPlaceServerIdList.add(placeServerId);
+        		}
         		continue;
         	}
         	Place place = new Place();
         	place.ServerId = jsonObj.getInt("pk");
         	JSONObject fields = jsonObj.getJSONObject("fields");
         	place.Name = fields.getString("place");
+        	place.OldName = fields.getString("oldplace");
+        	if((place.OldName != null) && (place.OldName.equalsIgnoreCase("null"))){
+        		place.OldName = null;
+        	}
         	int regionServerId = fields.getInt("area");
         	String rowName = fields.getString("row");
         	if(rowName == null || rowName.equalsIgnoreCase("") ){
@@ -351,7 +400,8 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 	
 	public void handleResponseGetPlaceJSON(String placeJSON) throws Exception {
 		ArrayList<Integer> unownedPlaceServerIdList = new ArrayList<Integer>();
-		ArrayList<Place> placeList = parsePlaceJSON(placeJSON, unownedPlaceServerIdList);
+		ArrayList<Integer> ownedPlaceServerIdList = new ArrayList<Integer>();
+		ArrayList<Place> placeList = parsePlaceJSON(placeJSON, unownedPlaceServerIdList, ownedPlaceServerIdList);
 		RuntimeExceptionDao<Place, Integer> placeDAO = DB.dao(Place.class);
         for(int i = 0; i < placeList.size(); i++){
         	checkIsCancelTask();
@@ -367,57 +417,74 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 			builder.where().eq("ServerId", place.ServerId);
 			List<Place> findedPlace = placeDAO.query(builder.prepare());
 			Place dbPlace = null;
+			boolean isChangePlaceOnClient = false;
 			if(findedPlace.size() == 1){
 				dbPlace = findedPlace.get(0);
-			}
-			if(dbPlace != null){
-				//update place
-				if(dbPlace.Row != null){
-					rowDAO.refresh(dbPlace.Row);
-					if(place.Row != null){
-						dbPlace.Row.Region = null;
-						dbPlace.Row.ParentServerId = place.Row.ParentServerId;
-						dbPlace.Row.Name = place.Row.Name;
-						dbPlace.Name = place.Name;
-						dbPlace.IsOwnerLess = place.IsOwnerLess;
-						rowDAO.update(dbPlace.Row);
-						placeDAO.update(dbPlace);
-					} else {
-						dbPlace.Row = null;
-						dbPlace.ParentServerId = place.ParentServerId;
-						dbPlace.Name = place.Name;
-						dbPlace.IsOwnerLess = place.IsOwnerLess;
-						placeDAO.update(dbPlace);
-					}
+				if(dbPlace.IsChanged == 1){
+					isChangePlaceOnClient = true;
 				} else {
-					regionDAO.refresh(dbPlace.Region);
-					if(place.Row != null){
-						dbPlace.Region = null;
-						dbPlace.ParentServerId = BaseDTO.INT_NULL_VALUE;
-						dbPlace.Name = place.Name;
-						dbPlace.IsOwnerLess = place.IsOwnerLess;
-						dbPlace.Row = new Row();
-						dbPlace.Row.Name = place.Row.Name;
-						dbPlace.Row.ParentServerId = place.Row.ParentServerId;
-						rowDAO.create(dbPlace.Row);
-						placeDAO.update(dbPlace);
-					} else {
-						dbPlace.Region = null;
-						dbPlace.ParentServerId = place.ParentServerId;
-						dbPlace.Name = place.Name;
-						dbPlace.IsOwnerLess = place.IsOwnerLess;
-						placeDAO.update(dbPlace);
+					if(dbPlace.Row != null){
+						rowDAO.refresh(dbPlace.Row);
+						if(dbPlace.Row.IsChanged == 1){
+							isChangePlaceOnClient = true;
+						}
 					}
 				}
-			} else{
-				//insert place
-				if(place.Row != null){
-	        		rowDAO.create(place.Row);
-	        		placeDAO.create(place);
-	        	} else {
-	        		placeDAO.create(place);
-	        	}	
-			}        		        			
+			}
+			if(!isChangePlaceOnClient){
+				if(dbPlace != null){
+					//update place
+					if(dbPlace.Row != null){
+						rowDAO.refresh(dbPlace.Row);
+						if(place.Row != null){
+							dbPlace.Row.Region = null;
+							dbPlace.Row.ParentServerId = place.Row.ParentServerId;
+							dbPlace.Row.Name = place.Row.Name;
+							dbPlace.Name = place.Name;
+							dbPlace.OldName = place.OldName;
+							dbPlace.IsOwnerLess = place.IsOwnerLess;
+							rowDAO.update(dbPlace.Row);
+							placeDAO.update(dbPlace);
+						} else {
+							dbPlace.Row = null;
+							dbPlace.ParentServerId = place.ParentServerId;
+							dbPlace.Name = place.Name;
+							dbPlace.OldName = place.OldName;
+							dbPlace.IsOwnerLess = place.IsOwnerLess;
+							placeDAO.update(dbPlace);
+						}
+					} else {
+						regionDAO.refresh(dbPlace.Region);
+						if(place.Row != null){
+							dbPlace.Region = null;
+							dbPlace.ParentServerId = BaseDTO.INT_NULL_VALUE;
+							dbPlace.Name = place.Name;
+							dbPlace.OldName = place.OldName;
+							dbPlace.IsOwnerLess = place.IsOwnerLess;
+							dbPlace.Row = new Row();
+							dbPlace.Row.Name = place.Row.Name;
+							dbPlace.Row.ParentServerId = place.Row.ParentServerId;
+							rowDAO.create(dbPlace.Row);
+							placeDAO.update(dbPlace);
+						} else {
+							dbPlace.Region = null;
+							dbPlace.ParentServerId = place.ParentServerId;
+							dbPlace.Name = place.Name;
+							dbPlace.OldName = place.OldName;
+							dbPlace.IsOwnerLess = place.IsOwnerLess;
+							placeDAO.update(dbPlace);
+						}
+					}
+				} else{
+					//insert place
+					if(place.Row != null){
+		        		rowDAO.create(place.Row);
+		        		placeDAO.create(place);
+		        	} else {
+		        		placeDAO.create(place);
+		        	}	
+				}
+			}
         }
         
         for(int placeServerId : unownedPlaceServerIdList){
@@ -426,11 +493,18 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     		updateBuilder.where().eq("ServerId", placeServerId);
     		placeDAO.update(updateBuilder.prepare());
         }
+        for(int placeServerId : ownedPlaceServerIdList){
+        	UpdateBuilder<Place, Integer> updateBuilder = placeDAO.updateBuilder();
+    		updateBuilder.updateColumnValue(Place.IsOwnerLessColumnName, false);
+    		updateBuilder.where().eq("ServerId", placeServerId);
+    		placeDAO.update(updateBuilder.prepare());
+        }
 	}
 	
 	public void handleResponseUploadPlaceJSON(String placeJSON) throws Exception {
 		ArrayList<Integer> unownedPlaceServerIdList = new ArrayList<Integer>();
-		ArrayList<Place> placeList = parsePlaceJSON(placeJSON, unownedPlaceServerIdList);
+		ArrayList<Integer> ownedPlaceServerIdList = new ArrayList<Integer>();
+		ArrayList<Place> placeList = parsePlaceJSON(placeJSON, unownedPlaceServerIdList, ownedPlaceServerIdList);
         for(int i = 0; i < placeList.size(); i++){
         	Place place = placeList.get(i);
         	RuntimeExceptionDao<Place, Integer> placeDAO = DB.dao(Place.class);
@@ -520,11 +594,18 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	RuntimeExceptionDao<Grave, Integer> graveDAO = DB.dao(Grave.class);
         	QueryBuilder<Grave, Integer> builder = graveDAO.queryBuilder();
 			builder.where().eq("ServerId", grave.ServerId); //.and().eq("Name", grave.Name);
-			List<Grave> findedGrave = graveDAO.query(builder.prepare());
-			if(findedGrave.size() == 1){
-				grave.Id = findedGrave.get(0).Id;
-			}     			
-			graveDAO.createOrUpdate(grave);
+			List<Grave> findedGraves = graveDAO.query(builder.prepare());
+			Grave findedGrave = null;
+			if(findedGraves.size() > 0){
+				findedGrave = findedGraves.get(0);
+				grave.Id = findedGraves.get(0).Id;
+				if(findedGrave.IsChanged == 0){
+					graveDAO.createOrUpdate(grave);
+				}
+			} else {
+				graveDAO.createOrUpdate(grave);
+			}
+			
         }
 	}
 	
@@ -554,5 +635,77 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 			}     			
 			
         }
+	}
+	
+	private ArrayList<Burial> parseBurialJSON(String burialJSON, ArrayList<Burial> persons) throws Exception {	
+		JSONTokener tokener = new JSONTokener(burialJSON);
+        JSONArray jsonArray = new JSONArray(tokener);
+        ArrayList<Burial> burialList = new ArrayList<Burial>();
+        String modelName;
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        for(int i = 0; i < jsonArray.length(); i++){
+        	checkIsCancelTask();
+        	Burial burial = new Burial();
+        	JSONObject jsonObj = jsonArray.getJSONObject(i);
+        	modelName = jsonObj.getString("model");
+        	if(modelName.equalsIgnoreCase("persons.baseperson")){
+        		burial.DeadManId = jsonObj.getInt("pk");
+        		JSONObject fieldsPlaceStatus = jsonObj.getJSONObject("fields");
+        		burial.FName = fieldsPlaceStatus.getString("first_name");
+        		burial.LName = fieldsPlaceStatus.getString("last_name");
+        		burial.MName = fieldsPlaceStatus.getString("middle_name");
+        		persons.add(burial);
+        		continue;
+        	}
+        	burial.ServerId = jsonObj.getInt("pk");
+        	JSONObject fields = jsonObj.getJSONObject("fields");
+        	burial.ParentServerId = fields.getInt("grave");
+        	try {
+        		burial.DeadManId = fields.getInt("deadman");
+        	}catch(Exception exc){
+        		burial.DeadManId = BaseDTO.INT_NULL_VALUE;
+        	}
+        	String factDateString = fields.getString("fact_date");
+        	try {
+                burial.FactDate = dateFormat.parse(factDateString);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }        	
+        	burialList.add(burial);    	
+        }
+        return burialList;
+	}
+	
+	public void handleResponseGetBurialJSON(String burialJSON) throws Exception {
+		ArrayList<Burial> persons = new ArrayList<Burial>();
+		ArrayList<Burial> burialList = parseBurialJSON(burialJSON, persons);                
+        for(int i = 0; i < burialList.size(); i++){
+        	checkIsCancelTask();
+        	Burial burial = burialList.get(i);
+        	RuntimeExceptionDao<Burial, Integer> burialDAO = DB.dao(Burial.class);
+        	QueryBuilder<Burial, Integer> builder = burialDAO.queryBuilder();
+        	
+        	DeleteBuilder<Burial, Integer> deleteBuilder = burialDAO.deleteBuilder();
+        	deleteBuilder.where().eq("ParentServerId", burial.ParentServerId).and().isNotNull("Grave_id");
+        	burialDAO.delete(deleteBuilder.prepare());
+        	
+			burialDAO.create(burial);			
+        }
+        for(int i = 0; i < persons.size(); i++){
+        	checkIsCancelTask();
+        	Burial person = persons.get(i);
+        	RuntimeExceptionDao<Burial, Integer> burialDAO = DB.dao(Burial.class);
+        	QueryBuilder<Burial, Integer> builder = burialDAO.queryBuilder();
+        	builder.where().eq("DeadManId", person.DeadManId);
+        	List<Burial> findedBurials = burialDAO.query(builder.prepare());
+        	for(int j = 0; j < findedBurials.size(); j++){
+        		Burial burial = findedBurials.get(j);
+        		burial.FName = person.FName;
+        		burial.LName = person.LName;
+        		burial.MName = person.MName;
+        		burialDAO.update(burial);
+        	}
+        }
+        
 	}
 }

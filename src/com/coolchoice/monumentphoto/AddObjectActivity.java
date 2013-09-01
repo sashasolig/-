@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import com.coolchoice.monumentphoto.R.id;
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.dal.MonumentDB;
 import com.coolchoice.monumentphoto.data.Cemetery;
@@ -31,6 +32,7 @@ import com.coolchoice.monumentphoto.task.LoginTask;
 import com.coolchoice.monumentphoto.task.TaskResult;
 import com.coolchoice.monumentphoto.task.UploadPhotoTask;
 import com.j256.ormlite.stmt.PreparedQuery;
+import com.j256.ormlite.stmt.QueryBuilder;
 
 import android.R.bool;
 import android.app.Activity;
@@ -80,11 +82,15 @@ public class AddObjectActivity extends Activity implements LocationListener {
 	public static final int ADD_GRAVE_WITHROW = MASK_CEMETERY | MASK_REGION | MASK_ROW | MASK_PLACE | MASK_GRAVE;
 	public static final int ADD_GRAVE_WITHOUTROW = MASK_CEMETERY | MASK_REGION | MASK_PLACE | MASK_GRAVE;
 		
-	private EditText etCemetery, etRegion, etRow, etPlace, etGrave; 
+	private EditText etCemetery, etRegion, etRow, etPlace, etGrave, etOldPlace; 
 	
 	private CheckBox cbOwnerLess;
 	
 	private LinearLayout llCemetery, llRegion, llRow, llPlace, llGrave, llSave;
+	
+	private Button btnNewToOldPlace;
+	
+	private LinearLayout llOldPlace;
 	
 	private LinearLayout editLL;
 	
@@ -122,6 +128,7 @@ public class AddObjectActivity extends Activity implements LocationListener {
 		this.etRegion = (EditText) findViewById(R.id.etRegion);
 		this.etRow = (EditText) findViewById(R.id.etRow);
 		this.etPlace = (EditText) findViewById(R.id.etPlace);
+		this.etOldPlace = (EditText) findViewById(R.id.etOldPlace);
 		this.cbOwnerLess = (CheckBox) findViewById(R.id.cbIsOwnerLess);
 		this.etGrave = (EditText) findViewById(R.id.etGrave);
 		this.llCemetery = (LinearLayout) findViewById(R.id.llCemetery);
@@ -132,6 +139,9 @@ public class AddObjectActivity extends Activity implements LocationListener {
 		this.btnSave = (Button) findViewById(R.id.btnSave);
 		this.btnCancel = (Button) findViewById(R.id.btnCancel);
 		
+		this.llOldPlace = (LinearLayout) findViewById(R.id.llOldPlace);
+		this.btnNewToOldPlace = (Button) findViewById(R.id.btnNewToOldPlace);
+				
 		this.llGPS = (LinearLayout) findViewById(R.id.llGPS);
 		this.lvGPS = (ListView) findViewById(R.id.lvGPS);
 		this.btnAddGPS = (Button) findViewById(R.id.btnAddGPS);
@@ -235,6 +245,27 @@ public class AddObjectActivity extends Activity implements LocationListener {
 		}
 		mWaitGPSHandler.checkWaitGPS(this);
 		
+		if(Settings.IsOldPlaceNameOption(this)){
+			this.llOldPlace.setVisibility(View.VISIBLE);
+			if(this.etOldPlace.getText().toString() != ""){
+				this.btnNewToOldPlace.setEnabled(true);
+			} else {
+				this.btnNewToOldPlace.setEnabled(false);
+			}
+		} else {
+			this.llOldPlace.setVisibility(View.GONE);
+		}
+		this.btnNewToOldPlace.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				String placeName = etPlace.getText().toString();
+				String oldPlaceName = etOldPlace.getText().toString();
+				etOldPlace.setText(placeName);
+				etPlace.setText(oldPlaceName);				
+			}
+		});
+		
 	}
 	
 	@Override
@@ -333,6 +364,7 @@ public class AddObjectActivity extends Activity implements LocationListener {
 		}
 		if(complexGrave.Place != null){
 			this.etPlace.setText(complexGrave.Place.Name);
+			this.etOldPlace.setText(complexGrave.Place.OldName);
 			this.cbOwnerLess.setChecked(complexGrave.Place.IsOwnerLess);
 		} else {
 			this.etPlace.setText(null);
@@ -439,15 +471,40 @@ public class AddObjectActivity extends Activity implements LocationListener {
 		}
 	}
 
+	private boolean checkCemeteryName(String newCemeteryName, int curCemeteryId){
+		if(newCemeteryName == null || newCemeteryName.equals("")){
+			return false;
+		}
+		QueryBuilder<Cemetery, Integer> builder = DB.dao(Cemetery.class).queryBuilder();
+		try {
+			builder.where().eq("Name", newCemeteryName).and().ne("Id", curCemeteryId);
+			List<Cemetery> findedCemeteries = DB.dao(Cemetery.class).query(builder.prepare());
+			if(findedCemeteries.size() > 0){
+				return false;
+			}
+		} catch (SQLException e) {					
+			e.printStackTrace();
+		}
+		return true;
+	}
+	
 	private boolean saveCemetery(){
+		boolean isCheck = checkCemeteryName(etCemetery.getText().toString(), this.mId);
+		if(!isCheck){
+			return false;
+		}
 		if(mId >= 0){
 			// update
 			MonumentDB monumentDB = new MonumentDB();
 			Cemetery cemetery = DB.dao(Cemetery.class).queryForId(mId);
 			String oldCemeteryName = cemetery.Name;
-			cemetery.Name = etCemetery.getText().toString();
-			DB.dao(Cemetery.class).update(cemetery);
-			ComplexGrave.renameCemetery(cemetery, oldCemeteryName);
+			String newCemeteryName = etCemetery.getText().toString();
+			if(oldCemeteryName != newCemeteryName) {
+				cemetery.Name = newCemeteryName;
+				cemetery.IsChanged = 1;
+				DB.dao(Cemetery.class).update(cemetery);
+				ComplexGrave.renameCemetery(cemetery, oldCemeteryName);				
+			}			
 			
 			List<GPSCemetery> deletedGPS = DB.dao(GPSCemetery.class).queryForEq("Cemetery_id", cemetery.Id);
 			DB.dao(GPSCemetery.class).delete(deletedGPS);
@@ -457,8 +514,8 @@ public class AddObjectActivity extends Activity implements LocationListener {
 			//create
 			Cemetery cemetery = new Cemetery();
 			cemetery.Name = etCemetery.getText().toString();
-			DB.dao(Cemetery.class).create(cemetery);
-			saveGPSCemetery(cemetery);
+			cemetery.IsChanged = 1;
+			DB.dao(Cemetery.class).create(cemetery);			
 		}
 		return true;
 	}
@@ -473,16 +530,47 @@ public class AddObjectActivity extends Activity implements LocationListener {
 		}
 	}
 	
+	private boolean checkRegionName(Cemetery cemetery, String newRegionName, int curRegionId){
+		if(newRegionName == null || newRegionName.equals("")){
+			return false;
+		}
+		QueryBuilder<Region, Integer> builder = DB.dao(Region.class).queryBuilder();
+		try {
+			builder.where().eq("Cemetery_id", cemetery.Id).and().eq("Name", newRegionName).and().ne("Id", curRegionId);
+			List<Region> findedRegions = DB.dao(Region.class).query(builder.prepare());
+			if(findedRegions.size() > 0){
+				return false;
+			}
+		} catch (SQLException e) {					
+			e.printStackTrace();
+		}
+		return true;
+	}
+	
 	private boolean saveRegion(){
-		Cemetery cemetery = DB.dao(Cemetery.class).queryForId(this.mParentId);
+		Cemetery cemetery = null;
+		if(mId >= 0){
+			Region region = DB.dao(Region.class).queryForId(mId);
+			cemetery = region.Cemetery;
+		} else {
+			cemetery = DB.dao(Cemetery.class).queryForId(this.mParentId);
+		}		
+		boolean isCheck = checkRegionName(cemetery, etRegion.getText().toString(), this.mId);
+		if(!isCheck){
+			return false;
+		}
 		if(mId >= 0){
 			// update
 			MonumentDB monumentDB = new MonumentDB();
 			Region region = DB.dao(Region.class).queryForId(mId);
 			String oldRegionName = region.Name;
-			region.Name = etRegion.getText().toString();
-			DB.dao(Region.class).update(region);
-			ComplexGrave.renameRegion(region, oldRegionName);
+			String newRegionName = etRegion.getText().toString();
+			if(oldRegionName != newRegionName){
+				region.Name = newRegionName;
+				region.IsChanged = 1;
+				DB.dao(Region.class).update(region);
+				ComplexGrave.renameRegion(region, oldRegionName);
+			}
 			
 			List<GPSRegion> deletedGPS = DB.dao(GPSRegion.class).queryForEq("Region_id", region.Id);
 			DB.dao(GPSRegion.class).delete(deletedGPS);
@@ -492,6 +580,7 @@ public class AddObjectActivity extends Activity implements LocationListener {
 			Region region = new Region();
 			region.Cemetery = cemetery;
 			region.Name = etRegion.getText().toString();
+			region.IsChanged = 1;
 			DB.dao(Region.class).create(region);
 			saveGPSRegion(region);
 		}
@@ -507,18 +596,49 @@ public class AddObjectActivity extends Activity implements LocationListener {
 			DB.dao(GPSRegion.class).create(gpsRegion);
 		}
 	}
-
+	
+	private boolean checkRowName(Region region, String newRowName, int curRowId){
+		if(newRowName == null || newRowName.equals("")){
+			return false;
+		}
+		QueryBuilder<Row, Integer> builder = DB.dao(Row.class).queryBuilder();
+		try {
+			builder.where().eq("Region_id", region.Id).and().eq("Name", newRowName).and().ne("Id", curRowId);
+			List<Row> findedRows = DB.dao(Row.class).query(builder.prepare());
+			if(findedRows.size() > 0){
+				return false;
+			}
+		} catch (SQLException e) {					
+			e.printStackTrace();
+		}
+		return true;
+	}
+	
 	private boolean saveRow(){
-		Region region = DB.dao(Region.class).queryForId(this.mParentId);
+		Region region = null;
+		if(mId >= 0){
+			Row row = DB.dao(Row.class).queryForId(mId);
+			region = row.Region;
+		} else {
+			region = DB.dao(Region.class).queryForId(this.mParentId);
+		}		
+		boolean isCheck = checkRowName(region, etRow.getText().toString(), this.mId);
+		if(!isCheck){
+			return false;
+		}
 		if(mId >= 0){
 			// update
 			MonumentDB monumentDB = new MonumentDB();
 			Row row = DB.dao(Row.class).queryForId(mId);
 			String oldRowName = row.Name;
-			row.Name = etRow.getText().toString();
-			DB.dao(Row.class).update(row);
-			ComplexGrave.renameRow(row, oldRowName);
-			
+			String newRowName = etRow.getText().toString();
+			if(oldRowName != newRowName){
+				row.Name = newRowName;
+				row.IsChanged = 1;
+				DB.dao(Row.class).update(row);
+				ComplexGrave.renameRow(row, oldRowName);
+			}
+						
 			List<GPSRow> deletedGPS = DB.dao(GPSRow.class).queryForEq("Row_id", row.Id);
 			DB.dao(GPSRow.class).delete(deletedGPS);
 			saveGPSRow(row);
@@ -527,6 +647,7 @@ public class AddObjectActivity extends Activity implements LocationListener {
 			Row row = new Row();
 			row.Region = region;
 			row.Name = etRow.getText().toString();
+			row.IsChanged = 1;
 			DB.dao(Row.class).create(row);
 			saveGPSRow(row);
 		}
@@ -543,17 +664,60 @@ public class AddObjectActivity extends Activity implements LocationListener {
 		}
 	}
 	
+	private boolean checkPlaceName(Region region, Row row, String newPlaceName, int curPlaceId){
+		if(newPlaceName == null || newPlaceName.equals("")){
+			return false;
+		}
+		QueryBuilder<Place, Integer> builder = DB.dao(Place.class).queryBuilder();
+		try {
+			if(row != null){
+				builder.where().eq("Row_id", row.Id).and().eq("Name", newPlaceName).and().ne("Id", curPlaceId);
+			} else {
+				builder.where().eq("Region_id", region.Id).and().eq("Name", newPlaceName).and().ne("Id", curPlaceId);
+			}
+			List<Place> findedPlaces = DB.dao(Place.class).query(builder.prepare());
+			if(findedPlaces.size() > 0){
+				return false;
+			}
+		} catch (SQLException e) {					
+			e.printStackTrace();
+		}
+		return true;
+	}
+	
 	private boolean savePlaceWithRow(){
-		Row row = DB.dao(Row.class).queryForId(this.mParentId);
+		Row row = null;
+		if(mId >= 0){
+			Place place = DB.dao(Place.class).queryForId(mId);
+			row = place.Row;
+		} else {
+			row = DB.dao(Row.class).queryForId(this.mParentId);
+		}		
+		boolean isCheck = checkPlaceName(null, row, etPlace.getText().toString(), this.mId);
+		if(!isCheck){
+			return false;
+		}
 		if(mId >= 0){
 			// update
 			MonumentDB monumentDB = new MonumentDB();
 			Place place = DB.dao(Place.class).queryForId(mId);
-			String oldPlaceName = place.Name;
-			place.Name = etPlace.getText().toString();
-			place.IsOwnerLess = cbOwnerLess.isChecked();
-			DB.dao(Place.class).update(place);
-			ComplexGrave.renamePlace(place, oldPlaceName);
+			String dbPlaceName = place.Name;
+			String dbOldPlaceName = place.OldName;
+			if(dbOldPlaceName == null) {
+				dbOldPlaceName = "";
+			}
+			boolean dbIsOwnerLess = place.IsOwnerLess;
+			String placeName = etPlace.getText().toString();
+			String oldPlaceName = etOldPlace.getText().toString();
+			boolean isOwnerLess = cbOwnerLess.isChecked();
+			if(dbPlaceName != placeName || dbIsOwnerLess != isOwnerLess || dbOldPlaceName != oldPlaceName){
+				place.Name = placeName;
+				place.OldName = oldPlaceName;
+				place.IsOwnerLess = isOwnerLess;
+				place.IsChanged = 1;
+				DB.dao(Place.class).update(place);
+				ComplexGrave.renamePlace(place, dbPlaceName);
+			}
 			
 			List<GPSPlace> deletedGPS = DB.dao(GPSPlace.class).queryForEq("Place_id", place.Id);
 			DB.dao(GPSPlace.class).delete(deletedGPS);
@@ -563,7 +727,9 @@ public class AddObjectActivity extends Activity implements LocationListener {
 			place.Row = row;
 			place.Region = null;
 			place.Name = etPlace.getText().toString();
+			place.OldName = etOldPlace.getText().toString();
 			place.IsOwnerLess = cbOwnerLess.isChecked();
+			place.IsChanged = 1;
 			DB.dao(Place.class).create(place);
 			saveGPSPlace(place);
 		}
@@ -571,16 +737,38 @@ public class AddObjectActivity extends Activity implements LocationListener {
 	}
 	
 	private boolean savePlaceWithoutRow(){
-		Region region = DB.dao(Region.class).queryForId(this.mParentId);
+		Region region = null;
+		if(mId >= 0){
+			Place place = DB.dao(Place.class).queryForId(mId);
+			region = place.Region;
+		} else {
+			region = DB.dao(Region.class).queryForId(this.mParentId);
+		}		
+		boolean isCheck = checkPlaceName(region, null, etPlace.getText().toString(), this.mId);
+		if(!isCheck){
+			return false;
+		}
 		if(mId >= 0){
 			// update
 			MonumentDB monumentDB = new MonumentDB();
 			Place place = DB.dao(Place.class).queryForId(mId);
-			String oldPlaceName = place.Name;
-			place.Name = etPlace.getText().toString();
-			place.IsOwnerLess = cbOwnerLess.isChecked();
-			DB.dao(Place.class).update(place);
-			ComplexGrave.renamePlace(place, oldPlaceName);
+			String dbPlaceName = place.Name;
+			String dbOldPlaceName = place.OldName;
+			if(dbOldPlaceName == null){
+				dbOldPlaceName = "";
+			}
+			boolean dbIsOwnerLess = place.IsOwnerLess;
+			String placeName = etPlace.getText().toString();
+			String oldPlaceName = etOldPlace.getText().toString();
+			boolean isOwnerLess = cbOwnerLess.isChecked();
+			if(dbPlaceName != placeName || dbIsOwnerLess != isOwnerLess || dbOldPlaceName != oldPlaceName){
+				place.Name = placeName;
+				place.OldName = oldPlaceName;
+				place.IsOwnerLess = isOwnerLess;
+				place.IsChanged = 1;
+				DB.dao(Place.class).update(place);
+				ComplexGrave.renamePlace(place, dbPlaceName);
+			}
 			
 			List<GPSPlace> deletedGPS = DB.dao(GPSPlace.class).queryForEq("Place_id", place.Id);
 			DB.dao(GPSPlace.class).delete(deletedGPS);
@@ -590,7 +778,9 @@ public class AddObjectActivity extends Activity implements LocationListener {
 			place.Row = null;
 			place.Region = region;
 			place.Name = etPlace.getText().toString();
+			place.OldName = etOldPlace.getText().toString();
 			place.IsOwnerLess = cbOwnerLess.isChecked();
+			place.IsChanged = 1;
 			DB.dao(Place.class).create(place);
 			saveGPSPlace(place);
 		}
@@ -607,8 +797,10 @@ public class AddObjectActivity extends Activity implements LocationListener {
 		}
 	}
 	
-	private boolean saveGrave(){
-		String newGraveName = etGrave.getText().toString();
+	private boolean checkGraveName(Place place, String newGraveName, int curGraveId){
+		if(newGraveName == null || newGraveName.equals("")){
+			return false;
+		}
 		try{
 			int value = Integer.parseInt(newGraveName);
 			if(value < 0 || value > 32767){
@@ -617,30 +809,65 @@ public class AddObjectActivity extends Activity implements LocationListener {
 		}catch(Exception exc){
 			return false;
 		}
+		QueryBuilder<Grave, Integer> builder = DB.dao(Grave.class).queryBuilder();
+		try {
+			builder.where().eq("Place_id", place.Id).and().eq("Name", newGraveName).and().ne("Id", curGraveId);
+			List<Grave> findedGraves = DB.dao(Grave.class).query(builder.prepare());
+			if(findedGraves.size() > 0){
+				return false;
+			}
+		} catch (SQLException e) {					
+			e.printStackTrace();
+		}
+		return true;
+	}
+	
+	private boolean saveGrave(){
+		Place place = null;
+		if(mId >=0){
+			Grave grave = DB.dao(Grave.class).queryForId(mId);
+			place = grave.Place;
+		} else {
+			place = DB.dao(Place.class).queryForId(this.mParentId);
+		}		
+		String newGraveName = etGrave.getText().toString();
+		boolean isCheck = checkGraveName(place, newGraveName, this.mId);
+		if(!isCheck){
+			return false;
+		}
 		if(mId >= 0){
 			// update
 			MonumentDB monumentDB = new MonumentDB();
 			Grave grave = DB.dao(Grave.class).queryForId(mId);
 			String oldGraveName = grave.Name;
-			grave.Name = etGrave.getText().toString();
-			DB.dao(Grave.class).update(grave);
-			Place place = DB.dao(Place.class).queryForId(grave.Place.Id);
-			place.IsOwnerLess = this.cbOwnerLess.isChecked();
-			DB.dao(Place.class).createOrUpdate(place);
+			if(oldGraveName != newGraveName){
+				grave.Name = newGraveName;
+				grave.IsChanged = 1;
+				DB.dao(Grave.class).update(grave);
+				ComplexGrave.renameGrave(grave, oldGraveName);
+			}
 			
-			ComplexGrave.renameGrave(grave, oldGraveName);
+			place = DB.dao(Place.class).queryForId(grave.Place.Id);
+			if(place.IsOwnerLess != this.cbOwnerLess.isChecked()){
+				place.IsOwnerLess = this.cbOwnerLess.isChecked();
+				place.IsChanged = 1;
+				DB.dao(Place.class).createOrUpdate(place);
+			}			
 			
 			List<GPSGrave> deletedGPS = DB.dao(GPSGrave.class).queryForEq("Grave_id", grave.Id);
 			DB.dao(GPSGrave.class).delete(deletedGPS);
 			saveGPSGrave(grave);
-		} else {
-			Place place = DB.dao(Place.class).queryForId(this.mParentId);
-			place.IsOwnerLess = this.cbOwnerLess.isChecked();
-			DB.dao(Place.class).createOrUpdate(place);
+		} else {			
+			if(place.IsOwnerLess != this.cbOwnerLess.isChecked() ){
+				place.IsOwnerLess = this.cbOwnerLess.isChecked();
+				place.IsChanged = 1;
+				DB.dao(Place.class).createOrUpdate(place);				
+			}
 			
 			Grave grave = new Grave();
 			grave.Place = place;
 			grave.Name = etGrave.getText().toString();
+			grave.IsChanged = 1;
 			DB.dao(Grave.class).create(grave);
 			saveGPSGrave(grave);
 		}

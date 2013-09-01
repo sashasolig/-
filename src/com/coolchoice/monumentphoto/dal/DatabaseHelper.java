@@ -11,6 +11,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import com.coolchoice.monumentphoto.data.Burial;
 import com.coolchoice.monumentphoto.data.Cemetery;
 import com.coolchoice.monumentphoto.data.GPSCemetery;
 import com.coolchoice.monumentphoto.data.GPSGrave;
@@ -35,7 +36,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     //public static final String DATABASE_NAME = "/mnt/sdcard/monument.db";
     public static final String DATABASE_NAME = "monument.db";
     
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 2;
     
     private Context context;
 
@@ -51,6 +52,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         entityClassesArray.add(Place.class);
         entityClassesArray.add(Grave.class);
         entityClassesArray.add(GravePhoto.class);
+        entityClassesArray.add(Burial.class);
         entityClassesArray.add(GPSCemetery.class);
         entityClassesArray.add(GPSRegion.class);
         entityClassesArray.add(GPSRow.class);
@@ -87,8 +89,25 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, ConnectionSource connectionSource, int oldVer, int newVer) {
-        context.deleteDatabase(DATABASE_NAME);
-        onCreate(db, connectionSource);
+        //context.deleteDatabase(DATABASE_NAME);
+        //onCreate(db, connectionSource);
+    	if (oldVer == 1 && newVer == 2) {
+            migrateDBFromVer1ToVer2(db, connectionSource);
+    	}
+    }
+    	
+    private void migrateDBFromVer1ToVer2(SQLiteDatabase db, ConnectionSource connectionSource){
+    	dropDBTrigger(db);
+    	db.beginTransaction();
+        try {            	
+			TableUtils.createTable(connectionSource, Burial.class);				
+        	db.execSQL("alter table place add column OldName VARCHAR;");              
+            db.setTransactionSuccessful();                
+        } catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+            db.endTransaction();
+        }
     }
     
     public void delete(){
@@ -110,68 +129,71 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     	sqLiteDatabase.execSQL("update region set Cemetery_id = (select Id from cemetery where cemetery.ServerId = region.ParentServerId) where region.Cemetery_id is null;");
     	sqLiteDatabase.execSQL("update row set Region_id = (select Id from region where region.ServerId = row.ParentServerId) where row.Region_id is null;");
     	sqLiteDatabase.execSQL("update place set Region_id = (select Id from region where region.ServerId = place.ParentServerId ) where Row_id is null and Region_id is null;");
-    	sqLiteDatabase.execSQL("update grave set Place_id = (select Id from place where place.ServerId = grave.ParentServerId ) where Place_Id is null;");    	
+    	sqLiteDatabase.execSQL("update grave set Place_id = (select Id from place where place.ServerId = grave.ParentServerId ) where Place_Id is null;");
+    	sqLiteDatabase.execSQL("update burial set Grave_id = (select Id from grave where grave.ServerId = burial.ParentServerId ) where Grave_Id is null;");
     }
     
-    public void dropDBTrigger(){
-    	SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+    public void dropDBTrigger(SQLiteDatabase db){
+    	if(db == null){
+    	    db = getWritableDatabase();
+    	}
     	//cemetery
     	try{
-    		sqLiteDatabase.execSQL("DROP trigger tr_cemetery_update;");
+    		db.execSQL("DROP trigger tr_cemetery_update;");
     	}catch(Exception exc){
     		Log.e("dropTrigger tr_cemetery_update", exc.getLocalizedMessage());
     	}
     	try{
-    		sqLiteDatabase.execSQL("DROP trigger tr_cemetery_insert;");
+    		db.execSQL("DROP trigger tr_cemetery_insert;");
     	}catch(Exception exc){
     		Log.e("dropTrigger tr_cemetery_insert", exc.getLocalizedMessage());
     	}
     	
     	//region
     	try{
-    		sqLiteDatabase.execSQL("DROP trigger tr_region_update;");
+    		db.execSQL("DROP trigger tr_region_update;");
     	}catch(Exception exc){
     		Log.e("dropTrigger tr_region_update", exc.getLocalizedMessage());
     	}
     	try{
-    		sqLiteDatabase.execSQL("DROP trigger tr_region_insert;");
+    		db.execSQL("DROP trigger tr_region_insert;");
     	}catch(Exception exc){
     		Log.e("dropTrigger tr_region_insert", exc.getLocalizedMessage());
     	}
     	
     	//row
     	try{
-    		sqLiteDatabase.execSQL("DROP trigger tr_row_update;");
+    		db.execSQL("DROP trigger tr_row_update;");
     	}catch(Exception exc){
     		Log.e("dropTrigger tr_row_update", exc.getLocalizedMessage());
     	}
     	
     	//place
     	try{
-    		sqLiteDatabase.execSQL("DROP trigger tr_place_update;");
+    		db.execSQL("DROP trigger tr_place_update;");
     	}catch(Exception exc){
     		Log.e("dropTrigger tr_place_update", exc.getLocalizedMessage());
     	}
     	try{
-    		sqLiteDatabase.execSQL("DROP trigger tr_place_insert;");
+    		db.execSQL("DROP trigger tr_place_insert;");
     	}catch(Exception exc){
     		Log.e("dropTrigger tr_place_insert", exc.getLocalizedMessage());
     	}
     	
     	//grave
     	try{
-    		sqLiteDatabase.execSQL("DROP trigger tr_grave_update;");
+    		db.execSQL("DROP trigger tr_grave_update;");
     	}catch(Exception exc){
     		Log.e("dropTrigger tr_grave_update", exc.getLocalizedMessage());
     	}
     	try{
-    		sqLiteDatabase.execSQL("DROP trigger tr_grave_insert;");
+    		db.execSQL("DROP trigger tr_grave_insert;");
     	}catch(Exception exc){
     		Log.e("dropTrigger tr_grave_insert", exc.getLocalizedMessage());
     	}
     }
     
-    public void createDBTrigger(){
+    /*public void createDBTrigger(){
     	SQLiteDatabase sqLiteDatabase = getWritableDatabase();
     	//cemetery
     	try{
@@ -228,7 +250,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     		Log.e("createTrigger tr_grave_insert", exc.getLocalizedMessage());
     	}
     	
-    }
+    }*/
     
     public void execManualSQL(String sqlString){
     	SQLiteDatabase sqLiteDatabase = getWritableDatabase();

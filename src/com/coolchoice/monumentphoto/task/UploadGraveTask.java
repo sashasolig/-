@@ -61,8 +61,14 @@ public class UploadGraveTask extends BaseTask {
     	result.setTaskName(Settings.TASK_POSTGRAVE);    	
         if (params.length == 1) {        	
         	List<Grave> graveList = DB.dao(Grave.class).queryForEq("IsChanged", 1);
+        	int successCount = 0;
+        	int processedCount = 0;
+        	result.setUploadCount(graveList.size());
+        	boolean isSuccessUpload = false;
     		for(Grave grave : graveList){
     			if(grave.Place == null) continue;
+    			isSuccessUpload = false;
+    			processedCount++;
     			DB.dao(Place.class).refresh(grave.Place);
     			try {
     				Dictionary<String, String> dictPostData = new Hashtable<String, String>();
@@ -76,6 +82,8 @@ public class UploadGraveTask extends BaseTask {
 	            		result.setError(true);
 	            		result.setStatus(TaskResult.Status.HANDLE_ERROR);
 	            	}
+	            	successCount++;
+	            	isSuccessUpload = true;
 	            } catch (AuthorizationException e) {                
 	                result.setError(true);
 	                result.setStatus(TaskResult.Status.LOGIN_FAILED);
@@ -84,13 +92,15 @@ public class UploadGraveTask extends BaseTask {
 	                result.setError(true);
 	                result.setStatus(TaskResult.Status.HANDLE_ERROR);
 	            }
-    			DB.dao(Grave.class).refresh(grave);
-    			grave.IsChanged = 0;
-    			DB.dao(Grave.class).update(grave);
-    		}
-    		if(!result.isError()){
-    			DB.db().execManualSQL("update grave set IsChanged = 0;");
-    		}
+    			if(isSuccessUpload){
+	    			DB.dao(Grave.class).refresh(grave);
+	    			grave.IsChanged = 0;
+	    			DB.dao(Grave.class).update(grave);
+    			}
+    			result.setUploadCountSuccess(successCount);
+	            result.setUploadCountError(processedCount - successCount);
+	            publishUploadProgress("Отправлено могил: %d из %d...", result);
+    		}    		
         }else{
         	throw new IllegalArgumentException("Needs 1 param: url");
         }

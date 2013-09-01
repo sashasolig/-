@@ -9,6 +9,7 @@ import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.dal.MonumentDB;
 import com.coolchoice.monumentphoto.data.BaseDTO;
 import com.coolchoice.monumentphoto.data.Cemetery;
+import com.coolchoice.monumentphoto.data.SettingsData;
 import com.coolchoice.monumentphoto.task.BaseTask;
 import com.coolchoice.monumentphoto.task.TaskResult;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
@@ -48,6 +49,18 @@ public class CemeteryListActivity extends Activity implements SyncTaskHandler.Sy
 	
 	private static SyncTaskHandler mSyncTaskHandler;
 	
+	private Menu mOptionsMenu;
+	
+	private void updateOptionsMenu() {
+		if(this.mOptionsMenu == null) return;
+		MenuItem actionGetMenuItem = this.mOptionsMenu.findItem(R.id.action_get);
+        if (Settings.IsAutoDownloadData(this)) {
+            actionGetMenuItem.setIcon(R.drawable.load_data_enable);           
+        } else {
+        	actionGetMenuItem.setIcon(R.drawable.load_data_disable); 
+        }
+    }
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -82,7 +95,6 @@ public class CemeteryListActivity extends Activity implements SyncTaskHandler.Sy
 			}
 		});
 		registerForContextMenu(this.lvCemetery);
-
 	}
 	
 	private void updateCemeteryList(){
@@ -113,6 +125,8 @@ public class CemeteryListActivity extends Activity implements SyncTaskHandler.Sy
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.menu_monument_list, menu);
+		this.mOptionsMenu = menu;
+		this.updateOptionsMenu();
 		return true;
 	}
 	
@@ -124,13 +138,15 @@ public class CemeteryListActivity extends Activity implements SyncTaskHandler.Sy
 			actionSettings();
 			break;
 		case R.id.action_get:
-			mSyncTaskHandler.startGetCemetery();
-			mSyncTaskHandler.setOnSyncCompleteListener(new SyncCompleteListener() {				
-				@Override
-				public void onComplete(int type, TaskResult taskResult) {
-					updateCemeteryList();					
-				}
-			});
+			SettingsData settingsData = Settings.getSettingData(this);
+			if (!settingsData.IsAutoDownloadData){
+				settingsData.IsAutoDownloadData = true;
+				actionGet();
+			} else {
+				settingsData.IsAutoDownloadData = false;
+			}
+			Settings.saveSettingsData(this, settingsData);
+			updateOptionsMenu();
 			break;
 		case R.id.action_upload:
 			break;
@@ -141,6 +157,16 @@ public class CemeteryListActivity extends Activity implements SyncTaskHandler.Sy
 	private void actionSettings(){
 		Intent intent = new Intent(this, SettingsActivity.class);
 		startActivity(intent);
+	}
+	
+	private void actionGet(){
+		mSyncTaskHandler.startGetCemetery();
+		mSyncTaskHandler.setOnSyncCompleteListener(new SyncCompleteListener() {				
+			@Override
+			public void onComplete(int type, TaskResult taskResult) {
+				updateCemeteryList();					
+			}
+		});
 	}
 	
 	@Override

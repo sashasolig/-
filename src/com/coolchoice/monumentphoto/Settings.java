@@ -41,6 +41,7 @@ public class Settings {
     public static String PREFS_GPSINTERVAL_KEY = "GPSInterval";
     public static String PREFS_ISAUTOSENDPHOTO_KEY = "IsAutoSendPhoto";
     public static String PREFS_ISAUTODOWNLOADDATA_KEY = "IsAutoSendPhoto";
+    public static String PREFS_ISOLDPLACENAME_KEY = "IsOldPlaceName";
     
     public static final int STATUS_SERVER_DEFAULT = 0;
     public static final int STATUS_SERVER_UNAVALIBLE = 1;
@@ -56,6 +57,7 @@ public class Settings {
     public static final String TASK_POSTPLACE = "postPlace";
     public static final String TASK_GETGRAVE = "getGrave";
     public static final String TASK_POSTGRAVE = "postGrave";
+    public static final String TASK_GETBURIAL = "getBurial";
     public static final String TASK_POSTPHOTOGRAVE = "postPhotoGrave";
     
         
@@ -67,6 +69,7 @@ public class Settings {
     private static String RelativeGetRegionDataUrl = "/mobile/getarea/";
     private static String RelativeGetPlaceDataUrl = "/mobile/getplace/";
     private static String RelativeGetGraveDataUrl = "/mobile/getgrave/";
+    private static String RelativeGetBurialDataUrl = "/mobile/getburial/";
     
     private static String RelativeUploadCemeteryDataUrl = "/mobile/uploadcemetery/";
     private static String RelativeUploadRegionDataUrl = "/mobile/uploadarea/";
@@ -122,6 +125,11 @@ public class Settings {
     public static String getGraveUrl(Context context){
     	String serverAddress = getServerAddress(context);
     	return serverAddress + RelativeGetGraveDataUrl;
+    }
+    
+    public static String getBurialUrl(Context context){
+    	String serverAddress = getServerAddress(context);
+    	return serverAddress + RelativeGetBurialDataUrl;
     }
     
     public static String getUploadCemeteryUrl(Context context){
@@ -182,6 +190,7 @@ public class Settings {
         data.GPSInterval = settings.getInt(PREFS_GPSINTERVAL_KEY, 0);
         data.IsAutoSendPhoto = settings.getBoolean(PREFS_ISAUTOSENDPHOTO_KEY, false);
         data.IsAutoDownloadData = settings.getBoolean(PREFS_ISAUTODOWNLOADDATA_KEY, false);
+        data.IsOldPlaceName = settings.getBoolean(PREFS_ISOLDPLACENAME_KEY, false);
         if(data.ServerAddress == null){
         	data.ServerAddress = DefaultServerAddress;
         	saveSettingsData(context, data);
@@ -193,6 +202,13 @@ public class Settings {
     	SharedPreferences settings = context.getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE);
     	boolean isAutoSendPhoto = settings.getBoolean(PREFS_ISAUTOSENDPHOTO_KEY, false);
     	return isAutoSendPhoto;
+    	
+    }
+    
+    public static boolean IsOldPlaceNameOption(Context context){
+    	SharedPreferences settings = context.getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE);
+    	boolean isOldPlaceName = settings.getBoolean(PREFS_ISOLDPLACENAME_KEY, false);
+    	return isOldPlaceName;
     	
     }
     
@@ -217,7 +233,8 @@ public class Settings {
         editor.putString(PREFS_SERVERADDRES_KEY, settingData.ServerAddress);
         editor.putInt(PREFS_GPSINTERVAL_KEY, settingData.GPSInterval);
         editor.putBoolean(PREFS_ISAUTOSENDPHOTO_KEY, settingData.IsAutoSendPhoto);
-        editor.putBoolean(PREFS_ISAUTODOWNLOADDATA_KEY, settingData.IsAutoDownloadData); 
+        editor.putBoolean(PREFS_ISAUTODOWNLOADDATA_KEY, settingData.IsAutoDownloadData);
+        editor.putBoolean(PREFS_ISOLDPLACENAME_KEY, settingData.IsOldPlaceName);
         editor.commit();
     }   
         

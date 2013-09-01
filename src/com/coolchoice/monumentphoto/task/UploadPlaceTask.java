@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -60,9 +61,30 @@ public class UploadPlaceTask extends BaseTask {
     	TaskResult result = new TaskResult();
     	result.setTaskName(Settings.TASK_POSTPLACE);
     	if (params.length == 1) {        	
-        	List<Place> placeList = DB.dao(Place.class).queryForEq("IsChanged", 1);        	
+        	List<Place> placeList = DB.dao(Place.class).queryForEq("IsChanged", 1);
+        	
+        	List<Row> rowList = DB.dao(Row.class).queryForEq("IsChanged", 1);
+        	for(Row row : rowList){
+        		QueryBuilder<Place, Integer> builder = DB.dao(Place.class).queryBuilder();
+    			try {
+					builder.where().eq("Row_id", row.Id).and().eq("IsChanged", 0);
+					List<Place> findedPlaces = DB.dao(Place.class).query(builder.prepare());
+	    			if(findedPlaces.size() > 0){
+	    				placeList.addAll(findedPlaces);
+	    			}
+				} catch (SQLException e) {					
+					e.printStackTrace();
+				}
+    			
+        	}
+        	int successCount = 0;
+        	int processedCount = 0;
+        	result.setUploadCount(placeList.size());
+        	boolean isSuccessUpload = false;
     		for(Place place : placeList){
     			if(place.Row == null && place.Region == null) continue;
+    			isSuccessUpload = false;
+    			processedCount++;
     			String rowName = "";
     			int regionServerId;
     			if(place.Row != null){
@@ -81,6 +103,11 @@ public class UploadPlaceTask extends BaseTask {
 	            	dictPostData.put("placeId", Integer.toString(place.ServerId));
 	            	dictPostData.put("rowName", rowName);
 	            	dictPostData.put("placeName", place.Name);
+	            	if(place.OldName != null){
+	            		dictPostData.put("oldPlaceName", place.OldName);
+	            	} else {
+	            		dictPostData.put("oldPlaceName", "");
+	            	}
 	            	int psFoundUnowned;
 	            	if(place.IsOwnerLess){
 	            		psFoundUnowned = 1;
@@ -95,6 +122,8 @@ public class UploadPlaceTask extends BaseTask {
                 		result.setError(true);
                 		result.setStatus(TaskResult.Status.HANDLE_ERROR);
                 	}
+                	successCount++;
+                	isSuccessUpload = true;
                 } catch (AuthorizationException e) {                
                     result.setError(true);
                     result.setStatus(TaskResult.Status.LOGIN_FAILED);
@@ -103,19 +132,20 @@ public class UploadPlaceTask extends BaseTask {
                     result.setError(true);
                     result.setStatus(TaskResult.Status.HANDLE_ERROR);
                 }
-    			DB.dao(Place.class).refresh(place);
-    			if(place.Row != null){
-    				DB.dao(Row.class).refresh(place.Row);
-    				place.Row.IsChanged = 0;
-    				DB.dao(Row.class).update(place.Row);
+    			if(isSuccessUpload){
+	    			DB.dao(Place.class).refresh(place);
+	    			if(place.Row != null){
+	    				DB.dao(Row.class).refresh(place.Row);
+	    				place.Row.IsChanged = 0;
+	    				DB.dao(Row.class).update(place.Row);
+	    			}
+	    			place.IsChanged = 0;
+	    			DB.dao(Place.class).update(place);
     			}
-    			place.IsChanged = 0;
-    			DB.dao(Place.class).update(place);
-    		}       	
-        	if(!result.isError()){
-        		DB.db().execManualSQL("update row set IsChanged = 0;");
-				DB.db().execManualSQL("update place set IsChanged = 0;");
-        	}
+    			result.setUploadCountSuccess(successCount);
+	            result.setUploadCountError(processedCount - successCount);
+	            publishUploadProgress("Отправлено мест: %d из %d...", result);
+    		}
         }else{
         	throw new IllegalArgumentException("Needs 1 param: url");
         }

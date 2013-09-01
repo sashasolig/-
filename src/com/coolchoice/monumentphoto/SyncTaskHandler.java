@@ -2,6 +2,8 @@ package com.coolchoice.monumentphoto;
 
 import java.util.ArrayList;
 
+import android.R;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -11,21 +13,8 @@ import android.widget.Toast;
 
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.data.SettingsData;
-import com.coolchoice.monumentphoto.task.AsyncTaskCompleteListener;
-import com.coolchoice.monumentphoto.task.AsyncTaskProgressListener;
-import com.coolchoice.monumentphoto.task.BaseTask;
-import com.coolchoice.monumentphoto.task.GetCemeteryTask;
-import com.coolchoice.monumentphoto.task.GetGraveTask;
-import com.coolchoice.monumentphoto.task.GetPlaceTask;
-import com.coolchoice.monumentphoto.task.GetRegionTask;
-import com.coolchoice.monumentphoto.task.LoginTask;
-import com.coolchoice.monumentphoto.task.TaskResult;
+import com.coolchoice.monumentphoto.task.*;
 import com.coolchoice.monumentphoto.task.TaskResult.Status;
-import com.coolchoice.monumentphoto.task.UploadCemeteryTask;
-import com.coolchoice.monumentphoto.task.UploadGraveTask;
-import com.coolchoice.monumentphoto.task.UploadPhotoTask;
-import com.coolchoice.monumentphoto.task.UploadPlaceTask;
-import com.coolchoice.monumentphoto.task.UploadRegionTask;
 
 class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTaskProgressListener{
 
@@ -145,6 +134,26 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);	
 	}
 	
+	public void startGetBurial(int graveServerId){
+		setEmptyServerId();
+		this.mGraveServerId = graveServerId;
+		if(isStartedUploadData || isStartedCheckLogin){
+			return;
+		}
+		isStartedGetData = true;
+		mType = 1;
+		mTasks.clear();
+		mTasks.add(new GetBurialTask(this, this, this.mContext));
+		mCurrentTaskIndex = -1;
+		mProgressDialogTitle = "Загрузка данных...";
+		mProgressDialogMessage = "Подождите";
+		mProgressDialogSyncData = ProgressDialog.show(this.mContext, mProgressDialogTitle, mProgressDialogMessage, true);
+		mProgressDialogSyncData.setCancelable(false);
+		SettingsData settingsData = Settings.getSettingData(this.mContext);
+		LoginTask loginTask = new LoginTask(this, this, this.mContext);
+		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);	
+	}
+	
 	public void startCheckLogin(){
 		setEmptyServerId();
 		if(isStartedUploadData || isStartedGetData){
@@ -177,6 +186,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mTasks.add(new GetRegionTask(this, this, this.mContext));
 		mTasks.add(new GetPlaceTask(this, this, this.mContext));
 		mTasks.add(new GetGraveTask(this, this, this.mContext));
+		mTasks.add(new GetBurialTask(this, this, this.mContext));
 		mCurrentTaskIndex = -1;
 		mProgressDialogTitle = "Загрузка данных...";
 		mProgressDialogMessage = "Авторизация";
@@ -237,8 +247,6 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 	public void checkResumeDataOperation(Context context){
 		if(isStartedGetData){
 			setContext(context);
-			/*mProgressDialogSyncData = ProgressDialog.show(this.mContext, mProgressDialogTitle, mProgressDialogMessage, true);
-			mProgressDialogSyncData.setCancelable(false);*/
 			showProgressDialogGetData();
 		}
 		if(isStartedUploadData){
@@ -253,10 +261,47 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		}
 	}
 	
+	public void showSummaryUploadInfo(){
+		AlertDialog.Builder builder = new AlertDialog.Builder(this.mContext);
+		builder.setTitle("Статистика отпраленных данных");
+		StringBuilder sbMessage = new StringBuilder();
+		for(BaseTask task : mTasks){
+			TaskResult result = task.getTaskResult();
+			if(result == null || result.getUploadCount() == 0){
+				continue;
+			}
+			sbMessage.append(System.getProperty("line.separator"));
+			if(task instanceof UploadCemeteryTask){
+				sbMessage.append(String.format("Успешно отправлено кладбищ: %d из %d.", result.getUploadCountSuccess(), result.getUploadCount()));				
+			}
+			if(task instanceof UploadRegionTask){
+				sbMessage.append(String.format("Успешно отправлено участков: %d  из %d.", result.getUploadCountSuccess(), result.getUploadCount()));				
+			}
+			if(task instanceof UploadPlaceTask){
+				sbMessage.append(String.format("Успешно отправлено мест: %d из %d.", result.getUploadCountSuccess(), result.getUploadCount()));				
+			}
+			if(task instanceof UploadGraveTask){
+				sbMessage.append(String.format("Успешно отправлено могил: %d из %d.", result.getUploadCountSuccess(), result.getUploadCount()));				
+			}
+			if(task instanceof UploadPhotoTask){
+				sbMessage.append(String.format("Успешно отправлено фотографий: %d из %d.", result.getUploadCountSuccess(), result.getUploadCount()));				
+			}
+			sbMessage.append(System.getProperty("line.separator"));
+		}		
+		builder.setMessage(sbMessage.toString());
+		builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.dismiss();
+            }
+        });
+		
+		AlertDialog dialog = builder.create();
+		dialog.show();
+	}
+	
 	@Override
 	public void onProgressUpdate(String... messages) {
-		// TODO Auto-generated method stub
-		
+		mProgressDialogSyncData.setMessage(messages[0]);		
 	}
 
 	@Override
@@ -299,9 +344,6 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		
 		if(isStartedGetData && (!isCancelTask)){
 			if(!result.isError() || (result.getStatus() == Status.HANDLE_ERROR)){
-				if(mCurrentTaskIndex < 0){
-					DB.db().dropDBTrigger();
-				}
 				mCurrentTaskIndex++;
 				if(mCurrentTaskIndex < mTasks.size()){
 					if(mCurrentTaskIndex == 0){
@@ -337,6 +379,13 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						getGraveTask.execute(Settings.getGraveUrl(mContext) + getArgs);
 						isNextTaskStart = true;
 					}
+					if(nextTask.getTaskName() == Settings.TASK_GETBURIAL){
+						mProgressDialogMessage = "Получение захоронений";
+						mProgressDialogSyncData.setMessage(mProgressDialogMessage);
+						GetBurialTask getBurialTask = new GetBurialTask(this, this, this.mContext);
+						getBurialTask.execute(Settings.getBurialUrl(mContext) + getArgs);
+						isNextTaskStart = true;
+					}
 				}
 				
 				if(mCurrentTaskIndex == mTasks.size()){
@@ -352,10 +401,10 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		}
 		
 		if(isStartedUploadData && (!isCancelTask)){
+			if(mCurrentTaskIndex >= 0){
+				mTasks.get(mCurrentTaskIndex).setTaskResult(result);
+			}
 			if(!result.isError() || (result.getStatus() == Status.HANDLE_ERROR)){
-				if(mCurrentTaskIndex < 0){
-					DB.db().dropDBTrigger();
-				}
 				mCurrentTaskIndex++;
 				if(mCurrentTaskIndex < mTasks.size()){
 					if(mCurrentTaskIndex == 0){
@@ -404,6 +453,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 					mProgressDialogMessage = "Данные отправлены";
 					mProgressDialogSyncData.setMessage(mProgressDialogMessage);
 					Toast.makeText(this.mContext, "Отправка завершена", Toast.LENGTH_LONG).show();
+					showSummaryUploadInfo();
 				}
 			}
 			
@@ -412,12 +462,8 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		
 		if(!isNextTaskStart){
 			if(isStartedGetData){
-				DB.db().updateDBLink();
-				DB.db().createDBTrigger();
-			}
-			if(isStartedUploadData){
-				DB.db().createDBTrigger();
-			}
+				DB.db().updateDBLink();				
+			}			
 			mProgressDialogSyncData.dismiss();
 			isStartedGetData = false;
 			isStartedUploadData = false;

@@ -48,7 +48,7 @@ public class SettingsActivity extends Activity implements SyncTaskHandler.SyncCo
 
 	private EditText etLogin, etPassword, etServerAdress, etGPSInterval;
 	
-	private CheckBox cbIsAutoPhotoSend, cbIsAutoDownloadData;
+	private CheckBox cbIsAutoPhotoSend, cbIsAutoDownloadData, cbIsOldPlace ;
 	
 	private Button btnCheck, btnClearHistory, btnSyncData, btnUploadData;
 	
@@ -74,6 +74,7 @@ public class SettingsActivity extends Activity implements SyncTaskHandler.SyncCo
 		this.etGPSInterval = (EditText) findViewById(R.id.etGPSInterval);
 		this.cbIsAutoPhotoSend = (CheckBox) findViewById(R.id.cbAutoSenverdPhotoToServer);
 		this.cbIsAutoDownloadData = (CheckBox) findViewById(R.id.cbAutoDownloadData);
+		this.cbIsOldPlace = (CheckBox) findViewById(R.id.cbOldPlace);
 		this.btnCheck = (Button) findViewById(R.id.btnCheck);
 		this.btnClearHistory = (Button) findViewById(R.id.btnClearHistory);
 		this.btnSyncData = (Button) findViewById(R.id.btnSyncData);
@@ -138,6 +139,7 @@ public class SettingsActivity extends Activity implements SyncTaskHandler.SyncCo
 		this.etGPSInterval.setText(Integer.toString(data.GPSInterval));
 		this.cbIsAutoPhotoSend.setChecked(data.IsAutoSendPhoto);
 		this.cbIsAutoDownloadData.setChecked(data.IsAutoDownloadData);
+		this.cbIsOldPlace.setChecked(data.IsOldPlaceName);
 		
 		if(mSyncTaskHandler == null){
 			mSyncTaskHandler = new SyncTaskHandler();
@@ -173,6 +175,7 @@ public class SettingsActivity extends Activity implements SyncTaskHandler.SyncCo
 		data.GPSInterval = interval;
 		data.IsAutoSendPhoto = this.cbIsAutoPhotoSend.isChecked();
 		data.IsAutoDownloadData = this.cbIsAutoDownloadData.isChecked();
+		data.IsOldPlaceName = this.cbIsOldPlace.isChecked();
 		Settings.saveSettingsData(this, data);
 	}
 	

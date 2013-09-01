@@ -69,17 +69,21 @@ public class UploadPhotoTask extends BaseTask {
     	TaskResult result = new TaskResult();
     	result.setTaskName(Settings.TASK_POSTPHOTOGRAVE);
     	String url = null;
-    	if (params.length == 1) {
-            
+    	if (params.length == 1) {            
         	url = params[0];
         	List<GravePhoto> gravePhotos = this.getGravePhotoForUpload();
-        	for(GravePhoto gravePhoto : gravePhotos){
+        	int successCount = 0;
+        	int processedCount = 0;
+        	result.setUploadCount(gravePhotos.size());
+        	for(GravePhoto gravePhoto : gravePhotos){        		
         		try {
             		if(gravePhoto.Grave == null) continue;
+            		processedCount++;
             		DB.dao(Grave.class).refresh(gravePhoto.Grave);
             		boolean isUpload = this.uploadPhoto(this.mainContext, gravePhoto);
             		if(isUpload){
-            			this.markGravePhotoAsSended(gravePhoto);	
+            			this.markGravePhotoAsSended(gravePhoto);
+            			successCount++;
             		}
         		} catch (AuthorizationException e) {                
                     result.setError(true);
@@ -89,8 +93,10 @@ public class UploadPhotoTask extends BaseTask {
                     result.setError(true);
                     result.setStatus(TaskResult.Status.HANDLE_ERROR);
                 }
+        		result.setUploadCountSuccess(successCount);
+	            result.setUploadCountError(processedCount - successCount);
+	            publishUploadProgress("Отправлено фотографий: %d  из %d...", result);
         	}
-            
         }
     	return result;
     }

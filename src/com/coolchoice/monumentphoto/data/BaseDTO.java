@@ -11,8 +11,7 @@ public class BaseDTO {
 	public BaseDTO() {
 		this.ServerId = INT_NULL_VALUE;
 		this.ParentServerId = INT_NULL_VALUE;
-		this.IsChanged = 0;
-		this.IsSync = 0;
+		this.IsChanged = 0;		
 	}
 
 	@DatabaseField(generatedId = true, allowGeneratedIdInsert = true)
@@ -30,7 +29,4 @@ public class BaseDTO {
 	@DatabaseField
 	public byte IsChanged;
 	
-	@DatabaseField
-	public byte IsSync;
-
 }

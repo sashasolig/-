@@ -12,6 +12,8 @@ public class SettingsData {
 	
 	public boolean IsAutoDownloadData;
 	
+	public boolean IsOldPlaceName;
+	
 	public int GPSInterval;
 
 }

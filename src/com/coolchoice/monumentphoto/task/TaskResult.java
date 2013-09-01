@@ -10,8 +10,33 @@ public class TaskResult {
 	private String errorText;
 	private String result;
 	private String taskName;
-	private Status status;	
+	private Status status;
 	
+	private int uploadCount = 0;
+	private int uploadCountSuccess = 0;
+	private int uploadCountError = 0;
+	
+	public int getUploadCount() {
+		return uploadCount;
+	}
+	public void setUploadCount(int uploadCount) {
+		this.uploadCount = uploadCount;
+	}
+	
+	public int getUploadCountSuccess() {
+		return uploadCountSuccess;
+	}
+	public void setUploadCountSuccess(int uploadCountSuccess) {
+		this.uploadCountSuccess = uploadCountSuccess;
+	}
+	
+	public int getUploadCountError() {
+		return uploadCountError;
+	}
+	public void setUploadCountError(int uploadCountError) {
+		this.uploadCountError = uploadCountError;
+	}
+		
 	public Status getStatus() {
 		return status;
 	}
