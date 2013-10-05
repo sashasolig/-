@@ -122,6 +122,46 @@ public class ComplexGrave {
 		return Uri.fromFile(newFile);
 	}
 	
+	public File getPhotoFolder(){
+		File rootDir = Settings.getRootDirPhoto();
+		File dir = null;
+		if(this.Cemetery != null){
+			dir = new File(rootDir, this.Cemetery.Name);
+			if(!dir.exists()){
+				return null;
+			}
+		}
+		
+		if(this.Region != null){
+			dir = new File(dir, this.Region.Name);
+			if(!dir.exists()){
+				return null;
+			}
+		}
+		
+		if(this.Row != null){
+			dir = new File(dir, this.Row.Name);
+			if(!dir.exists()){
+				return null;
+			}
+		}
+		
+		if(this.Place != null){
+			dir = new File(dir, this.Place.Name);
+			if(!dir.exists()){
+				return null;
+			}
+		}
+		
+		if(this.Grave != null){
+			dir = new File(dir, this.Grave.Name);
+			if(!dir.exists()){
+				return null;
+			}
+		}
+		return dir;
+	}
+	
 	public static boolean renameCemetery(Cemetery cemetery, String oldCemeteryName){
 		MonumentDB monumentDB = new MonumentDB();
 		ComplexGrave complexGrave = new ComplexGrave();

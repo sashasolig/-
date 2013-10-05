@@ -1,5 +1,7 @@
 package com.coolchoice.monumentphoto.data;
 
+import java.util.Date;
+
 import com.j256.ormlite.field.DatabaseField;
 
 public class BaseDTO {

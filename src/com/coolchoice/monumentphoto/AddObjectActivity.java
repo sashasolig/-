@@ -4,6 +4,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.coolchoice.monumentphoto.R.id;
 import com.coolchoice.monumentphoto.dal.DB;
@@ -45,6 +47,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.method.HideReturnsTransformationMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -112,40 +115,49 @@ public class AddObjectActivity extends Activity implements LocationListener {
 			
 	private static WaitGPSHandler mWaitGPSHandler;
 	
-	private GPSListAdapter mGPSListAdapter = new GPSListAdapter();
+	private static GPSListAdapter mGPSListAdapter = null;
 	
+	private View headerView;
+	
+	
+           	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.add_object_activity);
-		this.editLL = (LinearLayout)findViewById(R.id.editll);
-		this.llSave = (LinearLayout) findViewById(R.id.llSave);
+		this.headerView = LayoutInflater.from(this).inflate(R.layout.add_object_header, null);
+		this.editLL = (LinearLayout)this.headerView.findViewById(R.id.editll);
+		this.llSave = (LinearLayout) this.headerView.findViewById(R.id.llSave);
 		this.mType = getIntent().getExtras().getInt(EXTRA_TYPE);
 		this.mId = getIntent().getExtras().getInt(EXTRA_ID, -1);
 		this.mParentId = getIntent().getExtras().getInt(EXTRA_PARENT_ID, -1);
 		this.mIsEdit = getIntent().getExtras().getBoolean(EXTRA_EDIT, false);
-		this.etCemetery = (EditText) findViewById(R.id.etCemetery);
-		this.etRegion = (EditText) findViewById(R.id.etRegion);
-		this.etRow = (EditText) findViewById(R.id.etRow);
-		this.etPlace = (EditText) findViewById(R.id.etPlace);
-		this.etOldPlace = (EditText) findViewById(R.id.etOldPlace);
-		this.cbOwnerLess = (CheckBox) findViewById(R.id.cbIsOwnerLess);
-		this.etGrave = (EditText) findViewById(R.id.etGrave);
-		this.llCemetery = (LinearLayout) findViewById(R.id.llCemetery);
-		this.llRegion = (LinearLayout) findViewById(R.id.llRegion);
-		this.llRow = (LinearLayout) findViewById(R.id.llRow);
-		this.llPlace = (LinearLayout) findViewById(R.id.llPlace);
-		this.llGrave = (LinearLayout) findViewById(R.id.llGrave);
+		this.etCemetery = (EditText) this.headerView.findViewById(R.id.etCemetery);
+		this.etRegion = (EditText) this.headerView.findViewById(R.id.etRegion);
+		this.etRow = (EditText) this.headerView.findViewById(R.id.etRow);
+		this.etPlace = (EditText) this.headerView.findViewById(R.id.etPlace);
+		this.etOldPlace = (EditText) this.headerView.findViewById(R.id.etOldPlace);
+		this.cbOwnerLess = (CheckBox) this.headerView.findViewById(R.id.cbIsOwnerLess);
+		this.etGrave = (EditText) this.headerView.findViewById(R.id.etGrave);
+		this.llCemetery = (LinearLayout) this.headerView.findViewById(R.id.llCemetery);
+		this.llRegion = (LinearLayout) this.headerView.findViewById(R.id.llRegion);
+		this.llRow = (LinearLayout) this.headerView.findViewById(R.id.llRow);
+		this.llPlace = (LinearLayout) this.headerView.findViewById(R.id.llPlace);
+		this.llGrave = (LinearLayout) this.headerView.findViewById(R.id.llGrave);
 		this.btnSave = (Button) findViewById(R.id.btnSave);
 		this.btnCancel = (Button) findViewById(R.id.btnCancel);
 		
-		this.llOldPlace = (LinearLayout) findViewById(R.id.llOldPlace);
-		this.btnNewToOldPlace = (Button) findViewById(R.id.btnNewToOldPlace);
-				
-		this.llGPS = (LinearLayout) findViewById(R.id.llGPS);
+		this.llOldPlace = (LinearLayout) this.headerView.findViewById(R.id.llOldPlace);
+		this.btnNewToOldPlace = (Button) this.headerView.findViewById(R.id.btnNewToOldPlace);				
+		this.llGPS = (LinearLayout) this.headerView.findViewById(R.id.llGPS);		
+		this.btnAddGPS = (Button) this.headerView.findViewById(R.id.btnAddGPS);
+		
 		this.lvGPS = (ListView) findViewById(R.id.lvGPS);
-		this.btnAddGPS = (Button) findViewById(R.id.btnAddGPS);
-		this.lvGPS.setAdapter(this.mGPSListAdapter);
+		this.lvGPS.addHeaderView(headerView);
+		if(mGPSListAdapter == null){
+			mGPSListAdapter = new GPSListAdapter();
+		}
+		this.lvGPS.setAdapter(mGPSListAdapter);
 		
 		if(this.editLL.getClass() == EditLinearLayout.class){
 			((EditLinearLayout)this.editLL).setOnStateListener(new EditLinearLayout.StateListener() {
@@ -950,8 +962,7 @@ public class AddObjectActivity extends Activity implements LocationListener {
 				mWaitGPSHandler.startWaitGPS();
 			}
 		});
-		mGPSListAdapter.notifyDataSetChanged();	
-		
+		mGPSListAdapter.notifyDataSetChanged();		
 	}
 	
 	private void addGPS(Location location){
@@ -968,17 +979,23 @@ public class AddObjectActivity extends Activity implements LocationListener {
 	}
 				
 	@Override
-	public void onResume(){
-		super.onResume();
+	public void onResume(){		
 		LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);		
+		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);			
+		super.onResume();
 	}
 	
 	@Override
-	public void onLocationChanged(Location location) {
-		if(mWaitGPSHandler.findNewGPS()){
-			addGPS(location);			
-		}		
+    protected void onPause() {
+		super.onPause();
+    }
+
+	
+	@Override
+	public void onLocationChanged(final Location location) {
+		if(mWaitGPSHandler.isFindNewGPS()){
+    		addGPS(location);
+		}
 	}
 
 	@Override
@@ -1011,6 +1028,7 @@ public class AddObjectActivity extends Activity implements LocationListener {
             	LayoutInflater inflater = (LayoutInflater) AddObjectActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 convertView = inflater.inflate(R.layout.gps_list_item, parent, false);
             }
+            Log.i("pos=", Integer.toString(position));
             TextView tvIndex = (TextView) convertView.findViewById(R.id.tvIndex);
             TextView tvGPS = (TextView) convertView.findViewById(R.id.tvGPS);
             Button btnRemoveGPS = (Button) convertView.findViewById(R.id.btnRemoveGPS);
@@ -1018,7 +1036,7 @@ public class AddObjectActivity extends Activity implements LocationListener {
             btnRemoveGPS.setTag(position);
             double lat = mGPSList.get(position).Latitude;
         	double lng = mGPSList.get(position).Longitude;
-        	String gpsString = String.format("%s, %s", Location.convert(lat, Location.FORMAT_SECONDS), Location.convert(lat, Location.FORMAT_SECONDS) );
+        	String gpsString = String.format("%s, %s", Location.convert(lat, Location.FORMAT_SECONDS), Location.convert(lng, Location.FORMAT_SECONDS) );
         	tvGPS.setText(gpsString);
         	btnRemoveGPS.setOnClickListener(new View.OnClickListener() {
 				
@@ -1032,18 +1050,22 @@ public class AddObjectActivity extends Activity implements LocationListener {
             
             return convertView;
         }
+
+		@Override
+		public int getCount() {
+			return mGPSList.size();
+		}
+
+		@Override
+		public Object getItem(int position) {
+			return mGPSList.get(position);
+		}
+
+		@Override
+		public long getItemId(int position) {
+			return position;
+		}        
         
-        public final int getCount() {
-            return mGPSList.size();
-        }
-
-        public final Object getItem(int position) {
-            return mGPSList.get(position);
-        }
-
-        public final long getItemId(int position) {
-            return position;
-        }
     }
 
 	class WaitGPSHandler {
@@ -1070,7 +1092,7 @@ public class AddObjectActivity extends Activity implements LocationListener {
 			createAndShowProgressDialog();			
 		}
 		
-		public boolean findNewGPS(){
+		public boolean isFindNewGPS(){
 			if(isWaitGPS){
 				this.isWaitGPS = false;
 				mProgressDialogWaitGPS.dismiss();

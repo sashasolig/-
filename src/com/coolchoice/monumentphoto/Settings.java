@@ -59,11 +59,13 @@ public class Settings {
     public static final String TASK_POSTGRAVE = "postGrave";
     public static final String TASK_GETBURIAL = "getBurial";
     public static final String TASK_POSTPHOTOGRAVE = "postPhotoGrave";
+    public static final String TASK_REMOVEPHOTOGRAVE = "removePhotoGrave";
     
         
-    //private static String DefaultServerAddress = "http://192.168.1.4:8020";
+    //private static String DefaultServerAddress = "http://192.168.1.5:8020";
     private static String DefaultServerAddress = "http://pd2.pohoronnoedelo.ru";
     private static String RelativeUploadPhotoUrl = "/mobile/uploadphoto/";
+    private static String RelativeRemovePhotoUrl = "/mobile/removephoto/";
     private static String RelativeLoginUrl = "/login/";
     private static String RelativeGetCemeteryDataUrl = "/mobile/getcemetery/";
     private static String RelativeGetRegionDataUrl = "/mobile/getarea/";
@@ -100,6 +102,11 @@ public class Settings {
     public static String getUploadPhotoUrl(Context context){
     	String serverAddress = getServerAddress(context);
     	return serverAddress + RelativeUploadPhotoUrl;
+    }
+    
+    public static String getRemovePhotoUrl(Context context){
+    	String serverAddress = getServerAddress(context);
+    	return serverAddress + RelativeRemovePhotoUrl;
     }
     
     public static String getLoginUrl(Context context){

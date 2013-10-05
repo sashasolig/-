@@ -8,27 +8,35 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.List;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.cookie.DateParseException;
+import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
@@ -71,6 +79,17 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     public static final String ARG_AREA_ID = "areaId";
     public static final String ARG_PLACE_ID = "placeId";
     public static final String ARG_GRAVE_ID = "graveId";
+    public static final String ARG_SYNC_DATE = "syncDate";
+    
+    protected int mCemeteryServerId = BaseDTO.INT_NULL_VALUE;
+    protected int mRegionServerId = BaseDTO.INT_NULL_VALUE;
+    protected int mPlaceServerId = BaseDTO.INT_NULL_VALUE;
+    protected int mGraveServerId = BaseDTO.INT_NULL_VALUE;
+    protected Date mSyncDate = null;
+    private long mSyncDateUNIX = BaseDTO.INT_NULL_VALUE; 
+    
+    protected Date mLastQueryServerDate = null;
+    protected Date mLastResponseHeaderDate = null;
 
     public BaseTask(AsyncTaskProgressListener pl, AsyncTaskCompleteListener<TaskResult> cb, Context context) {
         callback = cb;
@@ -129,6 +148,46 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     	if(callback!=null) callback.onTaskComplete(this, result);
     }
     
+    protected void initGETQueryParameters(String url){
+    	List<NameValuePair> parameters;
+		try {
+			parameters = URLEncodedUtils.parse(new URI(url), Settings.DEFAULT_ENCODING);
+			int value = BaseDTO.INT_NULL_VALUE;
+			long valueLong = BaseDTO.INT_NULL_VALUE;
+			for (NameValuePair p : parameters) {
+	    	    if(p.getName().equalsIgnoreCase(ARG_CEMETERY_ID)){
+	    	    	value = Integer.parseInt(p.getValue());
+	    	    	this.mCemeteryServerId = value;
+	    	    }
+	    	    if(p.getName().equalsIgnoreCase(ARG_AREA_ID)){
+	    	    	value = Integer.parseInt(p.getValue());
+	    	    	this.mRegionServerId = value;
+	    	    }
+	    	    if(p.getName().equalsIgnoreCase(ARG_PLACE_ID)){
+	    	    	value = Integer.parseInt(p.getValue());
+	    	    	this.mPlaceServerId = value;
+	    	    }
+	    	    if(p.getName().equalsIgnoreCase(ARG_GRAVE_ID)){
+	    	    	value = Integer.parseInt(p.getValue());
+	    	    	this.mGraveServerId = value;
+	    	    }
+	    	    if(p.getName().equalsIgnoreCase(ARG_SYNC_DATE)){
+	    	    	valueLong = Long.parseLong(p.getValue());
+	    	    	this.mSyncDateUNIX = valueLong;
+	    	    	this.mSyncDate = new Date(this.mSyncDateUNIX * 1000L);
+	    	    }
+	    	}
+		} catch (URISyntaxException e) {
+			this.mCemeteryServerId = BaseDTO.INT_NULL_VALUE;
+		    this.mRegionServerId = BaseDTO.INT_NULL_VALUE;
+		    this.mPlaceServerId = BaseDTO.INT_NULL_VALUE;
+		    this.mGraveServerId = BaseDTO.INT_NULL_VALUE;
+		    this.mSyncDateUNIX = BaseDTO.INT_NULL_VALUE;
+		    this.mSyncDate = null;
+		}
+    	
+    }
+    
     private void checkIsCancelTask() throws CancelTaskException{
     	if(this.isCancelled()){
     		throw new CancelTaskException();
@@ -140,7 +199,40 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     	publishProgress(progress);
     }
     
+    protected boolean uploadFile(String url, MultipartEntity multipartEntity, Context context, StringBuilder outResponseSB) throws AuthorizationException, ServerException{
+		HttpClient httpClient = new DefaultHttpClient();
+		HttpPost httpPost = new HttpPost(url);
+		HttpParams httpParams = new BasicHttpParams();
+    	httpParams.setParameter("http.protocol.handle-redirects", false);
+    	httpPost.setParams(httpParams);    	
+    	httpPost.addHeader(LoginTask.HEADER_COOKIE, String.format(LoginTask.KEY_PDSESSION + "=%s", Settings.getPDSession()));
+		try {
+        	httpPost.setEntity(multipartEntity);
+        	HttpResponse httpResponse = null;
+        	httpResponse = httpClient.execute(httpPost);
+        	int statusCode = httpResponse.getStatusLine().getStatusCode();
+            if(statusCode == HttpStatus.SC_OK)
+    		{
+            	String responseString = EntityUtils.toString(httpResponse.getEntity());
+            	outResponseSB.append(responseString);
+            	return true;
+    		} else if (statusCode == 302){
+    			throw new AuthorizationException();
+    		} else {
+    			throw new ServerException();
+    		}
+        }
+        catch(FileNotFoundException e){
+        	return true;
+        }
+        catch(IOException exc){
+        	throw new ServerException();
+        }              
+	}
+    
     protected String getJSON(String url) throws ClientProtocolException, IOException, AuthorizationException{
+    	//this.mLastQueryServerDate = new Date();
+    	Date clientTimeBeforeRequest = new Date();
     	HttpUriRequest httpGet = new HttpGet(url);
     	HttpParams httpParams = new BasicHttpParams();
     	httpParams.setParameter("http.protocol.handle-redirects", false);
@@ -151,10 +243,26 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         if(response.getStatusLine().getStatusCode() == 302){
         	throw new AuthorizationException();
         }
+        Header dateHeader = response.getFirstHeader("Date");
+        if(dateHeader != null){
+        	try {
+				this.mLastResponseHeaderDate = DateUtils.parseDate(dateHeader.getValue());
+			} catch (DateParseException e) {
+				this.mLastResponseHeaderDate = null;
+			}
+        }
         BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), Settings.DEFAULT_ENCODING));
         StringBuilder sb = new StringBuilder();
         for (String line = null; (line = reader.readLine()) != null;) {
             sb.append(line).append("\n");
+        }
+        Date clientTimeAfterRequest = new Date();
+        if(this.mLastResponseHeaderDate != null){
+        	//Log.i("before mLastQueryServerDate", Long.toString(this.mLastResponseHeaderDate.getTime()));
+        	this.mLastQueryServerDate = new Date(this.mLastResponseHeaderDate.getTime() - (clientTimeAfterRequest.getTime() - clientTimeBeforeRequest.getTime()));
+        	//Log.i("after mLastQueryServerDate", Long.toString(this.mLastQueryServerDate.getTime()));
+        } else {
+        	this.mLastQueryServerDate = null;
         }
         return sb.toString();
     }
@@ -191,8 +299,6 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	int statusCode = httpResponse.getStatusLine().getStatusCode();
             if(statusCode == HttpStatus.SC_OK)
     		{
-            	/*HttpEntity entity = httpResponse.getEntity();
-            	String result = EntityUtils.toString(entity);*/
             	String result = EntityUtils.toString(httpResponse.getEntity());
             	return result;
     		} else if (statusCode == 302){
@@ -251,6 +357,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 			if(findedCemeteries.size() > 0){
 				findedCemetery = findedCemeteries.get(0);
 				cemetery.Id = findedCemetery.Id;
+				cemetery.RegionSyncDate = findedCemetery.RegionSyncDate;
 				if(findedCemetery.IsChanged == 0){
 					dao.createOrUpdate(cemetery);
 				}
@@ -260,7 +367,8 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 				findedCemeteries = dao.query(builder.prepare());
 				if(findedCemeteries.size() > 0){
 					findedCemetery = findedCemeteries.get(0);
-					cemetery.Id = findedCemetery.Id;					
+					cemetery.Id = findedCemetery.Id;
+					cemetery.RegionSyncDate = findedCemetery.RegionSyncDate;
 				}
 				dao.createOrUpdate(cemetery);
 			}
@@ -302,27 +410,55 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         return regionList;
 	}
 	
-	public void handleResponseGetRegionJSON(String regionJSON) throws Exception {	
+	public void handleResponseGetRegionJSON(String regionJSON, int cemeteryServerId, Date syncDate) throws Exception {	
 		ArrayList<Region> regionList = parseRegionJSON(regionJSON);
-        for(int i = 0; i < regionList.size(); i++){
+        for(int i = 0; i < regionList.size(); i++){        	
         	checkIsCancelTask();
         	Region region = regionList.get(i);
         	region.Cemetery = null;
         	RuntimeExceptionDao<Region, Integer> dao = DB.dao(Region.class);
         	QueryBuilder<Region, Integer> builder = dao.queryBuilder();
-			builder.where().eq("ServerId", region.ServerId); //.and().eq("Name", region.Name);
+			builder.where().eq("ServerId", region.ServerId); 
 			List<Region> findedRegions = dao.query(builder.prepare());
+			if(findedRegions.size() == 0){
+				RuntimeExceptionDao<Cemetery, Integer> cemeteryDao = DB.dao(Cemetery.class);
+	        	QueryBuilder<Cemetery, Integer> cemeteryBuilder = cemeteryDao.queryBuilder();
+	        	cemeteryBuilder.where().eq("ServerId", region.ParentServerId);
+	        	List<Cemetery> findedCemetery = cemeteryDao.query(cemeteryBuilder.prepare());
+	        	if(findedCemetery.size() == 1){
+	        		Cemetery parentCemetery = findedCemetery.get(0);
+	        		builder = dao.queryBuilder();
+	        		builder.where().eq("Cemetery_id", parentCemetery.Id).and().eq("Name", region.Name);
+	        		findedRegions = dao.query(builder.prepare());
+	        	}
+			}
 			Region findedRegion = null;
 			if(findedRegions.size() > 0){
 				findedRegion = findedRegions.get(0);
-				region.Id = findedRegions.get(0).Id;
-				if(findedRegion.IsChanged == 0){
+				region.Id = findedRegion.Id;
+				region.PlaceSyncDate = findedRegion.PlaceSyncDate;
+				region.GraveSyncDate = findedRegion.GraveSyncDate;
+				region.BurialSyncDate = findedRegion.BurialSyncDate;
+				boolean isStory = false;
+				if(region.Name != null){
+					if(region.Name.equals(findedRegion.Name)){
+						isStory = true;
+					}
+				}
+				if(findedRegion.IsChanged == 0 || isStory){
 					dao.createOrUpdate(region);
 				}
 			} else {
 				dao.createOrUpdate(region);
 			}			
         }
+        if(syncDate != null && cemeteryServerId > 0){
+        	List<Cemetery> findedCemeteryList = DB.dao(Cemetery.class).queryForEq("ServerId", cemeteryServerId);
+        	for(Cemetery cem : findedCemeteryList){
+        		cem.RegionSyncDate = syncDate;
+        		DB.dao(Cemetery.class).update(cem);
+        	}
+        }        
 	}
 	
 	public void handleResponseUploadRegionJSON(String regionJSON) throws Exception {	
@@ -398,7 +534,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         return placeList;
 	}
 	
-	public void handleResponseGetPlaceJSON(String placeJSON) throws Exception {
+	public void handleResponseGetPlaceJSON(String placeJSON, int cemeteryServerId, int regionServerId, Date syncDate) throws Exception {
 		ArrayList<Integer> unownedPlaceServerIdList = new ArrayList<Integer>();
 		ArrayList<Integer> ownedPlaceServerIdList = new ArrayList<Integer>();
 		ArrayList<Place> placeList = parsePlaceJSON(placeJSON, unownedPlaceServerIdList, ownedPlaceServerIdList);
@@ -499,6 +635,15 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     		updateBuilder.where().eq("ServerId", placeServerId);
     		placeDAO.update(updateBuilder.prepare());
         }
+        
+        if(syncDate != null && regionServerId > 0){
+        	List<Region> findedRegionList = DB.dao(Region.class).queryForEq("ServerId", regionServerId);
+        	for(Region region : findedRegionList){
+        		region.PlaceSyncDate = syncDate;
+        		DB.dao(Region.class).update(region);
+        	}
+        }
+        
 	}
 	
 	public void handleResponseUploadPlaceJSON(String placeJSON) throws Exception {
@@ -585,7 +730,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         return graveList;
 	}
 	
-	public void handleResponseGetGraveJSON(String graveJSON) throws Exception {	
+	public void handleResponseGetGraveJSON(String graveJSON, int cemeteryServerId, int regionServerId, Date syncDate) throws Exception {	
 		ArrayList<Grave> graveList = parseGraveJSON(graveJSON);                
         for(int i = 0; i < graveList.size(); i++){
         	checkIsCancelTask();
@@ -593,19 +738,46 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	grave.Place = null;
         	RuntimeExceptionDao<Grave, Integer> graveDAO = DB.dao(Grave.class);
         	QueryBuilder<Grave, Integer> builder = graveDAO.queryBuilder();
-			builder.where().eq("ServerId", grave.ServerId); //.and().eq("Name", grave.Name);
+			builder.where().eq("ServerId", grave.ServerId); 
 			List<Grave> findedGraves = graveDAO.query(builder.prepare());
+			if(findedGraves.size() == 0){
+				//ищем по имени
+				RuntimeExceptionDao<Place, Integer> placeDAO = DB.dao(Place.class);
+				QueryBuilder<Place, Integer> placeBuilder = placeDAO.queryBuilder();
+				placeBuilder.where().eq("ServerId", grave.ParentServerId);
+				List<Place> findedPlaces = placeDAO.query(placeBuilder.prepare());
+				if(findedPlaces.size() == 1){
+					Place parentPlace = findedPlaces.get(0);
+					builder = graveDAO.queryBuilder();
+					builder.where().eq("Place_id", parentPlace.Id).and().eq("Name", grave.Name);
+					findedGraves = graveDAO.query(builder.prepare());
+				}
+				
+			}
 			Grave findedGrave = null;
 			if(findedGraves.size() > 0){
 				findedGrave = findedGraves.get(0);
 				grave.Id = findedGraves.get(0).Id;
-				if(findedGrave.IsChanged == 0){
+				boolean isStory = false;
+				if(grave.Name != null) {
+					if(grave.Name.equals(findedGrave.Name)){
+						isStory = true;
+					}
+				}
+				if(findedGrave.IsChanged == 0 || isStory){
 					graveDAO.createOrUpdate(grave);
 				}
 			} else {
 				graveDAO.createOrUpdate(grave);
 			}
 			
+        }
+        if(syncDate != null && regionServerId > 0){
+        	List<Region> findedRegionList = DB.dao(Region.class).queryForEq("ServerId", regionServerId);
+        	for(Region region : findedRegionList){
+        		region.GraveSyncDate = syncDate;
+        		DB.dao(Region.class).update(region);
+        	}
         }
 	}
 	
@@ -676,7 +848,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         return burialList;
 	}
 	
-	public void handleResponseGetBurialJSON(String burialJSON) throws Exception {
+	public void handleResponseGetBurialJSON(String burialJSON, int cemeteryServerId, int regionServerId, Date syncDate) throws Exception {
 		ArrayList<Burial> persons = new ArrayList<Burial>();
 		ArrayList<Burial> burialList = parseBurialJSON(burialJSON, persons);                
         for(int i = 0; i < burialList.size(); i++){
@@ -707,5 +879,28 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	}
         }
         
+        if(syncDate != null && regionServerId > 0){
+        	List<Region> findedRegionList = DB.dao(Region.class).queryForEq("ServerId", regionServerId);
+        	for(Region region : findedRegionList){
+        		region.BurialSyncDate = syncDate;
+        		DB.dao(Region.class).update(region);
+        	}
+        }        
+	}
+	
+	public ArrayList<GravePhoto> parseGravePhotoJSON(String gravePhotoJSON) throws Exception {	
+		JSONTokener tokener = new JSONTokener(gravePhotoJSON);
+        JSONArray jsonArray = new JSONArray(tokener);
+        ArrayList<GravePhoto> gravePhotoList = new ArrayList<GravePhoto>();
+        for(int i = 0; i < jsonArray.length(); i++){
+        	checkIsCancelTask();
+        	GravePhoto gravePhoto = new GravePhoto();
+        	JSONObject jsonObj = jsonArray.getJSONObject(i);
+        	gravePhoto.ServerId = jsonObj.getInt("pk");
+        	JSONObject fields = jsonObj.getJSONObject("fields");
+        	gravePhoto.ParentServerId = fields.getInt("grave");
+        	gravePhotoList.add(gravePhoto);    	
+        }
+        return gravePhotoList;
 	}
 }

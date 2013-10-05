@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/editll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_above="@id/llSave"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:orientation="vertical"
+    android:padding="@dimen/activity_horizontal_margin" >
+
+    <LinearLayout
+        android:id="@+id/llCemetery"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="@dimen/small_indent" >
+
+        <TextView
+            android:id="@+id/tvCemetery"
+            android:layout_width="@dimen/header_width"
+            android:layout_height="wrap_content"
+            android:text="Кладбище:"
+            android:textSize="@dimen/header_text_size" />
+
+        <EditText
+            android:id="@+id/etCemetery"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="30"
+            android:textStyle="bold" >
+        </EditText>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llRegion"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="@dimen/small_indent" >
+
+        <TextView
+            android:id="@+id/tvRegion"
+            android:layout_width="@dimen/header_width"
+            android:layout_height="wrap_content"
+            android:text="Участок:"
+            android:textSize="@dimen/header_text_size" />
+
+        <EditText
+            android:id="@+id/etRegion"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="4"
+            android:ems="30"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnAddRegion"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:drawableTop="@android:drawable/ic_input_add"
+            android:gravity="center"
+            android:maxWidth="60dp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llRow"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="@dimen/small_indent" >
+
+        <TextView
+            android:id="@+id/tvRow"
+            android:layout_width="@dimen/header_width"
+            android:layout_height="wrap_content"
+            android:text="Ряд:"
+            android:textSize="@dimen/header_text_size" />
+
+        <EditText
+            android:id="@+id/etRow"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="4"
+            android:ems="30"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnAddRow"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:drawableTop="@android:drawable/ic_input_add"
+            android:gravity="center"
+            android:maxWidth="60dp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llPlace"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/small_indent" >
+
+        <LinearLayout
+            android:id="@+id/llOldPlace"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:id="@+id/tvOldPlace"
+                android:layout_width="@dimen/header_width"
+                android:layout_height="wrap_content"
+                android:text="Старое место:"
+                android:textSize="@dimen/header_text_size" />
+
+            <EditText
+                android:id="@+id/etOldPlace"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:ems="30"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btnNewToOldPlace"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:drawableTop="@android:drawable/ic_menu_revert"
+                android:gravity="center"
+                android:maxWidth="60dp"
+                android:visibility="visible" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:id="@+id/tvPlace"
+                android:layout_width="@dimen/header_width"
+                android:layout_height="wrap_content"
+                android:text="Место:"
+                android:textSize="@dimen/header_text_size" />
+
+            <EditText
+                android:id="@+id/etPlace"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="4"
+                android:ems="30"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btnAddPlace"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                android:layout_weight="1"
+                android:drawableTop="@android:drawable/ic_input_add"
+                android:gravity="center"
+                android:maxWidth="60dp"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <CheckBox
+            android:id="@+id/cbIsOwnerLess"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="  Бесхозное место"
+            android:textSize="@dimen/header_text_size" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llGrave"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="@dimen/small_indent" >
+
+        <TextView
+            android:id="@+id/tvGrave"
+            android:layout_width="@dimen/header_width"
+            android:layout_height="wrap_content"
+            android:text="Могила:"
+            android:textSize="@dimen/header_text_size" />
+
+        <EditText
+            android:id="@+id/etGrave"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="4"
+            android:ems="30"
+            android:inputType="number"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnAddGrave"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:drawableTop="@android:drawable/ic_input_add"
+            android:gravity="center"
+            android:maxWidth="60dp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llGPS"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/border"
+        android:orientation="vertical"
+        android:padding="5dp"
+        android:visibility="visible" >
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:text="GPS координаты:"
+                android:textSize="@dimen/header_text_size" />
+
+            <Button
+                android:id="@+id/btnAddGPS"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="@dimen/margin"
+                android:layout_marginTop="5dp"
+                android:drawableRight="@android:drawable/ic_menu_add"
+                android:text="Добавить GPS координату" />
+        </LinearLayout>
+        
+    </LinearLayout>
+
+</LinearLayout>

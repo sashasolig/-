@@ -1,5 +1,6 @@
 package com.coolchoice.monumentphoto.dal;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -10,6 +11,9 @@ import java.util.UUID;
 import android.util.Log;
 
 import com.coolchoice.monumentphoto.data.Cemetery;
+import com.coolchoice.monumentphoto.data.ComplexGrave;
+import com.coolchoice.monumentphoto.data.DeletedObject;
+import com.coolchoice.monumentphoto.data.DeletedObjectType;
 import com.coolchoice.monumentphoto.data.Grave;
 import com.coolchoice.monumentphoto.data.Monument;
 import com.coolchoice.monumentphoto.data.GravePhoto;
@@ -74,7 +78,15 @@ public class MonumentDB {
 	}
 	
 	public static void deleteMonumentPhoto(GravePhoto monumentPhoto){
-		DB.dao(GravePhoto.class).delete(monumentPhoto);		
+		DB.dao(GravePhoto.class).refresh(monumentPhoto);
+		if(monumentPhoto.ServerId > 0){
+			DeletedObject deletedObject = new DeletedObject();
+			deletedObject.ServerId = monumentPhoto.ServerId;
+			deletedObject.ClientId = monumentPhoto.Id;
+			deletedObject.TypeId = DeletedObjectType.GRAVEPHOTO;
+			DB.dao(DeletedObject.class).create(deletedObject);
+		}
+		DB.dao(GravePhoto.class).delete(monumentPhoto);
 	}	
 		
 	public static List<GravePhoto> getGravePhotoForUpload(){
@@ -217,25 +229,100 @@ public class MonumentDB {
 	}
 	 
 	public static void deleteCemetery(int cemeteryId){
+		ComplexGrave complexGrave = new ComplexGrave();
+		complexGrave.loadByCemeteryId(cemeteryId);
+		File photoFolder = complexGrave.getPhotoFolder();
+		if(photoFolder != null){
+			deleteFolder(photoFolder);
+		}
 		DB.dao(Cemetery.class).deleteById(cemeteryId);
+		deleteNonLinkedRegion();
+		deleteNonLinkedRow();
+		deleteNonLinkedPlace();
+		deleteNonLinkedGrave();
+		deleteNonLinkedGravePhoto();
 	}
 	
 	public static void deleteRegion(int regionId){
-		DB.dao(Region.class).deleteById(regionId);		
+		ComplexGrave complexGrave = new ComplexGrave();
+		complexGrave.loadByRegionId(regionId);
+		File photoFolder = complexGrave.getPhotoFolder();
+		if(photoFolder != null){
+			deleteFolder(photoFolder);
+		}
+		
+		DB.dao(Region.class).deleteById(regionId);
+		deleteNonLinkedRow();
+		deleteNonLinkedPlace();
+		deleteNonLinkedGrave();
+		deleteNonLinkedGravePhoto();
 	}
 	
 	public static void deleteRow(int rowId){
+		ComplexGrave complexGrave = new ComplexGrave();
+		complexGrave.loadByRowId(rowId);
+		File photoFolder = complexGrave.getPhotoFolder();
+		if(photoFolder != null){
+			deleteFolder(photoFolder);
+		}
+		
 		DB.dao(Row.class).deleteById(rowId);
-		String deletePlaceQuery = String.format("delete from place where row_id = %d;", rowId);
-		DB.db().execManualSQL(deletePlaceQuery);
+		deleteNonLinkedPlace();
+		deleteNonLinkedGrave();
+		deleteNonLinkedGravePhoto();
 	}
 	
 	public static void deletePlace(int placeId){
-		DB.dao(Place.class).deleteById(placeId);		
+		ComplexGrave complexGrave = new ComplexGrave();
+		complexGrave.loadByPlaceId(placeId);
+		File photoFolder = complexGrave.getPhotoFolder();
+		if(photoFolder != null){
+			deleteFolder(photoFolder);
+		}
+		
+		DB.dao(Place.class).deleteById(placeId);
+		deleteNonLinkedGrave();
+		deleteNonLinkedGravePhoto();
 	}
 	
 	public static void deleteGrave(int graveId){
+		ComplexGrave complexGrave = new ComplexGrave();
+		complexGrave.loadByGraveId(graveId);
+		File photoFolder = complexGrave.getPhotoFolder();
+		if(photoFolder != null){
+			deleteFolder(photoFolder);
+		}
+		
 		DB.dao(Grave.class).deleteById(graveId);
+		deleteNonLinkedGravePhoto();
 	}
 	
+	private static void deleteNonLinkedRegion(){
+		DB.db().execManualSQL("delete from region where not exists(select * from cemetery where cemetery.Id = region.Cemetery_id);");
+	}
+	
+	private static void deleteNonLinkedRow(){
+		DB.db().execManualSQL("delete from row where not exists(select * from region where region.Id = row.Region_id);");
+	}
+	
+	private static void deleteNonLinkedPlace(){
+		DB.db().execManualSQL("delete from place where not exists(select * from row where row.Id = place.Row_id) and not exists(select * from region where region.Id = place.Region_id);");
+	}
+	
+	private static void deleteNonLinkedGrave(){
+		DB.db().execManualSQL("delete from grave where not exists(select * from place where place.Id = grave.Place_id);");
+	}
+	
+	private static void deleteNonLinkedGravePhoto(){
+		DB.db().execManualSQL("delete from gravephoto where not exists(select * from grave where grave.Id = gravephoto.Grave_id);");
+	}
+	
+	private static void deleteFolder(File fileOrDirectory) {
+	    if (fileOrDirectory.isDirectory()){
+	        for (File child : fileOrDirectory.listFiles()){
+	            deleteFolder(child);
+	        }
+	    }
+	    fileOrDirectory.delete();
+	}
 }

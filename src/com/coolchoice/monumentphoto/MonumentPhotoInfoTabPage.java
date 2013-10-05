@@ -391,7 +391,7 @@ public class MonumentPhotoInfoTabPage extends Fragment implements MonumentInfoAc
         public View getView(int position, View convertView, ViewGroup parent) {
             if (convertView == null) {
             	LayoutInflater inflater = (LayoutInflater) MonumentPhotoInfoTabPage.this.getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                convertView = inflater.inflate(R.layout.photo_grid_item2, parent, false);
+                convertView = inflater.inflate(R.layout.photo_grid_item, parent, false);
             }
             ImageView ivPhoto = (ImageView) convertView.findViewById(R.id.ivPhoto);
             ImageView ivPhotoChoose = (ImageView) convertView.findViewById(R.id.ivChoosePhoto);
@@ -406,7 +406,6 @@ public class MonumentPhotoInfoTabPage extends Fragment implements MonumentInfoAc
 	            if(imgFile.exists()){	
 	            	try {
 						ExifInterface ex = new ExifInterface(imgFile.getAbsolutePath());
-						//byte[] thumbnail = ex.getThumbnail();
 						int orientation = ex.getAttributeInt(ExifInterface.TAG_ORIENTATION, -1);
 						switch (orientation) {
 						case ExifInterface.ORIENTATION_NORMAL:
@@ -460,7 +459,7 @@ public class MonumentPhotoInfoTabPage extends Fragment implements MonumentInfoAc
             	String gpsString = String.format("GPS:%s, %s", Location.convert(lat, Location.FORMAT_SECONDS),Location.convert(lat, Location.FORMAT_SECONDS) );
             	tvGPS.setText(gpsString);
             } else {
-            	tvGPS.setText("GPS ����������");
+            	tvGPS.setText("GPS");
             }
 
             return convertView;

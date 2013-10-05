@@ -62,6 +62,7 @@ public class GetBurialTask extends BaseTask {
     	String resultJSON = null;
         if (params.length == 1) {
             try {
+            	initGETQueryParameters(params[0]);
             	resultJSON = getJSON(params[0]);            	
             } catch (AuthorizationException e) {                
                 result.setError(true);
@@ -74,7 +75,7 @@ public class GetBurialTask extends BaseTask {
             
             if(resultJSON != null){
 	            try{
-	            	handleResponseGetBurialJSON(resultJSON);
+	            	handleResponseGetBurialJSON(resultJSON, this.mCemeteryServerId, this.mRegionServerId, this.mLastQueryServerDate);
 	            } catch (CancelTaskException cte){
 	            	result.setError(true);
 	                result.setStatus(TaskResult.Status.CANCEL_TASK);

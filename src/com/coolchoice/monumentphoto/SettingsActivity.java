@@ -34,6 +34,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.coolchoice.monumentphoto.SyncTaskHandler.OperationType;
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.dal.MonumentDB;
 import com.coolchoice.monumentphoto.data.Monument;
@@ -119,7 +120,7 @@ public class SettingsActivity extends Activity implements SyncTaskHandler.SyncCo
 			@Override
 			public void onClick(View v) {
 				saveSettingsData();
-				mSyncTaskHandler.startGetData();				
+				mSyncTaskHandler.startGetOnlyChangedData();			
 			}
 		});
 		
@@ -243,244 +244,10 @@ public class SettingsActivity extends Activity implements SyncTaskHandler.SyncCo
 	}
 
 	@Override
-	public void onComplete(int type, TaskResult taskResult) {
-		if(type == 0){
+	public void onComplete(SyncTaskHandler.OperationType operationType, TaskResult taskResult) {
+		if(operationType == OperationType.CHECK_LOGIN){
 			setStatusServer(taskResult);
 		}
 		
-	}
-
-	
-	/*class ServerTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTaskProgressListener{
-
-		private Context mContext;
-		private ProgressDialog mProgressDialogSyncData;
-		private boolean isStartedCheckLogin = false;
-		private boolean isStartedGetData = false;
-		private boolean isStartedUploadData = false;
-		private String mProgressDialogTitle;
-		private String mProgressDialogMessage;
-		
-		public ServerTaskHandler(){			
-		}
-		
-		public void setContext(Context context){
-			this.mContext = context;
-		}
-		
-		public void startCheckLogin(){
-			if(isStartedUploadData || isStartedGetData){
-				return;
-			}
-			isStartedCheckLogin = true;
-			mProgressDialogTitle = "Проверка доступа к серверу";
-			mProgressDialogMessage = "Авторизация";
-			mProgressDialogSyncData = ProgressDialog.show(this.mContext, mProgressDialogTitle, mProgressDialogMessage, true);
-			mProgressDialogSyncData.setCancelable(false);
-			SettingsData settingsData = Settings.getSettingData(this.mContext);
-			LoginTask loginTask = new LoginTask(this, this, this.mContext);
-			loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);			
-		}
-		
-		public void startGetData(){
-			if(isStartedUploadData || isStartedCheckLogin){
-				return;
-			}
-			isStartedGetData = true;
-			mProgressDialogTitle = "Загрузка данных...";
-			mProgressDialogMessage = "Авторизация";
-			mProgressDialogSyncData = ProgressDialog.show(this.mContext, mProgressDialogTitle, mProgressDialogMessage, true);
-			mProgressDialogSyncData.setCancelable(false);
-			SettingsData settingsData = Settings.getSettingData(this.mContext);
-			LoginTask loginTask = new LoginTask(this, this, this.mContext);
-			loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);			
-		}
-		
-		public void startUploadData(){
-			if(isStartedGetData || isStartedCheckLogin){
-				return;
-			}
-			isStartedUploadData = true;
-			mProgressDialogTitle = "Отправка данных...";
-			mProgressDialogMessage = "Авторизация";
-			mProgressDialogSyncData = ProgressDialog.show(this.mContext, mProgressDialogTitle, mProgressDialogMessage, true);
-			mProgressDialogSyncData.setCancelable(false);
-			SettingsData settingsData = Settings.getSettingData(this.mContext);
-			LoginTask loginTask = new LoginTask(this, this, this.mContext);
-			loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);			
-		}
-		
-		public void checkResumeDataOperation(Context context){
-			if(isStartedGetData){
-				setContext(context);
-				mProgressDialogSyncData = ProgressDialog.show(this.mContext, mProgressDialogTitle, mProgressDialogMessage, true);
-				mProgressDialogSyncData.setCancelable(false);
-			}
-			if(isStartedUploadData){
-				setContext(context);
-				mProgressDialogSyncData = ProgressDialog.show(this.mContext, mProgressDialogTitle, mProgressDialogMessage, true);
-				mProgressDialogSyncData.setCancelable(false);
-			}
-			if(isStartedCheckLogin){
-				setContext(context);
-				mProgressDialogSyncData = ProgressDialog.show(this.mContext, mProgressDialogTitle, mProgressDialogMessage, true);
-				mProgressDialogSyncData.setCancelable(false);
-			}
-		}
-		
-		@Override
-		public void onProgressUpdate(String... messages) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void onTaskComplete(BaseTask finishedTask, TaskResult result) {
-			boolean isNextTaskStart = false;
-			int cemeteryId = 3;
-			String getArgs = String.format("?"+ BaseTask.ARG_CEMETERY_ID + "=%d", cemeteryId);
-			
-			if(isStartedGetData){
-				if(result.getTaskName() == Settings.TASK_LOGIN){
-					if(!result.isError()){
-						DB.db().dropDBTrigger();
-						mProgressDialogMessage = "Получение названия кладбищ";
-						mProgressDialogSyncData.setMessage(mProgressDialogMessage);
-						com.coolchoice.monumentphoto.task.LoginTask loginTask = (com.coolchoice.monumentphoto.task.LoginTask) finishedTask;
-						Settings.setPDSession(loginTask.getPDSession());
-						GetCemeteryTask getCemeteryTask = new GetCemeteryTask(this, this, this.mContext);
-						getCemeteryTask.execute(Settings.getCemeteryUrl(mContext));
-						isNextTaskStart = true;
-					}
-				}
-				
-				if(result.getTaskName() == Settings.TASK_GETCEMETERY){
-					if(!result.isError()){
-						mProgressDialogMessage = "Получение названия участков";
-						mProgressDialogSyncData.setMessage(mProgressDialogMessage);
-						GetRegionTask getRegionTask = new GetRegionTask(this, this, this.mContext);
-						getRegionTask.execute(Settings.getRegionUrl(mContext) + getArgs);
-						isNextTaskStart = true;
-					}
-				}		
-									
-				if(result.getTaskName() == Settings.TASK_GETREGION){
-					if(!result.isError()){
-						mProgressDialogMessage = "Получение названия мест";
-						mProgressDialogSyncData.setMessage(mProgressDialogMessage);
-						GetPlaceTask getPlaceTask = new GetPlaceTask(this, this, this.mContext);
-						getPlaceTask.execute(Settings.getPlaceUrl(mContext) + getArgs);
-						isNextTaskStart = true;
-					}
-				}
-				
-				if(result.getTaskName() == Settings.TASK_GETPLACE){
-					if(!result.isError()){
-						mProgressDialogMessage = "Получение названия могил";
-						mProgressDialogSyncData.setMessage(mProgressDialogMessage);
-						GetGraveTask getGraveTask = new GetGraveTask(this, this, this.mContext);
-						getGraveTask.execute(Settings.getGraveUrl(mContext) + getArgs);
-						isNextTaskStart = true;
-					}
-				}
-				
-				if(result.getTaskName() == Settings.TASK_GETGRAVE){
-					if(!result.isError()){
-						DB.db().updateDBLink();
-						mProgressDialogMessage = "Данные получены";
-						mProgressDialogSyncData.setMessage(mProgressDialogMessage);
-						Toast.makeText(SettingsActivity.this, "Загрузка завершена", Toast.LENGTH_LONG).show();					
-					}
-				}				
-				
-			}
-			
-			if(isStartedUploadData){
-				if(result.getTaskName() == Settings.TASK_LOGIN){
-					if(!result.isError()){
-						DB.db().dropDBTrigger();
-						mProgressDialogMessage = "Отправка названия кладбищ на сервер";
-						mProgressDialogSyncData.setMessage(mProgressDialogMessage);
-						LoginTask loginTask = (LoginTask) finishedTask;
-						Settings.setPDSession(loginTask.getPDSession());
-						UploadCemeteryTask uploadCemeteryTask = new UploadCemeteryTask(this, this, this.mContext);
-						uploadCemeteryTask.execute(Settings.getUploadCemeteryUrl(this.mContext));
-						isNextTaskStart = true;
-					}
-				}
-				if(result.getTaskName() == Settings.TASK_POSTCEMETERY){
-					if(!result.isError()){
-						DB.db().execManualSQL("update cemetery set IsChanged = 0;");
-						mProgressDialogMessage = "Отправка названия участков на сервер";
-						mProgressDialogSyncData.setMessage(mProgressDialogMessage);						
-						UploadRegionTask uploadRegionTask = new UploadRegionTask(this, this, this.mContext);
-						uploadRegionTask.execute(Settings.getUploadRegionUrl(this.mContext));
-						isNextTaskStart = true;
-					}
-				}
-				if(result.getTaskName() == Settings.TASK_POSTREGION){
-					if(!result.isError()){
-						DB.db().execManualSQL("update region set IsChanged = 0;");
-						mProgressDialogMessage = "Отправка названия мест на сервер";
-						mProgressDialogSyncData.setMessage(mProgressDialogMessage);						
-						UploadPlaceTask uploadPlaceTask = new UploadPlaceTask(this, this, this.mContext);
-						uploadPlaceTask.execute(Settings.getUploadPlaceUrl(this.mContext));
-						isNextTaskStart = true;
-					}
-				}
-				if(result.getTaskName() == Settings.TASK_POSTPLACE){
-					if(!result.isError()){
-						DB.db().execManualSQL("update row set IsChanged = 0;");
-						DB.db().execManualSQL("update place set IsChanged = 0;");
-						mProgressDialogMessage = "Отправка названия могил на сервер";
-						mProgressDialogSyncData.setMessage(mProgressDialogMessage);						
-						UploadGraveTask uploadGraveTask = new UploadGraveTask(this, this, this.mContext);
-						uploadGraveTask.execute(Settings.getUploadGraveUrl(this.mContext));
-						isNextTaskStart = true;
-					}
-				}
-				if(result.getTaskName() == Settings.TASK_POSTGRAVE){
-					if(!result.isError()){
-						DB.db().execManualSQL("update grave set IsChanged = 0;");
-						mProgressDialogMessage = "Отправка фотографий на сервер";
-						mProgressDialogSyncData.setMessage(mProgressDialogMessage);						
-						UploadPhotoTask uploadPhotoTask = new UploadPhotoTask(this, this, this.mContext);
-						uploadPhotoTask.execute(Settings.getUploadPhotoUrl(this.mContext));
-						isNextTaskStart = true;
-					}
-				}
-				
-				if(result.getTaskName() == Settings.TASK_POSTPHOTOGRAVE){
-					if(!result.isError()){
-						mProgressDialogMessage = "Данные отправлены";
-						mProgressDialogSyncData.setMessage(mProgressDialogMessage);
-						Toast.makeText(SettingsActivity.this, "Отправка завершена", Toast.LENGTH_LONG).show();					
-					}
-				}
-				
-			}
-			
-			if(isStartedCheckLogin){
-				if(result.getTaskName() == Settings.TASK_LOGIN){
-					setStatusServer(result);
-				}
-			}
-			
-			if(!isNextTaskStart){
-				if(isStartedGetData){
-					DB.db().createDBTrigger();
-				}
-				if(isStartedUploadData){
-					DB.db().createDBTrigger();
-				}
-				mProgressDialogSyncData.dismiss();
-				isStartedGetData = false;
-				isStartedUploadData = false;
-				isStartedCheckLogin = false;
-			}
-			
-		}
-		
-	}*/
-	
+	}	
 }

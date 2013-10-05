@@ -10,15 +10,9 @@ public class GPS {
 	@DatabaseField(generatedId = true, allowGeneratedIdInsert = true)
 	public int Id;
 	
-	/**
-	 * Широта.
-	 */
 	@DatabaseField
 	public double Latitude;
 	
-	/**
-	 * Долгота.
-	 */
 	@DatabaseField
 	public double Longitude;
 	

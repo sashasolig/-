@@ -9,5 +9,5 @@
         android:showAsAction="ifRoom|withText"       
         android:title="@string/action_remove"
         android:icon="@android:drawable/ic_menu_delete"
-        android:visible="false"/>
+        android:visible="true"/>
 </menu>

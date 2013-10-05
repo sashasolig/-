@@ -1,6 +1,7 @@
 package com.coolchoice.monumentphoto.data;
 
 import java.util.Collection;
+import java.util.Date;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
@@ -14,5 +15,14 @@ public class Region extends BaseDTO {
 	
 	@ForeignCollectionField
 	public Collection<GPSRegion> GPSRegionList;
+	
+	@DatabaseField
+	public Date PlaceSyncDate;
+	
+	@DatabaseField
+	public Date GraveSyncDate;
+	
+	@DatabaseField
+	public Date BurialSyncDate;
 
 }

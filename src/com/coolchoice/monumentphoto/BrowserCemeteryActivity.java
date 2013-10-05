@@ -77,6 +77,7 @@ import android.widget.AdapterView.OnItemClickListener;
 
 import com.coolchoice.monumentphoto.BrowserCemeteryActivity.RowGridAdapter.RowOrPlace;
 import com.coolchoice.monumentphoto.Settings.ISettings;
+import com.coolchoice.monumentphoto.SyncTaskHandler.OperationType;
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.dal.MonumentDB;
 import com.coolchoice.monumentphoto.data.*;
@@ -277,7 +278,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	}
 	
 	@Override
-	public void onComplete(int type, TaskResult taskResult) {
+	public void onComplete(OperationType operationType, TaskResult taskResult) {
 		updateContent(mType);
 	}
 	
@@ -331,6 +332,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 			Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 		    Settings.setCurrentLocation(lastKnownLocation);			
 		}
+		updateContent(mType);
+		updateOptionsMenu();
 	}
 	
 	@Override
@@ -566,30 +569,48 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	    mChoosedRowOrPlace = null;
 	    mChoosedPlace = null;
 	    mChoosedGrave = null;
+	    boolean isMustDelete = false;
 	    switch (v.getId()) {
 		case R.id.gvRegions:
 			Region region = (Region) this.mGVRegion.getAdapter().getItem(info.position);
 			mChoosedRegion = region;
+			if(region.ServerId < 0){
+				isMustDelete = true;
+			}
 			menu.setHeaderTitle(region.Name);
 			break;
 		case R.id.gvRows:
 			RowOrPlace rowOrPlace = (RowOrPlace) this.mGVRow.getAdapter().getItem(info.position);
 			mChoosedRowOrPlace = rowOrPlace;
+			if(rowOrPlace.getServerId() < 0){
+				isMustDelete = true;
+			}
 			menu.setHeaderTitle(rowOrPlace.getName());
 			break;
 		case R.id.gvPlaces:
 			Place place = (Place) this.mGVPlace.getAdapter().getItem(info.position);
 			mChoosedPlace = place;
-			menu.setHeaderTitle(place.Name);
+			if(place.ServerId < 0){
+				isMustDelete = true;
+			}
+			menu.setHeaderTitle(place.Name);			
 			break;
 		case R.id.gvGraves:
 			Grave grave = (Grave) this.mGVGrave.getAdapter().getItem(info.position);
 			mChoosedGrave = grave;
+			if(grave.ServerId < 0){
+				isMustDelete = true;
+			}
 			menu.setHeaderTitle(grave.Name);
 			break;
 		default:
 			break;
-		}	
+		}
+	    if(isMustDelete){
+	    	menu.getItem(1).setEnabled(true);
+	    } else {
+	    	menu.getItem(1).setEnabled(false);
+	    }
 	}
 	
 	@Override
@@ -645,7 +666,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		    	        	if(mChoosedRowOrPlace.isRow()){
 		    	        		MonumentDB.deleteRow(mChoosedRowOrPlace.Row.Id);
 		    	        	} else {
-		    	        		MonumentDB.deleteRow(mChoosedRowOrPlace.Place.Id);
+		    	        		MonumentDB.deletePlace(mChoosedRowOrPlace.Place.Id);
 		    	        	}
 		    	        	mType = getIntent().getIntExtra(EXTRA_TYPE, -1);				
 		    				updateContent(mType);
@@ -1158,6 +1179,16 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 			
 			public RowOrPlace(){
 				
+			}
+			
+			public int getServerId(){
+				if(isRow()){
+					return this.Row.ServerId;
+				}
+				if(isPlace()){
+					return this.Place.ServerId;
+				}
+				return -1;
 			}
 			
 			public String getName(){
@@ -1754,7 +1785,13 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		        	gridPhotoItems.add(item);
 		        }
         	}
-        }    
+        } else {
+        	if(grave != null){
+        		for(PhotoGridItem item : gridPhotoItems){
+		        	DB.dao(GravePhoto.class).refresh(item.getGravePhoto());		        	
+		        }
+        	}
+        }
 	}
 	
 	public void updateStatusInPhotoGrid(){
@@ -1887,7 +1924,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
         public View getView(int position, View convertView, ViewGroup parent) {
             if (convertView == null) {
             	LayoutInflater inflater = (LayoutInflater) BrowserCemeteryActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                convertView = inflater.inflate(R.layout.photo_grid_item2, parent, false);
+                convertView = inflater.inflate(R.layout.photo_grid_item, parent, false);
             }
             ImageView ivPhoto = (ImageView) convertView.findViewById(R.id.ivPhoto);
             ImageView ivPhotoChoose = (ImageView) convertView.findViewById(R.id.ivChoosePhoto);

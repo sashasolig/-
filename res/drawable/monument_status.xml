@@ -2,11 +2,11 @@
 <level-list xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <item
-        android:drawable="@android:drawable/presence_invisible"
+        android:drawable="@android:color/transparent"
         android:maxLevel="0"/>
     
     <item
-        android:drawable="@drawable/sync"
+        android:drawable="@android:color/transparent"
         android:maxLevel="1"/>
 
     <item

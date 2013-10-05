@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.coolchoice.monumentphoto.SyncTaskHandler.OperationType;
 import com.coolchoice.monumentphoto.SyncTaskHandler.SyncCompleteListener;
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.dal.MonumentDB;
@@ -77,7 +78,7 @@ public class CemeteryListActivity extends Activity implements SyncTaskHandler.Sy
 	}
 	
 	@Override
-	public void onComplete(int type, TaskResult taskResult) {
+	public void onComplete(OperationType operationType, TaskResult taskResult) {
 		this.updateCemeteryList();		
 	}
 	
@@ -95,6 +96,7 @@ public class CemeteryListActivity extends Activity implements SyncTaskHandler.Sy
 			}
 		});
 		registerForContextMenu(this.lvCemetery);
+		updateOptionsMenu();
 	}
 	
 	private void updateCemeteryList(){
@@ -163,7 +165,17 @@ public class CemeteryListActivity extends Activity implements SyncTaskHandler.Sy
 		mSyncTaskHandler.startGetCemetery();
 		mSyncTaskHandler.setOnSyncCompleteListener(new SyncCompleteListener() {				
 			@Override
-			public void onComplete(int type, TaskResult taskResult) {
+			public void onComplete(OperationType operationType, TaskResult taskResult) {
+				updateCemeteryList();					
+			}
+		});
+	}
+	
+	private void actionGetAllDataByCemetery(int cemeteryServerId){
+		mSyncTaskHandler.startGetOnlyChangedData(cemeteryServerId);
+		mSyncTaskHandler.setOnSyncCompleteListener(new SyncCompleteListener() {				
+			@Override
+			public void onComplete(OperationType operationType, TaskResult taskResult) {
 				updateCemeteryList();					
 			}
 		});
@@ -240,9 +252,27 @@ public class CemeteryListActivity extends Activity implements SyncTaskHandler.Sy
             }
             TextView tvIndex = (TextView) convertView.findViewById(R.id.tvIndex);
             TextView tvCemetery = (TextView) convertView.findViewById(R.id.tvCemetery);
-            String value = mItems.get(position).Name;
+            Button btnGetDataByCemetery = (Button) convertView.findViewById(R.id.btnGetDataByCemetery);
+            Cemetery cemetery = mItems.get(position); 
+            btnGetDataByCemetery.setTag(cemetery.ServerId);
+            if(cemetery.ServerId > 0 ){
+            	btnGetDataByCemetery.setVisibility(View.VISIBLE);
+            } else {
+            	btnGetDataByCemetery.setVisibility(View.GONE);
+            }            	
+            String value = cemetery.Name;
             tvCemetery.setText(value);
             tvIndex.setText(Integer.toString(position + 1));
+            btnGetDataByCemetery.setOnClickListener(new View.OnClickListener() {
+				
+				@Override
+				public void onClick(View v) {
+					int cemeteryServerId = Integer.parseInt(v.getTag().toString());
+					if(cemeteryServerId > 0) {
+						actionGetAllDataByCemetery(cemeteryServerId);
+					}					
+				}
+			});
             return convertView;
         }
         

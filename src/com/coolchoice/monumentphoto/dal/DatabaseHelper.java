@@ -8,11 +8,13 @@ import java.util.UUID;
 
 
 import android.content.Context;
+import android.content.pm.FeatureInfo;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.coolchoice.monumentphoto.data.Burial;
 import com.coolchoice.monumentphoto.data.Cemetery;
+import com.coolchoice.monumentphoto.data.DeletedObject;
 import com.coolchoice.monumentphoto.data.GPSCemetery;
 import com.coolchoice.monumentphoto.data.GPSGrave;
 import com.coolchoice.monumentphoto.data.GPSPlace;
@@ -36,7 +38,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     //public static final String DATABASE_NAME = "/mnt/sdcard/monument.db";
     public static final String DATABASE_NAME = "monument.db";
     
-    public static final int DATABASE_VERSION = 2;
+    public static final int DATABASE_VERSION = 4;
     
     private Context context;
 
@@ -58,6 +60,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         entityClassesArray.add(GPSRow.class);
         entityClassesArray.add(GPSPlace.class);
         entityClassesArray.add(GPSGrave.class);
+        
+        entityClassesArray.add(DeletedObject.class);
                 
     }
     
@@ -94,6 +98,28 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     	if (oldVer == 1 && newVer == 2) {
             migrateDBFromVer1ToVer2(db, connectionSource);
     	}
+    	if(oldVer == 1 && newVer == 3){
+    		migrateDBFromVer1ToVer2(db, connectionSource);
+    		migrateDBFromVer2ToVer3(db, connectionSource);
+    	}
+    	if(oldVer == 1 && newVer == 4){
+    		migrateDBFromVer1ToVer2(db, connectionSource);
+    		migrateDBFromVer2ToVer3(db, connectionSource);
+    		migrateDBFromVer3ToVer4(db, connectionSource);
+    	}
+    	
+    	if(oldVer == 2 && newVer == 3){
+    		migrateDBFromVer2ToVer3(db, connectionSource);
+    	}
+    	if(oldVer == 2 && newVer == 4){
+    		migrateDBFromVer2ToVer3(db, connectionSource);
+    		migrateDBFromVer3ToVer4(db, connectionSource);
+    	}
+    	
+    	if(oldVer == 3 && newVer == 4){
+    		migrateDBFromVer3ToVer4(db, connectionSource);
+    	}    	
+    	
     }
     	
     private void migrateDBFromVer1ToVer2(SQLiteDatabase db, ConnectionSource connectionSource){
@@ -106,6 +132,31 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         } catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
+            db.endTransaction();
+        }
+    }
+    
+    private void migrateDBFromVer2ToVer3(SQLiteDatabase db, ConnectionSource connectionSource){
+    	db.beginTransaction();
+        try {            	
+			TableUtils.createTable(connectionSource, DeletedObject.class);
+            db.setTransactionSuccessful();                
+        } catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+            db.endTransaction();
+        }
+    }
+    
+    private void migrateDBFromVer3ToVer4(SQLiteDatabase db, ConnectionSource connectionSource){
+    	db.beginTransaction();
+        try {
+        	db.execSQL("alter table cemetery add column RegionSyncDate VARCHAR;");
+        	db.execSQL("alter table region add column PlaceSyncDate VARCHAR;");
+        	db.execSQL("alter table region add column GraveSyncDate VARCHAR;");
+        	db.execSQL("alter table region add column BurialSyncDate VARCHAR;");     	
+            db.setTransactionSuccessful();               
+        } finally {
             db.endTransaction();
         }
     }
