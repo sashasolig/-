@@ -1737,7 +1737,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		startActivityForResult(intent, REQUEST_CODE_PHOTO_INTENT);
 	}
 	
-	private String nextString(String s){
+	public static String nextString(String s){
 		String result = null;
 		int value;
 		if(s == null || s == "" ){

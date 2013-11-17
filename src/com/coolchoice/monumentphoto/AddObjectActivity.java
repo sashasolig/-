@@ -1,70 +1,37 @@
 package com.coolchoice.monumentphoto;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import com.coolchoice.monumentphoto.R.id;
 import com.coolchoice.monumentphoto.dal.DB;
-import com.coolchoice.monumentphoto.dal.MonumentDB;
+import com.coolchoice.monumentphoto.data.BaseDTO;
 import com.coolchoice.monumentphoto.data.Cemetery;
 import com.coolchoice.monumentphoto.data.ComplexGrave;
-import com.coolchoice.monumentphoto.data.GPS;
-import com.coolchoice.monumentphoto.data.GPSCemetery;
-import com.coolchoice.monumentphoto.data.GPSGrave;
-import com.coolchoice.monumentphoto.data.GPSPlace;
-import com.coolchoice.monumentphoto.data.GPSRegion;
-import com.coolchoice.monumentphoto.data.GPSRow;
 import com.coolchoice.monumentphoto.data.Grave;
 import com.coolchoice.monumentphoto.data.Place;
 import com.coolchoice.monumentphoto.data.Region;
 import com.coolchoice.monumentphoto.data.Row;
-import com.coolchoice.monumentphoto.data.SettingsData;
-import com.coolchoice.monumentphoto.task.AsyncTaskCompleteListener;
-import com.coolchoice.monumentphoto.task.AsyncTaskProgressListener;
-import com.coolchoice.monumentphoto.task.BaseTask;
-import com.coolchoice.monumentphoto.task.GetCemeteryTask;
-import com.coolchoice.monumentphoto.task.GetGraveTask;
-import com.coolchoice.monumentphoto.task.GetPlaceTask;
-import com.coolchoice.monumentphoto.task.GetRegionTask;
-import com.coolchoice.monumentphoto.task.LoginTask;
-import com.coolchoice.monumentphoto.task.TaskResult;
-import com.coolchoice.monumentphoto.task.UploadPhotoTask;
+
+import com.coolchoice.monumentphoto.map.AddGPSActivity;
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.stmt.QueryBuilder;
 
-import android.R.bool;
+
 import android.app.Activity;
-import android.app.Dialog;
-import android.app.ProgressDialog;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.pm.ActivityInfo;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
+import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.text.method.HideReturnsTransformationMethod;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.MeasureSpec;
+
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
+
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.TextView;
+
 import android.widget.Toast;
 
-public class AddObjectActivity extends Activity implements LocationListener {
+public class AddObjectActivity extends Activity {
 	
 	public static final String EXTRA_TYPE = "extra_type";
 	public static final String EXTRA_ID = "extra_id";
@@ -89,116 +56,46 @@ public class AddObjectActivity extends Activity implements LocationListener {
 	
 	private CheckBox cbOwnerLess;
 	
-	private LinearLayout llCemetery, llRegion, llRow, llPlace, llGrave, llSave;
+	private LinearLayout llCemetery, llRegion, llRow, llPlace, llGrave;
 	
 	private Button btnNewToOldPlace;
 	
 	private LinearLayout llOldPlace;
-	
-	private LinearLayout editLL;
-	
-	private int[] hiddenLayoutArray = {0, 0, 0, 0, 0, 0};
-	
-	private LinearLayout llGPS;
-	
+		
 	private Button btnAddGPS;
-	
-	private ListView lvGPS;
-	
+			
 	private Button btnCancel, btnSave;
 	
 	private int mType, mId, mParentId;
 	
 	private boolean mIsEdit;
-	
-	private static List<GPS> mGPSList = new ArrayList<GPS>();
-			
-	private static WaitGPSHandler mWaitGPSHandler;
-	
-	private static GPSListAdapter mGPSListAdapter = null;
-	
-	private View headerView;
-	
-	
-           	
+          	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.add_object_activity);
-		this.headerView = LayoutInflater.from(this).inflate(R.layout.add_object_header, null);
-		this.editLL = (LinearLayout)this.headerView.findViewById(R.id.editll);
-		this.llSave = (LinearLayout) this.headerView.findViewById(R.id.llSave);
 		this.mType = getIntent().getExtras().getInt(EXTRA_TYPE);
 		this.mId = getIntent().getExtras().getInt(EXTRA_ID, -1);
 		this.mParentId = getIntent().getExtras().getInt(EXTRA_PARENT_ID, -1);
 		this.mIsEdit = getIntent().getExtras().getBoolean(EXTRA_EDIT, false);
-		this.etCemetery = (EditText) this.headerView.findViewById(R.id.etCemetery);
-		this.etRegion = (EditText) this.headerView.findViewById(R.id.etRegion);
-		this.etRow = (EditText) this.headerView.findViewById(R.id.etRow);
-		this.etPlace = (EditText) this.headerView.findViewById(R.id.etPlace);
-		this.etOldPlace = (EditText) this.headerView.findViewById(R.id.etOldPlace);
-		this.cbOwnerLess = (CheckBox) this.headerView.findViewById(R.id.cbIsOwnerLess);
-		this.etGrave = (EditText) this.headerView.findViewById(R.id.etGrave);
-		this.llCemetery = (LinearLayout) this.headerView.findViewById(R.id.llCemetery);
-		this.llRegion = (LinearLayout) this.headerView.findViewById(R.id.llRegion);
-		this.llRow = (LinearLayout) this.headerView.findViewById(R.id.llRow);
-		this.llPlace = (LinearLayout) this.headerView.findViewById(R.id.llPlace);
-		this.llGrave = (LinearLayout) this.headerView.findViewById(R.id.llGrave);
+		this.etCemetery = (EditText) findViewById(R.id.etCemetery);
+		this.etRegion = (EditText) findViewById(R.id.etRegion);
+		this.etRow = (EditText) findViewById(R.id.etRow);
+		this.etPlace = (EditText) findViewById(R.id.etPlace);
+		this.etOldPlace = (EditText) findViewById(R.id.etOldPlace);
+		this.cbOwnerLess = (CheckBox) findViewById(R.id.cbIsOwnerLess);
+		this.etGrave = (EditText) findViewById(R.id.etGrave);
+		this.llCemetery = (LinearLayout) findViewById(R.id.llCemetery);
+		this.llRegion = (LinearLayout) findViewById(R.id.llRegion);
+		this.llRow = (LinearLayout) findViewById(R.id.llRow);
+		this.llPlace = (LinearLayout) findViewById(R.id.llPlace);
+		this.llGrave = (LinearLayout) findViewById(R.id.llGrave);
 		this.btnSave = (Button) findViewById(R.id.btnSave);
 		this.btnCancel = (Button) findViewById(R.id.btnCancel);
 		
-		this.llOldPlace = (LinearLayout) this.headerView.findViewById(R.id.llOldPlace);
-		this.btnNewToOldPlace = (Button) this.headerView.findViewById(R.id.btnNewToOldPlace);				
-		this.llGPS = (LinearLayout) this.headerView.findViewById(R.id.llGPS);		
-		this.btnAddGPS = (Button) this.headerView.findViewById(R.id.btnAddGPS);
-		
-		this.lvGPS = (ListView) findViewById(R.id.lvGPS);
-		this.lvGPS.addHeaderView(headerView);
-		if(mGPSListAdapter == null){
-			mGPSListAdapter = new GPSListAdapter();
-		}
-		this.lvGPS.setAdapter(mGPSListAdapter);
-		
-		if(this.editLL.getClass() == EditLinearLayout.class){
-			((EditLinearLayout)this.editLL).setOnStateListener(new EditLinearLayout.StateListener() {
-				
-				@Override
-				public void onChangeState(boolean state) {											
-					View focusView = AddObjectActivity.this.getCurrentFocus();
-					int focusedViewId = 0;
-					if(focusView != null && focusView instanceof EditText){
-						switch (focusView.getId()) {
-						case R.id.etCemetery:						
-							break;
-						case R.id.etRegion:						
-							break;
-						case R.id.etRow:						
-							break;
-						case R.id.etPlace:
-							focusedViewId = R.id.etPlace;
-							break;
-						case R.id.etGrave:
-							focusedViewId = R.id.etGrave;
-							break;
-						default:
-							break;
-						}
-					}
-					if(state){
-						if(focusedViewId > 0){
-							llCemetery.setVisibility(View.GONE);
-							llRegion.setVisibility(View.GONE);
-						}					
-					} else {
-						if(focusedViewId > 0){
-							llCemetery.setVisibility(View.VISIBLE);
-							llRegion.setVisibility(View.VISIBLE);
-						}
-					}
-					
-				}
-			});
-		}
+		this.llOldPlace = (LinearLayout) findViewById(R.id.llOldPlace);
+		this.btnNewToOldPlace = (Button) findViewById(R.id.btnNewToOldPlace);				
+		this.btnAddGPS = (Button) findViewById(R.id.btnAddGPS);
 		
 		updateAccessibilityUI(this.mType);
 		this.btnCancel.setOnClickListener(new View.OnClickListener() {
@@ -214,32 +111,7 @@ public class AddObjectActivity extends Activity implements LocationListener {
 			
 			@Override
 			public void onClick(View v) {
-				boolean isSave = false;
-				switch(mType){
-					case ADD_CEMETERY:
-						isSave = saveCemetery();
-						break;
-					case ADD_REGION:
-						isSave = saveRegion();
-						break;		
-					case ADD_ROW:
-						isSave = saveRow();
-						break;			
-					case ADD_PLACE_WITHOUTROW:
-						isSave = savePlaceWithoutRow();		
-						break;
-					case ADD_PLACE_WITHROW:
-						isSave = savePlaceWithRow();
-						break;
-					case ADD_GRAVE_WITHOUTROW:
-						isSave = saveGrave();
-						break;
-					case ADD_GRAVE_WITHROW:
-						isSave = saveGrave();
-						break;
-					default:
-						break;
-				}
+				boolean isSave = saveObjectToDB();
 				if(isSave){
 					setResult(Activity.RESULT_OK);
 					finish();	
@@ -250,13 +122,8 @@ public class AddObjectActivity extends Activity implements LocationListener {
 		});
 		
 		loadDataFromDB(mType, mId, mParentId, mIsEdit);
-		handleGPSList(true);
-		
-		if(mWaitGPSHandler == null){
-			mWaitGPSHandler = new WaitGPSHandler(this); 
-		}
-		mWaitGPSHandler.checkWaitGPS(this);
-		
+		setNextValueForPlace();
+				
 		if(Settings.IsOldPlaceNameOption(this)){
 			this.llOldPlace.setVisibility(View.VISIBLE);
 			if(this.etOldPlace.getText().toString() != ""){
@@ -278,14 +145,88 @@ public class AddObjectActivity extends Activity implements LocationListener {
 			}
 		});
 		
+		this.btnAddGPS.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				boolean isSave = saveObjectToDB();
+				if(isSave){
+					Intent intent = new Intent(AddObjectActivity.this, AddGPSActivity.class);
+					intent.putExtra(EXTRA_ID, mId);
+					intent.putExtra(EXTRA_TYPE, mType);
+					startActivity(intent);
+				} else {
+					Toast.makeText(AddObjectActivity.this, "Недопустимое значение", Toast.LENGTH_LONG).show();
+				}
+				
+				
+				
+			}
+		});
+		
 	}
 	
-	@Override
-	protected void onDestroy(){
-		super.onDestroy();
-		if(isFinishing()){
-			mGPSList.clear();
+	private void setNextValueForPlace(){
+		String nextPlaceName = null;
+		if((this.mType == ADD_PLACE_WITHOUTROW || this.mType == ADD_PLACE_WITHROW) &&
+			(this.mId < 0 && this.mParentId > 0 && this.etPlace.getText().length() == 0)){
+			if(this.mType == ADD_PLACE_WITHOUTROW){				
+				try {
+					PreparedQuery<Place> query = DB.dao(Place.class).queryBuilder().orderBy(BaseDTO.COLUMN_NAME, false).where().eq("Region_id", this.mParentId).prepare();
+					List<Place> list = DB.dao(Place.class).query(query);
+					if(list.size() > 0){
+						nextPlaceName = list.get(0).Name;
+					}
+				} catch (SQLException e) {
+					
+				}
+			}
+			if(this.mType == ADD_PLACE_WITHROW){
+				try {
+					PreparedQuery<Place> query = DB.dao(Place.class).queryBuilder().orderBy(BaseDTO.COLUMN_NAME, false).where().eq("Row_id", this.mParentId).prepare();
+					List<Place> list = DB.dao(Place.class).query(query);
+					if(list.size() > 0){
+						nextPlaceName = list.get(0).Name;
+					}
+				} catch (SQLException e) {
+					
+				}
+			}
+			if(nextPlaceName != null){
+				nextPlaceName = BrowserCemeteryActivity.nextString(nextPlaceName);
+				this.etPlace.setText(nextPlaceName);
+			}
 		}
+	}
+	
+	private boolean saveObjectToDB(){
+		boolean isSave = false;
+		switch(mType){
+			case ADD_CEMETERY:
+				isSave = saveCemetery();
+				break;
+			case ADD_REGION:
+				isSave = saveRegion();
+				break;		
+			case ADD_ROW:
+				isSave = saveRow();
+				break;			
+			case ADD_PLACE_WITHOUTROW:
+				isSave = savePlaceWithoutRow();		
+				break;
+			case ADD_PLACE_WITHROW:
+				isSave = savePlaceWithRow();
+				break;
+			case ADD_GRAVE_WITHOUTROW:
+				isSave = saveGrave();
+				break;
+			case ADD_GRAVE_WITHROW:
+				isSave = saveGrave();
+				break;
+			default:
+				break;
+		}
+		return isSave;		
 	}
 	
 	private void loadDataFromDB(int type, int id, int parentId, boolean isEdit){
@@ -388,6 +329,11 @@ public class AddObjectActivity extends Activity implements LocationListener {
 		}		
 		
 		
+	}
+	
+	public void setNewIdInExtras(String extraName, int id){
+		getIntent().removeExtra(extraName);
+		getIntent().putExtra(extraName, id);
 	}
 	
 	public void updateAccessibilityUI(int type){
@@ -507,7 +453,6 @@ public class AddObjectActivity extends Activity implements LocationListener {
 		}
 		if(mId >= 0){
 			// update
-			MonumentDB monumentDB = new MonumentDB();
 			Cemetery cemetery = DB.dao(Cemetery.class).queryForId(mId);
 			String oldCemeteryName = cemetery.Name;
 			String newCemeteryName = etCemetery.getText().toString();
@@ -516,32 +461,19 @@ public class AddObjectActivity extends Activity implements LocationListener {
 				cemetery.IsChanged = 1;
 				DB.dao(Cemetery.class).update(cemetery);
 				ComplexGrave.renameCemetery(cemetery, oldCemeteryName);				
-			}			
-			
-			List<GPSCemetery> deletedGPS = DB.dao(GPSCemetery.class).queryForEq("Cemetery_id", cemetery.Id);
-			DB.dao(GPSCemetery.class).delete(deletedGPS);
-			saveGPSCemetery(cemetery);
-			
+			}
 		} else {
 			//create
 			Cemetery cemetery = new Cemetery();
 			cemetery.Name = etCemetery.getText().toString();
 			cemetery.IsChanged = 1;
-			DB.dao(Cemetery.class).create(cemetery);			
+			DB.dao(Cemetery.class).create(cemetery);
+			this.mId = cemetery.Id;
+			setNewIdInExtras(EXTRA_ID, mId);
 		}
 		return true;
 	}
-	
-	private void saveGPSCemetery(Cemetery cemetery){
-		for(GPS gps : mGPSList){
-			GPSCemetery gpsCemetery = new GPSCemetery();
-			gpsCemetery.Latitude = gps.Latitude;
-			gpsCemetery.Longitude = gps.Longitude;
-			gpsCemetery.Cemetery = cemetery;
-			DB.dao(GPSCemetery.class).create(gpsCemetery);
-		}
-	}
-	
+		
 	private boolean checkRegionName(Cemetery cemetery, String newRegionName, int curRegionId){
 		if(newRegionName == null || newRegionName.equals("")){
 			return false;
@@ -573,7 +505,6 @@ public class AddObjectActivity extends Activity implements LocationListener {
 		}
 		if(mId >= 0){
 			// update
-			MonumentDB monumentDB = new MonumentDB();
 			Region region = DB.dao(Region.class).queryForId(mId);
 			String oldRegionName = region.Name;
 			String newRegionName = etRegion.getText().toString();
@@ -583,10 +514,6 @@ public class AddObjectActivity extends Activity implements LocationListener {
 				DB.dao(Region.class).update(region);
 				ComplexGrave.renameRegion(region, oldRegionName);
 			}
-			
-			List<GPSRegion> deletedGPS = DB.dao(GPSRegion.class).queryForEq("Region_id", region.Id);
-			DB.dao(GPSRegion.class).delete(deletedGPS);
-			saveGPSRegion(region);
 		} else {
 			//create
 			Region region = new Region();
@@ -594,19 +521,10 @@ public class AddObjectActivity extends Activity implements LocationListener {
 			region.Name = etRegion.getText().toString();
 			region.IsChanged = 1;
 			DB.dao(Region.class).create(region);
-			saveGPSRegion(region);
+			this.mId = region.Id;
+			setNewIdInExtras(EXTRA_ID, mId);
 		}
 		return true;
-	}
-	
-	private void saveGPSRegion(Region region){
-		for(GPS gps : mGPSList){
-			GPSRegion gpsRegion = new GPSRegion();
-			gpsRegion.Latitude = gps.Latitude;
-			gpsRegion.Longitude = gps.Longitude;
-			gpsRegion.Region = region;
-			DB.dao(GPSRegion.class).create(gpsRegion);
-		}
 	}
 	
 	private boolean checkRowName(Region region, String newRowName, int curRowId){
@@ -640,7 +558,6 @@ public class AddObjectActivity extends Activity implements LocationListener {
 		}
 		if(mId >= 0){
 			// update
-			MonumentDB monumentDB = new MonumentDB();
 			Row row = DB.dao(Row.class).queryForId(mId);
 			String oldRowName = row.Name;
 			String newRowName = etRow.getText().toString();
@@ -650,10 +567,6 @@ public class AddObjectActivity extends Activity implements LocationListener {
 				DB.dao(Row.class).update(row);
 				ComplexGrave.renameRow(row, oldRowName);
 			}
-						
-			List<GPSRow> deletedGPS = DB.dao(GPSRow.class).queryForEq("Row_id", row.Id);
-			DB.dao(GPSRow.class).delete(deletedGPS);
-			saveGPSRow(row);
 		} else {
 			//create
 			Row row = new Row();
@@ -661,20 +574,11 @@ public class AddObjectActivity extends Activity implements LocationListener {
 			row.Name = etRow.getText().toString();
 			row.IsChanged = 1;
 			DB.dao(Row.class).create(row);
-			saveGPSRow(row);
+			this.mId = row.Id;
+			setNewIdInExtras(EXTRA_ID, mId);
 		}
 		return true;
-	}
-	
-	private void saveGPSRow(Row row){
-		for(GPS gps : mGPSList){
-			GPSRow gpsRow = new GPSRow();
-			gpsRow.Latitude = gps.Latitude;
-			gpsRow.Longitude = gps.Longitude;
-			gpsRow.Row = row;
-			DB.dao(GPSRow.class).create(gpsRow);
-		}
-	}
+	}	
 	
 	private boolean checkPlaceName(Region region, Row row, String newPlaceName, int curPlaceId){
 		if(newPlaceName == null || newPlaceName.equals("")){
@@ -711,7 +615,6 @@ public class AddObjectActivity extends Activity implements LocationListener {
 		}
 		if(mId >= 0){
 			// update
-			MonumentDB monumentDB = new MonumentDB();
 			Place place = DB.dao(Place.class).queryForId(mId);
 			String dbPlaceName = place.Name;
 			String dbOldPlaceName = place.OldName;
@@ -729,11 +632,8 @@ public class AddObjectActivity extends Activity implements LocationListener {
 				place.IsChanged = 1;
 				DB.dao(Place.class).update(place);
 				ComplexGrave.renamePlace(place, dbPlaceName);
-			}
+			}			
 			
-			List<GPSPlace> deletedGPS = DB.dao(GPSPlace.class).queryForEq("Place_id", place.Id);
-			DB.dao(GPSPlace.class).delete(deletedGPS);
-			saveGPSPlace(place);
 		} else {
 			Place place = new Place();
 			place.Row = row;
@@ -743,7 +643,8 @@ public class AddObjectActivity extends Activity implements LocationListener {
 			place.IsOwnerLess = cbOwnerLess.isChecked();
 			place.IsChanged = 1;
 			DB.dao(Place.class).create(place);
-			saveGPSPlace(place);
+			this.mId = place.Id;
+			setNewIdInExtras(EXTRA_ID, mId);
 		}
 		return true;
 	}
@@ -762,7 +663,6 @@ public class AddObjectActivity extends Activity implements LocationListener {
 		}
 		if(mId >= 0){
 			// update
-			MonumentDB monumentDB = new MonumentDB();
 			Place place = DB.dao(Place.class).queryForId(mId);
 			String dbPlaceName = place.Name;
 			String dbOldPlaceName = place.OldName;
@@ -780,11 +680,8 @@ public class AddObjectActivity extends Activity implements LocationListener {
 				place.IsChanged = 1;
 				DB.dao(Place.class).update(place);
 				ComplexGrave.renamePlace(place, dbPlaceName);
-			}
+			}		
 			
-			List<GPSPlace> deletedGPS = DB.dao(GPSPlace.class).queryForEq("Place_id", place.Id);
-			DB.dao(GPSPlace.class).delete(deletedGPS);
-			saveGPSPlace(place);
 		} else {
 			Place place = new Place();
 			place.Row = null;
@@ -794,19 +691,10 @@ public class AddObjectActivity extends Activity implements LocationListener {
 			place.IsOwnerLess = cbOwnerLess.isChecked();
 			place.IsChanged = 1;
 			DB.dao(Place.class).create(place);
-			saveGPSPlace(place);
+			this.mId = place.Id;
+			setNewIdInExtras(EXTRA_ID, mId);
 		}
 		return true;
-	}
-	
-	private void saveGPSPlace(Place place){
-		for(GPS gps : mGPSList){
-			GPSPlace gpsPlace = new GPSPlace();
-			gpsPlace.Latitude = gps.Latitude;
-			gpsPlace.Longitude = gps.Longitude;
-			gpsPlace.Place = place;
-			DB.dao(GPSPlace.class).create(gpsPlace);
-		}
 	}
 	
 	private boolean checkGraveName(Place place, String newGraveName, int curGraveId){
@@ -849,7 +737,6 @@ public class AddObjectActivity extends Activity implements LocationListener {
 		}
 		if(mId >= 0){
 			// update
-			MonumentDB monumentDB = new MonumentDB();
 			Grave grave = DB.dao(Grave.class).queryForId(mId);
 			String oldGraveName = grave.Name;
 			if(oldGraveName != newGraveName){
@@ -865,10 +752,6 @@ public class AddObjectActivity extends Activity implements LocationListener {
 				place.IsChanged = 1;
 				DB.dao(Place.class).createOrUpdate(place);
 			}			
-			
-			List<GPSGrave> deletedGPS = DB.dao(GPSGrave.class).queryForEq("Grave_id", grave.Id);
-			DB.dao(GPSGrave.class).delete(deletedGPS);
-			saveGPSGrave(grave);
 		} else {			
 			if(place.IsOwnerLess != this.cbOwnerLess.isChecked() ){
 				place.IsOwnerLess = this.cbOwnerLess.isChecked();
@@ -881,251 +764,15 @@ public class AddObjectActivity extends Activity implements LocationListener {
 			grave.Name = etGrave.getText().toString();
 			grave.IsChanged = 1;
 			DB.dao(Grave.class).create(grave);
-			saveGPSGrave(grave);
+			this.mId = grave.Id;
+			setNewIdInExtras(EXTRA_ID, mId);
 		}
 		return true;
-	}
-	
-	private void saveGPSGrave(Grave grave){
-		for(GPS gps : mGPSList){
-			GPSGrave gpsGrave = new GPSGrave();
-			gpsGrave.Latitude = gps.Latitude;
-			gpsGrave.Longitude = gps.Longitude;
-			gpsGrave.Grave = grave;
-			DB.dao(GPSGrave.class).create(gpsGrave);
-		}
-	}
-	
-	private void handleGPSList(boolean isLoadFromDB){
-		List<GPS> dbGPSList = new ArrayList<GPS>();
-		if(mId > 0 && isLoadFromDB){
-			switch(mType){
-			case ADD_CEMETERY:
-				List<GPSCemetery> tempGPSCemeteryList = DB.dao(GPSCemetery.class).queryForEq("Cemetery_id", mId);
-				for(GPSCemetery gpsCemetery: tempGPSCemeteryList){
-					dbGPSList.add(gpsCemetery);
-				}
-				break;
-			case ADD_REGION:
-				List<GPSRegion> tempGPSRegionList = DB.dao(GPSRegion.class).queryForEq("Region_id", mId);
-				for(GPSRegion gpsRegion: tempGPSRegionList){
-					dbGPSList.add(gpsRegion);
-				}
-				break;		
-			case ADD_ROW:
-				List<GPSRow> tempGPSRowList = DB.dao(GPSRow.class).queryForEq("Row_id", mId);
-				for(GPSRow gpsRow: tempGPSRowList){
-					dbGPSList.add(gpsRow);
-				}
-				break;			
-			case ADD_PLACE_WITHOUTROW:
-				List<GPSPlace> tempGPSPlaceList1 = DB.dao(GPSPlace.class).queryForEq("Place_id", mId);
-				for(GPSPlace gpsPlace: tempGPSPlaceList1){
-					dbGPSList.add(gpsPlace);
-				}				
-				break;
-			case ADD_PLACE_WITHROW:
-				List<GPSPlace> tempGPSPlaceList2 = DB.dao(GPSPlace.class).queryForEq("Place_id", mId);
-				for(GPSPlace gpsPlace: tempGPSPlaceList2){
-					dbGPSList.add(gpsPlace);
-				}	
-				break;
-			case ADD_GRAVE_WITHOUTROW:
-				List<GPSGrave> tempGPSGraveList1 = DB.dao(GPSGrave.class).queryForEq("Grave_id", mId);
-				for(GPSGrave gpsGrave: tempGPSGraveList1){
-					dbGPSList.add(gpsGrave);
-				}				
-				break;
-			case ADD_GRAVE_WITHROW:
-				List<GPSGrave> tempGPSGraveList2 = DB.dao(GPSGrave.class).queryForEq("Grave_id", mId);
-				for(GPSGrave gpsGrave: tempGPSGraveList2){
-					dbGPSList.add(gpsGrave);
-				}				
-				break;
-			default:
-				break;
-			}		
-		}
-		
-		if(mGPSList.size() == 0){
-			for(GPS dbGPS : dbGPSList){
-				mGPSList.add(dbGPS);
-			}
-		}			
-		this.btnAddGPS.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				if(!Settings.checkWorkOfGPS(AddObjectActivity.this, null)){
-					return;
-				}
-				mWaitGPSHandler.startWaitGPS();
-			}
-		});
-		mGPSListAdapter.notifyDataSetChanged();		
-	}
-	
-	private void addGPS(Location location){
-		GPS gps = new GPS();
-		if(location != null){
-			gps.Latitude = location.getLatitude();
-			gps.Longitude = location.getLongitude();
-		} else {
-			gps.Latitude = 0;
-			gps.Longitude = 0;
-		}
-		mGPSList.add(gps);
-		handleGPSList(false);
-	}
-				
-	@Override
-	public void onResume(){		
-		LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);			
-		super.onResume();
 	}
 	
 	@Override
     protected void onPause() {
 		super.onPause();
     }
-
-	
-	@Override
-	public void onLocationChanged(final Location location) {
-		if(mWaitGPSHandler.isFindNewGPS()){
-    		addGPS(location);
-		}
-	}
-
-	@Override
-	public void onProviderDisabled(String provider) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onProviderEnabled(String provider) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onStatusChanged(String provider, int status, Bundle extras) {
-		// TODO Auto-generated method stub
-		
-	}
-	
-	
-	public class GPSListAdapter extends BaseAdapter {
-						
-        public GPSListAdapter() {
-        	
-        }        
-
-        public View getView(int position, View convertView, ViewGroup parent) {
-            if (convertView == null) {
-            	LayoutInflater inflater = (LayoutInflater) AddObjectActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                convertView = inflater.inflate(R.layout.gps_list_item, parent, false);
-            }
-            Log.i("pos=", Integer.toString(position));
-            TextView tvIndex = (TextView) convertView.findViewById(R.id.tvIndex);
-            TextView tvGPS = (TextView) convertView.findViewById(R.id.tvGPS);
-            Button btnRemoveGPS = (Button) convertView.findViewById(R.id.btnRemoveGPS);
-            tvIndex.setText(String.format("%d.", position + 1));
-            btnRemoveGPS.setTag(position);
-            double lat = mGPSList.get(position).Latitude;
-        	double lng = mGPSList.get(position).Longitude;
-        	String gpsString = String.format("%s, %s", Location.convert(lat, Location.FORMAT_SECONDS), Location.convert(lng, Location.FORMAT_SECONDS) );
-        	tvGPS.setText(gpsString);
-        	btnRemoveGPS.setOnClickListener(new View.OnClickListener() {
-				
-				@Override
-				public void onClick(View v) {
-					int pos = (Integer) v.getTag();
-					mGPSList.remove(pos);
-					handleGPSList(false);
-				}
-			});
-            
-            return convertView;
-        }
-
-		@Override
-		public int getCount() {
-			return mGPSList.size();
-		}
-
-		@Override
-		public Object getItem(int position) {
-			return mGPSList.get(position);
-		}
-
-		@Override
-		public long getItemId(int position) {
-			return position;
-		}        
-        
-    }
-
-	class WaitGPSHandler {
-
-		private Context mContext;
-		private ProgressDialog mProgressDialogWaitGPS;
-		private boolean isWaitGPS = false;
-		private String mProgressDialogTitle;
-		private String mProgressDialogMessage;
-		
-		public WaitGPSHandler(Context context){
-			setContext(context);
-		}
-		
-		public void setContext(Context context){
-			this.mContext = context;
-		}
-		
-		public void startWaitGPS(){
-			if(isWaitGPS) return;
-			isWaitGPS = true;
-			mProgressDialogTitle = "Получение GPS координаты";
-			mProgressDialogMessage = "Подождите...";
-			createAndShowProgressDialog();			
-		}
-		
-		public boolean isFindNewGPS(){
-			if(isWaitGPS){
-				this.isWaitGPS = false;
-				mProgressDialogWaitGPS.dismiss();
-				return true;
-			} else {
-				return false;
-			}
-		}
-		
-		
-		public void checkWaitGPS(Context context){
-			setContext(context);
-			if(isWaitGPS){				
-				createAndShowProgressDialog();
-			}
-		}
-		
-		private void createAndShowProgressDialog(){
-			mProgressDialogWaitGPS =  new ProgressDialog(this.mContext);
-			mProgressDialogWaitGPS.setTitle(mProgressDialogTitle);
-			mProgressDialogWaitGPS.setMessage(mProgressDialogMessage);
-			mProgressDialogWaitGPS.setCancelable(false);
-			mProgressDialogWaitGPS.setButton(DialogInterface.BUTTON_NEGATIVE, "Отмена", new DialogInterface.OnClickListener() {
-			    @Override
-			    public void onClick(DialogInterface dialog, int which) {
-			    	isWaitGPS = false;
-			        dialog.dismiss();
-			    }
-			});
-			mProgressDialogWaitGPS.show();
-		}
-		
-				
-	}
 
 }

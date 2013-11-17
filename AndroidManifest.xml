@@ -41,6 +41,10 @@
             android:label="@string/monument_info_title" >         
         </activity>
         <activity
+            android:name="com.coolchoice.monumentphoto.map.AddGPSActivity"
+            android:label="@string/monument_info_title" >         
+        </activity>        
+        <activity
             android:name="com.coolchoice.monumentphoto.BrowserCemeteryActivity"
             android:label="@string/monument_info_title">            
         </activity>

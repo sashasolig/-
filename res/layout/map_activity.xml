@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent" 
+	android:layout_height="fill_parent">
+    
+	<ru.yandex.yandexmapkit.MapView
+        android:id="@+id/map"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:apiKey="dTq3ibpMDYBRGJpRy2yK1emHAXiGJ6u4s6Uf3IXclMH6dVfBbdCVggkOL~G4FDAbmhu~yySQVRZSRhs4mZ0~KjNKunNIkTCsmxoMxLQDAUI=">
+	</ru.yandex.yandexmapkit.MapView>
+	
+	<ImageButton
+		    android:id="@+id/btnAddLocation"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:layout_alignParentLeft="true"
+		    android:layout_alignParentTop="true"
+		    android:padding="20dp"
+		    android:layout_marginLeft="10dp"
+		    android:layout_marginTop="10dp"
+		    android:src="@drawable/add" />
+	
+	
+	<ListView
+	    android:id="@+id/lvGPS"
+	    android:layout_width="350dp"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentRight="true"
+	    android:layout_alignParentTop="true"
+	    android:background="@drawable/monument_bg"
+	    android:choiceMode="singleChoice"
+	    style="@style/list"/>
+	
+	
+</RelativeLayout>

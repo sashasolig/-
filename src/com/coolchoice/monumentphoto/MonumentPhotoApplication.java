@@ -11,7 +11,8 @@ public class MonumentPhotoApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        DB.setContext(getApplicationContext());        
+        DB.setContext(getApplicationContext());
+        ConfigureLog4J.configure();
     }
 
     @Override

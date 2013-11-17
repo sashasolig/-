@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/map_balloon_bg"
+    android:orientation="horizontal"
+    android:padding="10dp" >
+
+    <TextView
+        android:id="@+id/balloon_text_title"
+        android:singleLine="false"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:textColor="@color/black"
+        android:tag="TITLE"/>
+
+    <ImageButton
+        android:id="@+id/balloon_remove"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:tag="REMOVE"
+        android:src="@drawable/delete" />
+</LinearLayout>

@@ -4,6 +4,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import com.coolchoice.monumentphoto.SyncTaskHandler.OperationType;
 import com.coolchoice.monumentphoto.SyncTaskHandler.SyncCompleteListener;
 import com.coolchoice.monumentphoto.dal.DB;
@@ -52,6 +54,8 @@ public class CemeteryListActivity extends Activity implements SyncTaskHandler.Sy
 	
 	private Menu mOptionsMenu;
 	
+	private final Logger fileLog = Logger.getLogger(CemeteryListActivity.class);
+	
 	private void updateOptionsMenu() {
 		if(this.mOptionsMenu == null) return;
 		MenuItem actionGetMenuItem = this.mOptionsMenu.findItem(R.id.action_get);
@@ -65,6 +69,7 @@ public class CemeteryListActivity extends Activity implements SyncTaskHandler.Sy
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		fileLog.info("onCreate");
 		setContentView(R.layout.cemetery_list_activity);
 		this.lvCemetery = (ListView) findViewById(R.id.lvCemetery);
 		this.btnAddCemetery = (Button) findViewById(R.id.btnAddCemetery);
