@@ -73,7 +73,7 @@ public class UploadPhotoTask extends BaseTask {
                 }
                 catch (Exception e) {                
                     result.setError(true);
-                    result.setStatus(TaskResult.Status.HANDLE_ERROR);
+                    result.setStatus(TaskResult.Status.HANDLE_ERROR);                    
                 }
         		result.setUploadCountSuccess(successCount);
 	            result.setUploadCountError(processedCount - successCount);

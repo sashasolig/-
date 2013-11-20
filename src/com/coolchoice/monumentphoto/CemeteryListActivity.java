@@ -52,9 +52,7 @@ public class CemeteryListActivity extends Activity implements SyncTaskHandler.Sy
 	
 	private static SyncTaskHandler mSyncTaskHandler;
 	
-	private Menu mOptionsMenu;
-	
-	private final Logger fileLog = Logger.getLogger(CemeteryListActivity.class);
+	private Menu mOptionsMenu;	
 	
 	private void updateOptionsMenu() {
 		if(this.mOptionsMenu == null) return;
@@ -68,8 +66,7 @@ public class CemeteryListActivity extends Activity implements SyncTaskHandler.Sy
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		fileLog.info("onCreate");
+		super.onCreate(savedInstanceState);		
 		setContentView(R.layout.cemetery_list_activity);
 		this.lvCemetery = (ListView) findViewById(R.id.lvCemetery);
 		this.btnAddCemetery = (Button) findViewById(R.id.btnAddCemetery);

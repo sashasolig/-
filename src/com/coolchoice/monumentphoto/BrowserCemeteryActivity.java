@@ -401,40 +401,40 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		switch (mType) {
 		case AddObjectActivity.ADD_CEMETERY:
 			mCemeteryId = getIntent().getIntExtra(BrowserCemeteryActivity.EXTRA_CEMETERY_ID, -1);
-			startGetRegion(mCemeteryId, isCache);
+			startGetRegion(mCemeteryId);
 			break;
 		case AddObjectActivity.ADD_REGION:
 			mRegionId = getIntent().getIntExtra(BrowserCemeteryActivity.EXTRA_REGION_ID, -1);
-			startGetPlace(mRegionId, isCache);
+			startGetPlace(mRegionId);
 			break;
 		case AddObjectActivity.ADD_ROW:
 			mRowId = getIntent().getIntExtra(BrowserCemeteryActivity.EXTRA_ROW_ID, -1);
 			Row row = DB.dao(Row.class).queryForId(mRowId);
 			DB.dao(Region.class).refresh(row.Region);
-			startGetPlace(row.Region.Id, isCache);
+			startGetPlace(row.Region.Id);
 			break;
 		case AddObjectActivity.ADD_PLACE_WITHOUTROW:
 			mPlaceId = getIntent().getIntExtra(BrowserCemeteryActivity.EXTRA_PLACE_ID, -1);
-			startGetGrave(mPlaceId, isCache);
+			startGetGrave(mPlaceId);
 			break;
 		case AddObjectActivity.ADD_PLACE_WITHROW :
 			mPlaceId = getIntent().getIntExtra(BrowserCemeteryActivity.EXTRA_PLACE_ID, -1);
-			startGetGrave(mPlaceId, isCache);
+			startGetGrave(mPlaceId);
 			break;
 		case AddObjectActivity.ADD_GRAVE_WITHOUTROW:
 			mGraveId = getIntent().getIntExtra(BrowserCemeteryActivity.EXTRA_GRAVE_ID, -1);
-			startGetBurial(mGraveId, isCache);
+			startGetBurial(mGraveId);
 			break;
 		case AddObjectActivity.ADD_GRAVE_WITHROW:
 			mGraveId = getIntent().getIntExtra(BrowserCemeteryActivity.EXTRA_GRAVE_ID, -1);
-			startGetBurial(mGraveId, isCache);
+			startGetBurial(mGraveId);
 			break;
 		default:
 			break;
 		}
 	}
 	
-	private void startGetRegion(int cemeteryId, boolean isCache){
+	private void startGetRegion(int cemeteryId){
 		if(mSyncTaskHandler != null){
 			Cemetery cemetery = DB.dao(Cemetery.class).queryForId(cemeteryId);
 			if(cemetery.ServerId > 0 ) {
@@ -444,7 +444,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		
 	}
 	
-	private void startGetPlace(int regionId, boolean isCache){
+	private void startGetPlace(int regionId){
 		if(mSyncTaskHandler != null){
 			Region region = DB.dao(Region.class).queryForId(regionId);
 			if(region.ServerId > 0){
@@ -453,7 +453,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		}
 	}
 	
-	private void startGetGrave(int placeId, boolean isCache){
+	private void startGetGrave(int placeId){
 		if(mSyncTaskHandler != null){
 			Place place = DB.dao(Place.class).queryForId(placeId);
 			if(place.ServerId > 0 ){
@@ -462,7 +462,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		}
 	}
 	
-	private void startGetBurial(int graveId, boolean isCache){
+	private void startGetBurial(int graveId){
 		if(mSyncTaskHandler != null){
 			Grave grave = DB.dao(Grave.class).queryForId(graveId);
 			if(grave.ServerId > 0 ){

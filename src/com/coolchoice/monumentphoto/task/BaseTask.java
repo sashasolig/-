@@ -40,10 +40,12 @@ import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import com.coolchoice.monumentphoto.CemeteryListActivity;
 import com.coolchoice.monumentphoto.Settings;
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.data.BaseDTO;
@@ -65,10 +67,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
-/**
- * Базовый класс фоновых задач для вызова из диалоговых окон.
- *
- */
 public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     AsyncTaskProgressListener progressListener;
     AsyncTaskCompleteListener<TaskResult> callback;
@@ -90,6 +88,8 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     
     protected Date mLastQueryServerDate = null;
     protected Date mLastResponseHeaderDate = null;
+    
+    protected final Logger mFileLog = Logger.getLogger(BaseTask.class);
 
     public BaseTask(AsyncTaskProgressListener pl, AsyncTaskCompleteListener<TaskResult> cb, Context context) {
         callback = cb;
@@ -219,6 +219,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     		} else if (statusCode == 302){
     			throw new AuthorizationException();
     		} else {
+    			this.mFileLog.error(url + "###" + EntityUtils.toString(httpResponse.getEntity()) + "###");
     			throw new ServerException();
     		}
         }
@@ -231,8 +232,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 	}
     
     protected String getJSON(String url) throws ClientProtocolException, IOException, AuthorizationException{
-    	//this.mLastQueryServerDate = new Date();
-    	Date clientTimeBeforeRequest = new Date();
+	   	Date clientTimeBeforeRequest = new Date();
     	HttpUriRequest httpGet = new HttpGet(url);
     	HttpParams httpParams = new BasicHttpParams();
     	httpParams.setParameter("http.protocol.handle-redirects", false);
@@ -258,9 +258,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         }
         Date clientTimeAfterRequest = new Date();
         if(this.mLastResponseHeaderDate != null){
-        	//Log.i("before mLastQueryServerDate", Long.toString(this.mLastResponseHeaderDate.getTime()));
-        	this.mLastQueryServerDate = new Date(this.mLastResponseHeaderDate.getTime() - (clientTimeAfterRequest.getTime() - clientTimeBeforeRequest.getTime()));
-        	//Log.i("after mLastQueryServerDate", Long.toString(this.mLastQueryServerDate.getTime()));
+        	this.mLastQueryServerDate = new Date(this.mLastResponseHeaderDate.getTime() - (clientTimeAfterRequest.getTime() - clientTimeBeforeRequest.getTime()));        	
         } else {
         	this.mLastQueryServerDate = null;
         }
@@ -304,6 +302,8 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     		} else if (statusCode == 302){
     			throw new AuthorizationException();
     		} else {
+    			String errorResult = EntityUtils.toString(httpResponse.getEntity());
+    			mFileLog.error(url + "###" + multipartEntity.getContent().toString() + "###" + errorResult);    			
     			throw new ServerException();
     		}
         }

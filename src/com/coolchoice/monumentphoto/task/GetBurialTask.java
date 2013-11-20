@@ -82,6 +82,7 @@ public class GetBurialTask extends BaseTask {
 	            } catch (Exception e) {                
 	                result.setError(true);
 	                result.setStatus(TaskResult.Status.HANDLE_ERROR);
+	                this.mFileLog.error("###JSON:" + resultJSON + "###", e);
 	            }
             }
         
