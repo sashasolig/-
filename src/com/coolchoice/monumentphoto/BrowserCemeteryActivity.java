@@ -131,6 +131,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	
 	private CheckBox cbIsOwnerLessPlace = null;
 	
+	private CheckBox cbIsGraveWrongFIO = null, cbIsGraveMilitary = null;
+	
 	private TextView tvPersons = null;
 	
 	public void enterOldPlaceName(){
@@ -1382,6 +1384,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		this.btnLinkGrave.setVisibility(View.VISIBLE);
 		
 		this.cbIsOwnerLessPlace = (CheckBox) contentView.findViewById(R.id.cbIsOwnerLess);
+		this.cbIsGraveMilitary = (CheckBox) contentView.findViewById(R.id.cb_grave_is_military);
+		this.cbIsGraveWrongFIO = (CheckBox) contentView.findViewById(R.id.cb_grave_is_wrong_fio);
 		this.tvPersons = (TextView) contentView.findViewById(R.id.tvPersons);
 		this.btnDeletePhoto = (Button) contentView.findViewById(R.id.btnDeletePhoto);
         this.btnMakePhoto = (Button) contentView.findViewById(R.id.btnMakePhoto);
@@ -1482,7 +1486,32 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 				DB.dao(Place.class).update(place);
 				
 			}
-		});          
+		});
+        
+        this.cbIsGraveMilitary.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
+				grave.IsMilitary = isChecked;
+				grave.IsChanged = 1;
+				DB.dao(Grave.class).update(grave);				
+			}
+		});
+        
+        this.cbIsGraveWrongFIO.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
+				grave.IsWrongFIO = isChecked;
+				grave.IsChanged = 1;
+				DB.dao(Grave.class).update(grave);
+				
+			}
+		});
+
+
         
         updatePhotoGridItems();
         this.mPhotoGridAdapter = new PhotoGridAdapter();
@@ -1514,6 +1543,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		ComplexGrave complexGrave = new ComplexGrave();
 		complexGrave.loadByGraveId(grave.Id);
 		this.cbIsOwnerLessPlace.setChecked(complexGrave.Place.IsOwnerLess);
+		this.cbIsGraveMilitary.setChecked(complexGrave.Grave.IsMilitary);
+		this.cbIsGraveWrongFIO.setChecked(complexGrave.Grave.IsWrongFIO);
 		
 		
 		try {

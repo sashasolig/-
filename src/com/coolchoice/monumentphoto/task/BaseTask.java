@@ -725,6 +725,18 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	grave.Place = new Place();	                	
         	grave.Place.ServerId = fields.getInt("place");
         	grave.ParentServerId = fields.getInt("place");
+        	String isMilitary =  fields.getString("is_military");
+        	String isWrongFIO =  fields.getString("is_wrong_fio");
+        	if(isMilitary != null && isMilitary.equalsIgnoreCase("true")){
+        		grave.IsMilitary = true;
+        	} else {
+        		grave.IsMilitary = false;
+        	}
+        	if(isWrongFIO != null && isWrongFIO.equalsIgnoreCase("true")){
+        		grave.IsWrongFIO = true;
+        	} else {
+        		grave.IsWrongFIO = false;
+        	}
         	graveList.add(grave);    	
         }
         return graveList;

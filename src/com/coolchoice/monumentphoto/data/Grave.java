@@ -9,6 +9,16 @@ import com.j256.ormlite.table.DatabaseTable;
 @DatabaseTable
 public class Grave extends BaseDTO {
 	
+	public static final String IsMilitaryColumnName = "IsMilitary";
+	
+	public static final String IsWrongFIOColumnName = "IsWrongFIO";
+	
+	@DatabaseField
+	public boolean IsMilitary;
+	
+	@DatabaseField
+	public boolean IsWrongFIO;
+	
 	@DatabaseField(foreign = true, foreignAutoRefresh = false, index = true)
 	public Place Place;
 	

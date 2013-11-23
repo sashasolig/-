@@ -71,14 +71,32 @@
         
     </LinearLayout>
     
-    <CheckBox
-        		android:layout_marginLeft="10dp"
-        		android:layout_margin="5dp"
-                android:id="@+id/cbIsOwnerLess"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="  Бесхозное место"
-                android:textSize="@dimen/header_text_size" />
+    <LinearLayout android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginLeft="10dp"
+	    android:layout_margin="5dp">
+	    <CheckBox	   		   
+	           android:id="@+id/cbIsOwnerLess"
+	           android:layout_width="wrap_content"
+	           android:layout_height="wrap_content"
+	           android:text="@string/cb_place_is_ownerless"
+	           android:textSize="@dimen/header_text_size" />	    
+	    <CheckBox
+	           android:id="@+id/cb_grave_is_wrong_fio"
+	           android:layout_width="wrap_content"
+	           android:layout_height="wrap_content"
+	           android:layout_marginLeft="10dp"
+	           android:text="@string/cb_grave_is_wrong_fio"
+	           android:textSize="@dimen/header_text_size" />			    
+	    <CheckBox
+	           android:id="@+id/cb_grave_is_military"
+	           android:layout_width="wrap_content"
+	           android:layout_height="wrap_content"
+	           android:layout_marginLeft="10dp"
+	           android:text="@string/cb_grave_is_military"
+	           android:textSize="@dimen/header_text_size" />
+    </LinearLayout>
     
     <TextView
         		android:layout_marginLeft="10dp"

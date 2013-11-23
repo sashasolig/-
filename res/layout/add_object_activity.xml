@@ -160,8 +160,7 @@
 		                android:layout_height="wrap_content"
 		                android:text="Старое место:"
 		                android:textSize="@dimen/header_text_size" />
-		
-		            <EditText
+				            <EditText
 		                android:id="@+id/etOldPlace"
 		                android:layout_width="0dp"
 		                android:layout_height="wrap_content"
@@ -217,45 +216,66 @@
 		            android:id="@+id/cbIsOwnerLess"
 		            android:layout_width="wrap_content"
 		            android:layout_height="wrap_content"
-		            android:text="  Бесхозное место"
+		            android:text="@string/cb_place_is_ownerless"
 		            android:textSize="@dimen/header_text_size" />
 		    </LinearLayout>
-		
+		    
 		    <LinearLayout
 		        android:id="@+id/llGrave"
 		        android:layout_width="fill_parent"
 		        android:layout_height="wrap_content"
-		        android:orientation="horizontal"
+		        android:orientation="vertical"
 		        android:padding="@dimen/small_indent" >
 		
-		        <TextView
-		            android:id="@+id/tvGrave"
-		            android:layout_width="@dimen/header_width"
+			    <LinearLayout
+			        android:layout_width="fill_parent"
+			        android:layout_height="wrap_content"
+			        android:orientation="horizontal"
+			        android:padding="@dimen/small_indent" >
+			
+			        <TextView
+			            android:id="@+id/tvGrave"
+			            android:layout_width="@dimen/header_width"
+			            android:layout_height="wrap_content"
+			            android:text="Могила:"
+			            android:textSize="@dimen/header_text_size" />
+
+
+			        <EditText
+			            android:id="@+id/etGrave"
+			            android:layout_width="0dp"
+			            android:layout_height="wrap_content"
+			            android:layout_weight="4"
+			            android:ems="30"
+			            android:inputType="number"
+			            android:textStyle="bold" />
+			
+			        <Button
+			            android:id="@+id/btnAddGrave"
+			            android:layout_width="0dp"
+			            android:layout_height="50dp"
+			            android:layout_gravity="center"
+			            android:layout_weight="1"
+			            android:drawableTop="@android:drawable/ic_input_add"
+			            android:gravity="center"
+			            android:maxWidth="60dp"
+			            android:visibility="gone" />
+			    </LinearLayout>
+			    
+			    <CheckBox
+		            android:id="@+id/cb_grave_is_wrong_fio"
+		            android:layout_width="wrap_content"
 		            android:layout_height="wrap_content"
-		            android:text="Могила:"
+		            android:text="@string/cb_grave_is_wrong_fio"
+		            android:textSize="@dimen/header_text_size" />			    
+			    <CheckBox
+		            android:id="@+id/cb_grave_is_military"
+		            android:layout_width="wrap_content"
+		            android:layout_height="wrap_content"
+		            android:text="@string/cb_grave_is_military"
 		            android:textSize="@dimen/header_text_size" />
-		
-		        <EditText
-		            android:id="@+id/etGrave"
-		            android:layout_width="0dp"
-		            android:layout_height="wrap_content"
-		            android:layout_weight="4"
-		            android:ems="30"
-		            android:inputType="number"
-		            android:textStyle="bold" />
-		
-		        <Button
-		            android:id="@+id/btnAddGrave"
-		            android:layout_width="0dp"
-		            android:layout_height="50dp"
-		            android:layout_gravity="center"
-		            android:layout_weight="1"
-		            android:drawableTop="@android:drawable/ic_input_add"
-		            android:gravity="center"
-		            android:maxWidth="60dp"
-		            android:visibility="gone" />
 		    </LinearLayout>
-		    
+			    
 		    <LinearLayout
 		         android:layout_width="fill_parent"
 		         android:layout_height="wrap_content"

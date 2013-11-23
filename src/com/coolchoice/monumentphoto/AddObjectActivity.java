@@ -1,11 +1,21 @@
 package com.coolchoice.monumentphoto;
 
 import java.sql.SQLException;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.data.BaseDTO;
 import com.coolchoice.monumentphoto.data.Cemetery;
 import com.coolchoice.monumentphoto.data.ComplexGrave;
+import com.coolchoice.monumentphoto.data.GPS;
+import com.coolchoice.monumentphoto.data.GPSCemetery;
+import com.coolchoice.monumentphoto.data.GPSGrave;
+import com.coolchoice.monumentphoto.data.GPSPlace;
+import com.coolchoice.monumentphoto.data.GPSRegion;
+import com.coolchoice.monumentphoto.data.GPSRow;
 import com.coolchoice.monumentphoto.data.Grave;
 import com.coolchoice.monumentphoto.data.Place;
 import com.coolchoice.monumentphoto.data.Region;
@@ -56,6 +66,8 @@ public class AddObjectActivity extends Activity {
 	
 	private CheckBox cbOwnerLess;
 	
+	private CheckBox cbIsGraveWrongFIO, cbIsGraveMilitary;
+	
 	private LinearLayout llCemetery, llRegion, llRow, llPlace, llGrave;
 	
 	private Button btnNewToOldPlace;
@@ -69,6 +81,10 @@ public class AddObjectActivity extends Activity {
 	private int mType, mId, mParentId;
 	
 	private boolean mIsEdit;
+	
+	public static final int ADD_GPS_ACTIVITY_REQUEST_CODE = 1;
+	
+	private static String mGPSListString = "";	
           	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +100,8 @@ public class AddObjectActivity extends Activity {
 		this.etPlace = (EditText) findViewById(R.id.etPlace);
 		this.etOldPlace = (EditText) findViewById(R.id.etOldPlace);
 		this.cbOwnerLess = (CheckBox) findViewById(R.id.cbIsOwnerLess);
+		this.cbIsGraveMilitary = (CheckBox) findViewById(R.id.cb_grave_is_military);
+		this.cbIsGraveWrongFIO = (CheckBox) findViewById(R.id.cb_grave_is_wrong_fio);
 		this.etGrave = (EditText) findViewById(R.id.etGrave);
 		this.llCemetery = (LinearLayout) findViewById(R.id.llCemetery);
 		this.llRegion = (LinearLayout) findViewById(R.id.llRegion);
@@ -149,21 +167,26 @@ public class AddObjectActivity extends Activity {
 			
 			@Override
 			public void onClick(View v) {
-				boolean isSave = saveObjectToDB();
-				if(isSave){
-					Intent intent = new Intent(AddObjectActivity.this, AddGPSActivity.class);
-					intent.putExtra(EXTRA_ID, mId);
-					intent.putExtra(EXTRA_TYPE, mType);
-					startActivity(intent);
-				} else {
-					Toast.makeText(AddObjectActivity.this, "Недопустимое значение", Toast.LENGTH_LONG).show();
-				}
-				
-				
-				
+				Intent intent = new Intent(AddObjectActivity.this, AddGPSActivity.class);
+				intent.putExtra(EXTRA_ID, mId);
+				intent.putExtra(EXTRA_TYPE, mType);
+				if(mGPSListString.equals("")){
+					List<GPS> gpsList = getGPSListFromDB();
+					mGPSListString = GPSListToString(gpsList);
+				}						
+				intent.putExtra(AddGPSActivity.GPS_LIST_KEY, mGPSListString);
+				startActivityForResult(intent, ADD_GPS_ACTIVITY_REQUEST_CODE);				
 			}
 		});
 		
+	}
+	
+	@Override
+	protected void onDestroy(){
+		super.onDestroy();
+		if(isFinishing()){
+			mGPSListString = "";
+		}
 	}
 	
 	private void setNextValueForPlace(){
@@ -225,6 +248,10 @@ public class AddObjectActivity extends Activity {
 				break;
 			default:
 				break;
+		}
+		if(isSave){
+            List<GPS> gpsList = parseGPSListString(mGPSListString);
+            saveGPSToDB(gpsList);
 		}
 		return isSave;		
 	}
@@ -324,6 +351,8 @@ public class AddObjectActivity extends Activity {
 		}
 		if(complexGrave.Grave != null){
 			this.etGrave.setText(complexGrave.Grave.Name);
+			this.cbIsGraveMilitary.setChecked(complexGrave.Grave.IsMilitary);
+			this.cbIsGraveWrongFIO.setChecked(complexGrave.Grave.IsWrongFIO);
 		} else {
 			this.etGrave.setText(null);
 		}		
@@ -673,13 +702,15 @@ public class AddObjectActivity extends Activity {
 			String placeName = etPlace.getText().toString();
 			String oldPlaceName = etOldPlace.getText().toString();
 			boolean isOwnerLess = cbOwnerLess.isChecked();
-			if(dbPlaceName != placeName || dbIsOwnerLess != isOwnerLess || dbOldPlaceName != oldPlaceName){
+			if(!placeName.equals(dbPlaceName) || dbIsOwnerLess != isOwnerLess || dbOldPlaceName != oldPlaceName){
 				place.Name = placeName;
 				place.OldName = oldPlaceName;
 				place.IsOwnerLess = isOwnerLess;
 				place.IsChanged = 1;
 				DB.dao(Place.class).update(place);
-				ComplexGrave.renamePlace(place, dbPlaceName);
+				if(!placeName.equals(dbPlaceName)){
+					ComplexGrave.renamePlace(place, dbPlaceName);
+				}
 			}		
 			
 		} else {
@@ -739,11 +770,15 @@ public class AddObjectActivity extends Activity {
 			// update
 			Grave grave = DB.dao(Grave.class).queryForId(mId);
 			String oldGraveName = grave.Name;
-			if(oldGraveName != newGraveName){
+			if(!newGraveName.equals(oldGraveName) || grave.IsMilitary != cbIsGraveMilitary.isChecked() || grave.IsWrongFIO != cbIsGraveWrongFIO.isChecked()){
 				grave.Name = newGraveName;
+				grave.IsMilitary = cbIsGraveMilitary.isChecked();
+				grave.IsWrongFIO = cbIsGraveWrongFIO.isChecked();
 				grave.IsChanged = 1;
 				DB.dao(Grave.class).update(grave);
-				ComplexGrave.renameGrave(grave, oldGraveName);
+				if(!newGraveName.equals(oldGraveName)){
+					ComplexGrave.renameGrave(grave, oldGraveName);
+				}
 			}
 			
 			place = DB.dao(Place.class).queryForId(grave.Place.Id);
@@ -762,6 +797,8 @@ public class AddObjectActivity extends Activity {
 			Grave grave = new Grave();
 			grave.Place = place;
 			grave.Name = etGrave.getText().toString();
+			grave.IsMilitary = cbIsGraveMilitary.isChecked();
+			grave.IsWrongFIO = cbIsGraveWrongFIO.isChecked();
 			grave.IsChanged = 1;
 			DB.dao(Grave.class).create(grave);
 			this.mId = grave.Id;
@@ -774,5 +811,202 @@ public class AddObjectActivity extends Activity {
     protected void onPause() {
 		super.onPause();
     }
+	
+	private List<GPS> getGPSListFromDB(){
+		List<GPS> dbGPSList = new ArrayList<GPS>();		
+		switch(mType){
+		case AddObjectActivity.ADD_CEMETERY:
+			List<GPSCemetery> tempGPSCemeteryList = DB.dao(GPSCemetery.class).queryForEq("Cemetery_id", mId);
+			for(GPSCemetery gpsCemetery: tempGPSCemeteryList){
+				dbGPSList.add(gpsCemetery);
+			}
+			break;
+		case AddObjectActivity.ADD_REGION:
+			List<GPSRegion> tempGPSRegionList = DB.dao(GPSRegion.class).queryForEq("Region_id", mId);
+			for(GPSRegion gpsRegion: tempGPSRegionList){
+				dbGPSList.add(gpsRegion);
+			}
+			break;		
+		case AddObjectActivity.ADD_ROW:
+			List<GPSRow> tempGPSRowList = DB.dao(GPSRow.class).queryForEq("Row_id", mId);
+			for(GPSRow gpsRow: tempGPSRowList){
+				dbGPSList.add(gpsRow);
+			}
+			break;			
+		case AddObjectActivity.ADD_PLACE_WITHOUTROW:
+			List<GPSPlace> tempGPSPlaceList1 = DB.dao(GPSPlace.class).queryForEq("Place_id", mId);
+			for(GPSPlace gpsPlace: tempGPSPlaceList1){
+				dbGPSList.add(gpsPlace);
+			}				
+			break;
+		case AddObjectActivity.ADD_PLACE_WITHROW:
+			List<GPSPlace> tempGPSPlaceList2 = DB.dao(GPSPlace.class).queryForEq("Place_id", mId);
+			for(GPSPlace gpsPlace: tempGPSPlaceList2){
+				dbGPSList.add(gpsPlace);
+			}	
+			break;
+		case AddObjectActivity.ADD_GRAVE_WITHOUTROW:
+			List<GPSGrave> tempGPSGraveList1 = DB.dao(GPSGrave.class).queryForEq("Grave_id", mId);
+			for(GPSGrave gpsGrave: tempGPSGraveList1){
+				dbGPSList.add(gpsGrave);
+			}				
+			break;
+		case AddObjectActivity.ADD_GRAVE_WITHROW:
+			List<GPSGrave> tempGPSGraveList2 = DB.dao(GPSGrave.class).queryForEq("Grave_id", mId);
+			for(GPSGrave gpsGrave: tempGPSGraveList2){
+				dbGPSList.add(gpsGrave);
+			}				
+			break;
+		default:
+			break;
+		}		
+		return dbGPSList;			
+	}
+	
+	private void saveGPSToDB(List<GPS> gpsList){
+    	switch (mType) {
+		case AddObjectActivity.ADD_CEMETERY:
+			Cemetery cemetery = DB.dao(Cemetery.class).queryForId(mId);
+			saveGPSCemetery(cemetery, gpsList);
+			break;
+		case AddObjectActivity.ADD_REGION:
+			Region region = DB.dao(Region.class).queryForId(mId);
+			saveGPSRegion(region, gpsList);
+			break;		
+		case AddObjectActivity.ADD_ROW:
+			Row row = DB.dao(Row.class).queryForId(mId);
+			saveGPSRow(row, gpsList);
+			break;			
+		case AddObjectActivity.ADD_PLACE_WITHOUTROW:
+		case AddObjectActivity.ADD_PLACE_WITHROW:
+			Place place = DB.dao(Place.class).queryForId(mId);
+			saveGPSPlace(place, gpsList);
+			break;		
+		case AddObjectActivity.ADD_GRAVE_WITHOUTROW:
+		case AddObjectActivity.ADD_GRAVE_WITHROW:
+			Grave grave = DB.dao(Grave.class).queryForId(mId);
+			saveGPSGrave(grave, gpsList);
+			break;
+		default:
+			break;
+		}
+    }
+    
+    private void saveGPSCemetery(Cemetery cemetery, List<GPS> gpsList){
+    	List<GPSCemetery> deletedGPS = DB.dao(GPSCemetery.class).queryForEq("Cemetery_id", cemetery.Id);
+		DB.dao(GPSCemetery.class).delete(deletedGPS);
+		for(GPS gps : gpsList){
+			GPSCemetery gpsCemetery = new GPSCemetery();
+			if(gps.Id > 0) {
+				gpsCemetery.Id = gps.Id;
+			}
+			gpsCemetery.Latitude = gps.Latitude;
+			gpsCemetery.Longitude = gps.Longitude;
+			gpsCemetery.Cemetery = cemetery;
+			DB.dao(GPSCemetery.class).create(gpsCemetery);
+		}
+	}
+	private void saveGPSRegion(Region region, List<GPS> gpsList){
+		List<GPSRegion> deletedGPS = DB.dao(GPSRegion.class).queryForEq("Region_id", region.Id);
+		DB.dao(GPSRegion.class).delete(deletedGPS);
+		for(GPS gps : gpsList){
+			GPSRegion gpsRegion = new GPSRegion();
+			if(gps.Id > 0) {
+				gpsRegion.Id = gps.Id;
+			}
+			gpsRegion.Latitude = gps.Latitude;
+			gpsRegion.Longitude = gps.Longitude;
+			gpsRegion.Region = region;
+			DB.dao(GPSRegion.class).create(gpsRegion);
+		}
+	}
+	
+	private void saveGPSRow(Row row, List<GPS> gpsList){
+		List<GPSRow> deletedGPS = DB.dao(GPSRow.class).queryForEq("Row_id", row.Id);
+		DB.dao(GPSRow.class).delete(deletedGPS);
+		for(GPS gps : gpsList){			
+			GPSRow gpsRow = new GPSRow();
+			if(gps.Id > 0) {
+				gpsRow.Id = gps.Id;
+			}
+			gpsRow.Latitude = gps.Latitude;
+			gpsRow.Longitude = gps.Longitude;
+			gpsRow.Row = row;
+			DB.dao(GPSRow.class).create(gpsRow);
+		}
+	}
+	
+	private void saveGPSPlace(Place place, List<GPS> gpsList){
+		List<GPSPlace> deletedGPS = DB.dao(GPSPlace.class).queryForEq("Place_id", place.Id);
+		DB.dao(GPSPlace.class).delete(deletedGPS);
+		for(GPS gps : gpsList){
+			GPSPlace gpsPlace = new GPSPlace();
+			if(gps.Id > 0) {
+				gpsPlace.Id = gps.Id;
+			}
+			gpsPlace.Latitude = gps.Latitude;
+			gpsPlace.Longitude = gps.Longitude;
+			gpsPlace.Place = place;
+			DB.dao(GPSPlace.class).create(gpsPlace);
+		}
+	}
+	
+	private void saveGPSGrave(Grave grave, List<GPS> gpsList){
+		List<GPSGrave> deletedGPS = DB.dao(GPSGrave.class).queryForEq("Grave_id", grave.Id);
+		DB.dao(GPSGrave.class).delete(deletedGPS);
+		for(GPS gps : gpsList){
+			GPSGrave gpsGrave = new GPSGrave();
+			if(gps.Id > 0) {
+				gpsGrave.Id = gps.Id;
+			}
+			gpsGrave.Latitude = gps.Latitude;
+			gpsGrave.Longitude = gps.Longitude;
+			gpsGrave.Grave = grave;
+			DB.dao(GPSGrave.class).create(gpsGrave);
+		}
+	}
+	
+	public static String GPSListToString(List<GPS> gpsList){
+		StringBuilder sb = new StringBuilder();
+		DecimalFormat df = new DecimalFormat("##0.000000000000");
+		for(GPS gps: gpsList){
+			sb.append(String.format("%d~%s~%s~", gps.Id, df.format(gps.Longitude), df.format(gps.Latitude)));			
+		}
+		if(sb.lastIndexOf("~") == (sb.length() - 1) && sb.length() > 0){
+			sb.deleteCharAt(sb.length() - 1);
+		}
+		return sb.toString();		
+	}
+	
+	public static List<GPS> parseGPSListString(String gpsListString){
+		ArrayList<GPS> gpsList = new ArrayList<GPS>();
+		DecimalFormat df = new DecimalFormat("##0.000000000000");
+		if(gpsListString != null && gpsListString.length() > 0){
+			String[] arr = gpsListString.split("~");
+			for(int i = 0; i < arr.length; i+=3){
+				GPS gps = new GPS();
+				gps.Id = Integer.parseInt(arr[i]);
+				try {
+					gps.Longitude = df.parse(arr[i+1]).doubleValue();
+					gps.Latitude = df.parse(arr[i+2]).doubleValue();
+				} catch (ParseException e) {					
+					e.printStackTrace();
+				}				
+				gpsList.add(gps);
+			}			
+		}
+		return gpsList;
+	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+	    if (resultCode == RESULT_OK) {
+	        switch (requestCode) {
+	        case ADD_GPS_ACTIVITY_REQUEST_CODE:
+	            mGPSListString = data.getStringExtra(AddGPSActivity.GPS_LIST_KEY);	            
+	            break;	      
+	        }
+	    }
+	}
 
 }

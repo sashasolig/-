@@ -38,8 +38,10 @@ import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.SlidingDrawer;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -69,6 +71,8 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
     private ListView mGPSListView;
     private GPSListAdapter mGPSListAdapter;
     private ImageButton mAddGPSButton;
+    private SlidingDrawer mSlidingDrawer;
+    private ImageView mSligingImageView;
     
     private static List<GPS> mGPSList = null;
     private static WaitGPSHandler mWaitGPSHandler;
@@ -78,6 +82,10 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
         
     int offsetX = 0;
     int offsetY = 0;
+    
+    public static final String SLIDING_DRAWER_KEY = "sliding_drawer_key";
+    public static final String GPS_LIST_KEY = "gps_list_key";
+    public static boolean mIsSlidingDrawerOpen = false;
     
     private void initializeOffsetForDrag(){
     	Resources res = getResources();
@@ -93,16 +101,19 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
     	this.mId = getIntent().getIntExtra(AddObjectActivity.EXTRA_ID, 0);
         initializeOffsetForDrag();
         setContentView(R.layout.map_activity);
+        mSlidingDrawer = (SlidingDrawer) findViewById(R.id.slidingDrawer);
+        mSligingImageView = (ImageView) findViewById(R.id.handle);
         mGPSListView = (ListView) findViewById(R.id.lvGPS);
         mMapView = (MapView) findViewById(R.id.map);
-        mMapView.showZoomButtons(true);
+        mMapView.showZoomButtons(false);
         mAddGPSButton = (ImageButton) findViewById(R.id.btnAddLocation);
         mMapController = mMapView.getMapController();
         mOverlayManager = mMapController.getOverlayManager();
         mOverlayManager.getMyLocation().setEnabled(true);
         
         if (mGPSList == null){
-        	loadGPSListFromDB();        	
+        	String gpsListString = getIntent().getStringExtra(GPS_LIST_KEY);
+        	mGPSList = AddObjectActivity.parseGPSListString(gpsListString);
         }
         this.mGPSListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
         	public void onItemClick(AdapterView<?> parent, View view, int position, long id){
@@ -132,62 +143,36 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
 			mWaitGPSHandler = new WaitGPSHandler(this); 
 		}        
 		mWaitGPSHandler.checkWaitGPS(this);
-		setMapCenterToLastPoint();    	
+		setMapCenterToLastPoint();
+		
+		mSlidingDrawer.setOnDrawerScrollListener(new  SlidingDrawer.OnDrawerScrollListener(){
+
+			@Override
+			public void onScrollEnded() {
+				if(mSlidingDrawer.isOpened()){
+					mSligingImageView.setImageDrawable(getResources().getDrawable(R.drawable.slider_left));
+				} else {
+					mSligingImageView.setImageDrawable(getResources().getDrawable(R.drawable.slider_right));
+				}
+			}
+
+			@Override
+			public void onScrollStarted() {
+				
+			}
+		});	
+		if(mIsSlidingDrawerOpen){
+			mSlidingDrawer.open();
+		}
     }
     
-    private void loadGPSListFromDB(){
-		List<GPS> dbGPSList = new ArrayList<GPS>();		
-		switch(mType){
-		case AddObjectActivity.ADD_CEMETERY:
-			List<GPSCemetery> tempGPSCemeteryList = DB.dao(GPSCemetery.class).queryForEq("Cemetery_id", mId);
-			for(GPSCemetery gpsCemetery: tempGPSCemeteryList){
-				dbGPSList.add(gpsCemetery);
-			}
-			break;
-		case AddObjectActivity.ADD_REGION:
-			List<GPSRegion> tempGPSRegionList = DB.dao(GPSRegion.class).queryForEq("Region_id", mId);
-			for(GPSRegion gpsRegion: tempGPSRegionList){
-				dbGPSList.add(gpsRegion);
-			}
-			break;		
-		case AddObjectActivity.ADD_ROW:
-			List<GPSRow> tempGPSRowList = DB.dao(GPSRow.class).queryForEq("Row_id", mId);
-			for(GPSRow gpsRow: tempGPSRowList){
-				dbGPSList.add(gpsRow);
-			}
-			break;			
-		case AddObjectActivity.ADD_PLACE_WITHOUTROW:
-			List<GPSPlace> tempGPSPlaceList1 = DB.dao(GPSPlace.class).queryForEq("Place_id", mId);
-			for(GPSPlace gpsPlace: tempGPSPlaceList1){
-				dbGPSList.add(gpsPlace);
-			}				
-			break;
-		case AddObjectActivity.ADD_PLACE_WITHROW:
-			List<GPSPlace> tempGPSPlaceList2 = DB.dao(GPSPlace.class).queryForEq("Place_id", mId);
-			for(GPSPlace gpsPlace: tempGPSPlaceList2){
-				dbGPSList.add(gpsPlace);
-			}	
-			break;
-		case AddObjectActivity.ADD_GRAVE_WITHOUTROW:
-			List<GPSGrave> tempGPSGraveList1 = DB.dao(GPSGrave.class).queryForEq("Grave_id", mId);
-			for(GPSGrave gpsGrave: tempGPSGraveList1){
-				dbGPSList.add(gpsGrave);
-			}				
-			break;
-		case AddObjectActivity.ADD_GRAVE_WITHROW:
-			List<GPSGrave> tempGPSGraveList2 = DB.dao(GPSGrave.class).queryForEq("Grave_id", mId);
-			for(GPSGrave gpsGrave: tempGPSGraveList2){
-				dbGPSList.add(gpsGrave);
-			}				
-			break;
-		default:
-			break;
-		}		
-		mGPSList  = new ArrayList<GPS>();
-		for(GPS dbGPS : dbGPSList){
-			mGPSList.add(dbGPS);
-		}			
-	}
+    @Override
+    protected void onSaveInstanceState(Bundle outState){
+    	outState.putBoolean(SLIDING_DRAWER_KEY, mSlidingDrawer.isOpened());
+    	mIsSlidingDrawerOpen = mSlidingDrawer.isOpened();
+    }
+    
+    
     
     private void setMapCenterToLastPoint(){
         List<OverlayItem> list = mOverlay.getOverlayItems();
@@ -331,11 +316,14 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
 				this.mGPSListView.setVisibility(View.VISIBLE);
 			}
 			break;
-		case R.id.action_map_save:
-			saveGPSToDB();
+		case R.id.action_map_save:			
+			Intent resultData = new Intent();
+			resultData.putExtra(GPS_LIST_KEY, AddObjectActivity.GPSListToString(mGPSList));
+			setResult(Activity.RESULT_OK, resultData);
 			finish();
 			break;
 		case R.id.action_map_cancel:
+			setResult(Activity.RESULT_CANCELED);
 			finish();
 			break;
 		}	    
@@ -377,93 +365,7 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
     	removeGPS(-1, balloonItem);    			
 	}
     
-    private void saveGPSToDB(){
-    	switch (mType) {
-		case AddObjectActivity.ADD_CEMETERY:
-			Cemetery cemetery = DB.dao(Cemetery.class).queryForId(mId);
-			saveGPSCemetery(cemetery);
-			break;
-		case AddObjectActivity.ADD_REGION:
-			Region region = DB.dao(Region.class).queryForId(mId);
-			saveGPSRegion(region);
-			break;		
-		case AddObjectActivity.ADD_ROW:
-			Row row = DB.dao(Row.class).queryForId(mId);
-			saveGPSRow(row);
-			break;			
-		case AddObjectActivity.ADD_PLACE_WITHOUTROW:
-		case AddObjectActivity.ADD_PLACE_WITHROW:
-			Place place = DB.dao(Place.class).queryForId(mId);
-			saveGPSPlace(place);
-			break;		
-		case AddObjectActivity.ADD_GRAVE_WITHOUTROW:
-		case AddObjectActivity.ADD_GRAVE_WITHROW:
-			Grave grave = DB.dao(Grave.class).queryForId(mId);
-			saveGPSGrave(grave);
-			break;
-		default:
-			break;
-		}
-    }
     
-    private void saveGPSCemetery(Cemetery cemetery){
-    	List<GPSCemetery> deletedGPS = DB.dao(GPSCemetery.class).queryForEq("Cemetery_id", cemetery.Id);
-		DB.dao(GPSCemetery.class).delete(deletedGPS);
-		for(GPS gps : mGPSList){
-			GPSCemetery gpsCemetery = new GPSCemetery();
-			gpsCemetery.Latitude = gps.Latitude;
-			gpsCemetery.Longitude = gps.Longitude;
-			gpsCemetery.Cemetery = cemetery;
-			DB.dao(GPSCemetery.class).create(gpsCemetery);
-		}
-	}
-	private void saveGPSRegion(Region region){
-		List<GPSRegion> deletedGPS = DB.dao(GPSRegion.class).queryForEq("Region_id", region.Id);
-		DB.dao(GPSRegion.class).delete(deletedGPS);
-		for(GPS gps : mGPSList){
-			GPSRegion gpsRegion = new GPSRegion();
-			gpsRegion.Latitude = gps.Latitude;
-			gpsRegion.Longitude = gps.Longitude;
-			gpsRegion.Region = region;
-			DB.dao(GPSRegion.class).create(gpsRegion);
-		}
-	}
-	
-	private void saveGPSRow(Row row){
-		List<GPSRow> deletedGPS = DB.dao(GPSRow.class).queryForEq("Row_id", row.Id);
-		DB.dao(GPSRow.class).delete(deletedGPS);
-		for(GPS gps : mGPSList){
-			GPSRow gpsRow = new GPSRow();
-			gpsRow.Latitude = gps.Latitude;
-			gpsRow.Longitude = gps.Longitude;
-			gpsRow.Row = row;
-			DB.dao(GPSRow.class).create(gpsRow);
-		}
-	}
-	
-	private void saveGPSPlace(Place place){
-		List<GPSPlace> deletedGPS = DB.dao(GPSPlace.class).queryForEq("Place_id", place.Id);
-		DB.dao(GPSPlace.class).delete(deletedGPS);
-		for(GPS gps : mGPSList){
-			GPSPlace gpsPlace = new GPSPlace();
-			gpsPlace.Latitude = gps.Latitude;
-			gpsPlace.Longitude = gps.Longitude;
-			gpsPlace.Place = place;
-			DB.dao(GPSPlace.class).create(gpsPlace);
-		}
-	}
-	
-	private void saveGPSGrave(Grave grave){
-		List<GPSGrave> deletedGPS = DB.dao(GPSGrave.class).queryForEq("Grave_id", grave.Id);
-		DB.dao(GPSGrave.class).delete(deletedGPS);
-		for(GPS gps : mGPSList){
-			GPSGrave gpsGrave = new GPSGrave();
-			gpsGrave.Latitude = gps.Latitude;
-			gpsGrave.Longitude = gps.Longitude;
-			gpsGrave.Grave = grave;
-			DB.dao(GPSGrave.class).create(gpsGrave);
-		}
-	}
     
     public class GPSListAdapter extends BaseAdapter {
 		
