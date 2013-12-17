@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
-	<classpathentry kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK/yandexmapkit-library"/>
 	<classpathentry exported="true" kind="lib" path="libs/sanselan.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/httpclient-4.1.3.jar"/>
@@ -11,5 +9,8 @@
 	<classpathentry exported="true" kind="lib" path="libs/httpmime-4.1.jar"/>
 	<classpathentry kind="lib" path="libs/android-logging-log4j-1.0.3.jar"/>
 	<classpathentry kind="lib" path="libs/log4j-1.2.17.jar"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="gen"/>
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
