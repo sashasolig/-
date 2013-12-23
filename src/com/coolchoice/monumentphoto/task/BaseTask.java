@@ -68,6 +68,9 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
+	
+	public final static String HEADER_REFERER = "REFERER";
+	
     AsyncTaskProgressListener progressListener;
     AsyncTaskCompleteListener<TaskResult> callback;
     Context mainContext;
@@ -201,11 +204,15 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     
     protected boolean uploadFile(String url, MultipartEntity multipartEntity, Context context, StringBuilder outResponseSB) throws AuthorizationException, ServerException{
 		HttpClient httpClient = new DefaultHttpClient();
+		if(WebHttpsClient.isHttps(url)){
+			httpClient = WebHttpsClient.wrapClient(httpClient);
+    	}
 		HttpPost httpPost = new HttpPost(url);
 		HttpParams httpParams = new BasicHttpParams();
     	httpParams.setParameter("http.protocol.handle-redirects", false);
     	httpPost.setParams(httpParams);    	
     	httpPost.addHeader(LoginTask.HEADER_COOKIE, String.format(LoginTask.KEY_PDSESSION + "=%s", Settings.getPDSession()));
+    	httpPost.addHeader(HEADER_REFERER, url);
 		try {
         	httpPost.setEntity(multipartEntity);
         	HttpResponse httpResponse = null;
@@ -237,7 +244,11 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     	HttpParams httpParams = new BasicHttpParams();
     	httpParams.setParameter("http.protocol.handle-redirects", false);
     	httpGet.setParams(httpParams);
+    	httpGet.addHeader(HEADER_REFERER, url);
     	HttpClient client = new DefaultHttpClient();
+    	if(WebHttpsClient.isHttps(url)){
+    		client = WebHttpsClient.wrapClient(client);
+    	}
     	httpGet.addHeader(LoginTask.HEADER_COOKIE, String.format(LoginTask.KEY_PDSESSION + "=%s", Settings.getPDSession()));
         HttpResponse response = client.execute(httpGet);
         if(response.getStatusLine().getStatusCode() == 302){
@@ -285,11 +296,15 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 	
 	private String postHTTPRequest(String url, MultipartEntity multipartEntity) throws AuthorizationException, ServerException{
 		HttpClient httpClient = new DefaultHttpClient();
+		if(WebHttpsClient.isHttps(url)){
+			httpClient = WebHttpsClient.wrapClient(httpClient);
+    	}
 		HttpPost httpPost = new HttpPost(url);
 		HttpParams httpParams = new BasicHttpParams();
     	httpParams.setParameter("http.protocol.handle-redirects", false);
     	httpPost.setParams(httpParams);    	
     	httpPost.addHeader(LoginTask.HEADER_COOKIE, String.format(LoginTask.KEY_PDSESSION + "=%s", Settings.getPDSession()));
+    	httpPost.addHeader(HEADER_REFERER, url);
 		try {
         	httpPost.setEntity(multipartEntity);
         	HttpResponse httpResponse = null;

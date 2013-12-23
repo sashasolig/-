@@ -64,8 +64,9 @@ public class LoginTask extends BaseTask {
     protected TaskResult doInBackground(String... params) {
     	TaskResult result = new TaskResult();
     	result.setTaskName(Settings.TASK_LOGIN);
-        if (params.length == 3) {
+    	if (params.length == 3) {
             try {
+            	String url = params[0];
             	HttpUriRequest httpGet = new HttpGet(params[0]);
             	this.userName = params[1];
             	this.password = params[2];
@@ -73,6 +74,9 @@ public class LoginTask extends BaseTask {
             	httpParams.setParameter("http.protocol.handle-redirects", false);
             	httpGet.setParams(httpParams);
             	HttpClient client = new DefaultHttpClient();
+            	if(WebHttpsClient.isHttps(url)){
+            		client = WebHttpsClient.wrapClient(client);
+            	}
             	HttpResponse response = null;
             	Header[] headers = null;
             	String temp = null;
@@ -100,6 +104,7 @@ public class LoginTask extends BaseTask {
                 httpParams = new BasicHttpParams();
             	httpParams.setParameter("http.protocol.handle-redirects", false);
             	httpPost.setParams(httpParams);
+            	httpPost.addHeader(HEADER_REFERER, url);
                 httpPost.addHeader(HEADER_COOKIE, String.format(KEY_PDSESSION + "=%s; " + KEY_CSRFTOKEN + "=%s;", this.pdSession, this.csrfToken));                
                 MultipartEntity multipartEntity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
                 multipartEntity.addPart(KEY_CSRFMIDDLETOKEN, new StringBody(this.csrfToken, Charset.forName("UTF-8")));
