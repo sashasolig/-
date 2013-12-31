@@ -160,7 +160,7 @@
 		                android:layout_height="wrap_content"
 		                android:text="Старое место:"
 		                android:textSize="@dimen/header_text_size" />
-				            <EditText
+				    <EditText
 		                android:id="@+id/etOldPlace"
 		                android:layout_width="0dp"
 		                android:layout_height="wrap_content"
@@ -211,6 +211,55 @@
 		                android:maxWidth="60dp"
 		                android:visibility="gone" />
 		        </LinearLayout>
+		        
+		        <LinearLayout
+		            android:id="@+id/llPlaceSize"
+		            android:layout_width="fill_parent"
+		            android:layout_height="wrap_content"
+		            android:orientation="horizontal" >
+		
+		            <TextView
+		                android:id="@+id/tvPlaceLength"
+		                android:layout_width="80dp"
+		                android:layout_height="wrap_content"
+		                android:text="Длина:"
+		                android:textSize="@dimen/header_text_size" />
+				    <EditText
+		                android:id="@+id/etPlaceLength"
+		                android:layout_width="100dp"
+		                android:layout_height="wrap_content"
+		                android:inputType="number|numberDecimal"
+		                android:maxLength="8"
+		                android:ems="30"
+		                android:textStyle="bold" />
+		            
+		            <TextView
+		                android:id="@+id/tvPlaceWidth"
+		                android:layout_width="80dp"
+		                android:layout_height="wrap_content"
+		                android:text="Ширина:"
+		                android:layout_marginLeft="10dp"
+		                android:textSize="@dimen/header_text_size" />
+				    <EditText
+		                android:id="@+id/etPlaceWidth"
+		                android:layout_width="100dp"
+		                android:layout_height="wrap_content"
+		                android:inputType="number|numberDecimal"
+		                android:maxLength="8"
+		                android:ems="30"
+		                android:textStyle="bold" />				    
+		
+		            <Button
+		                android:id="@+id/btnFindOldPlace"
+		                android:layout_width="wrap_content"
+		                android:layout_height="50dp"
+		                android:layout_gravity="center"
+		                android:layout_marginLeft="15dp"
+		                android:drawableLeft="@android:drawable/ic_menu_search"
+		                android:gravity="center"
+		                android:text="Старое место"
+		                android:visibility="visible" />
+		        </LinearLayout>
 		
 		        <CheckBox
 		            android:id="@+id/cbIsOwnerLess"
@@ -246,8 +295,8 @@
 			            android:layout_width="0dp"
 			            android:layout_height="wrap_content"
 			            android:layout_weight="4"
-			            android:ems="30"
 			            android:inputType="number"
+			            android:ems="30"			            
 			            android:textStyle="bold" />
 			
 			        <Button

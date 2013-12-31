@@ -527,6 +527,14 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	if((place.OldName != null) && (place.OldName.equalsIgnoreCase("null"))){
         		place.OldName = null;
         	}
+        	String strLength = fields.getString("place_length");
+        	String strWidth = fields.getString("place_width");
+        	if(strLength != null && !strLength.equalsIgnoreCase("null")) {
+        		place.Length = Double.parseDouble(strLength);
+        	}
+        	if(strWidth != null && !strWidth.equalsIgnoreCase("null")) {
+        		place.Width = Double.parseDouble(strWidth);
+        	}
         	int regionServerId = fields.getInt("area");
         	String rowName = fields.getString("row");
         	if(rowName == null || rowName.equalsIgnoreCase("") ){

@@ -108,6 +108,16 @@ public class UploadPlaceTask extends BaseTask {
 	            	} else {
 	            		dictPostData.put("oldPlaceName", "");
 	            	}
+	            	if(place.Length != null){
+	            		dictPostData.put("placeLength", Double.toString(place.Length));
+	            	} else {
+	            		dictPostData.put("placeLength", "");
+	            	}
+	            	if(place.Width != null){
+	            		dictPostData.put("placeWidth", Double.toString(place.Width));
+	            	} else {
+	            		dictPostData.put("placeWidth", "");
+	            	}
 	            	int psFoundUnowned;
 	            	if(place.IsOwnerLess){
 	            		psFoundUnowned = 1;

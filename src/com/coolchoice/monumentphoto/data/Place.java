@@ -12,6 +12,12 @@ public class Place extends BaseDTO {
 	public static final String IsOwnerLessColumnName = "IsOwnerLess";
 	
 	@DatabaseField
+	public Double Width;
+	
+	@DatabaseField
+	public Double Length;
+	
+	@DatabaseField
 	public boolean IsOwnerLess;
 	
 	@DatabaseField

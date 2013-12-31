@@ -62,7 +62,7 @@ public class AddObjectActivity extends Activity {
 	public static final int ADD_GRAVE_WITHROW = MASK_CEMETERY | MASK_REGION | MASK_ROW | MASK_PLACE | MASK_GRAVE;
 	public static final int ADD_GRAVE_WITHOUTROW = MASK_CEMETERY | MASK_REGION | MASK_PLACE | MASK_GRAVE;
 		
-	private EditText etCemetery, etRegion, etRow, etPlace, etGrave, etOldPlace; 
+	private EditText etCemetery, etRegion, etRow, etPlace, etGrave, etOldPlace, etPlaceLength, etPlaceWidth;
 	
 	private CheckBox cbOwnerLess;
 	
@@ -70,7 +70,7 @@ public class AddObjectActivity extends Activity {
 	
 	private LinearLayout llCemetery, llRegion, llRow, llPlace, llGrave;
 	
-	private Button btnNewToOldPlace;
+	private Button btnNewToOldPlace, btnFindOldPlace;
 	
 	private LinearLayout llOldPlace;
 		
@@ -99,6 +99,9 @@ public class AddObjectActivity extends Activity {
 		this.etRow = (EditText) findViewById(R.id.etRow);
 		this.etPlace = (EditText) findViewById(R.id.etPlace);
 		this.etOldPlace = (EditText) findViewById(R.id.etOldPlace);
+		this.etPlaceLength = (EditText) findViewById(R.id.etPlaceLength);
+		this.etPlaceWidth = (EditText) findViewById(R.id.etPlaceWidth);
+		this.btnFindOldPlace = (Button) findViewById(R.id.btnFindOldPlace);
 		this.cbOwnerLess = (CheckBox) findViewById(R.id.cbIsOwnerLess);
 		this.cbIsGraveMilitary = (CheckBox) findViewById(R.id.cb_grave_is_military);
 		this.cbIsGraveWrongFIO = (CheckBox) findViewById(R.id.cb_grave_is_wrong_fio);
@@ -149,8 +152,10 @@ public class AddObjectActivity extends Activity {
 			} else {
 				this.btnNewToOldPlace.setEnabled(false);
 			}
+			this.btnFindOldPlace.setVisibility(View.VISIBLE);
 		} else {
 			this.llOldPlace.setVisibility(View.GONE);
+			this.btnFindOldPlace.setVisibility(View.GONE);
 		}
 		this.btnNewToOldPlace.setOnClickListener(new View.OnClickListener() {
 			
@@ -176,6 +181,14 @@ public class AddObjectActivity extends Activity {
 				}						
 				intent.putExtra(AddGPSActivity.GPS_LIST_KEY, mGPSListString);
 				startActivityForResult(intent, ADD_GPS_ACTIVITY_REQUEST_CODE);				
+			}
+		});
+		
+		this.btnFindOldPlace.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+								
 			}
 		});
 		
@@ -346,8 +359,20 @@ public class AddObjectActivity extends Activity {
 			this.etPlace.setText(complexGrave.Place.Name);
 			this.etOldPlace.setText(complexGrave.Place.OldName);
 			this.cbOwnerLess.setChecked(complexGrave.Place.IsOwnerLess);
+			if(complexGrave.Place.Length != null){ 
+				this.etPlaceLength.setText(Double.toString(complexGrave.Place.Length));
+			} else {
+				this.etPlaceLength.setText(null);
+			}
+			if(complexGrave.Place.Width != null){ 
+				this.etPlaceWidth.setText(Double.toString(complexGrave.Place.Width));
+			} else {
+				this.etPlaceWidth.setText(null);
+			}
 		} else {
 			this.etPlace.setText(null);
+			this.etPlaceWidth.setText(null);
+			this.etPlaceLength.setText(null);
 		}
 		if(complexGrave.Grave != null){
 			this.etGrave.setText(complexGrave.Grave.Name);
@@ -630,6 +655,29 @@ public class AddObjectActivity extends Activity {
 		return true;
 	}
 	
+	private boolean checkPlaceWidthAndLength(Double[] placeSizes){
+		boolean result = true;
+		String placeWidth = this.etPlaceWidth.getText().toString();
+		String placeLength = this.etPlaceLength.getText().toString();
+		Double length = null;
+		Double width = null;
+		try{
+			if(!(placeLength == null || placeLength.length() == 0)){
+				length = Double.parseDouble(placeLength);
+			}
+			if(!(placeWidth == null || placeWidth.length() == 0)){
+				width = Double.parseDouble(placeWidth);
+			}
+			placeSizes[0] = length;
+			placeSizes[1] = width;
+		}catch(NumberFormatException ex){
+			length = null;
+			width = null;
+			result = false;
+		}
+		return result;
+	}
+	
 	private boolean savePlaceWithRow(){
 		Row row = null;
 		if(mId >= 0){
@@ -637,9 +685,11 @@ public class AddObjectActivity extends Activity {
 			row = place.Row;
 		} else {
 			row = DB.dao(Row.class).queryForId(this.mParentId);
-		}		
+		}
+		Double[] placeSizes = new Double[2];
 		boolean isCheck = checkPlaceName(null, row, etPlace.getText().toString(), this.mId);
-		if(!isCheck){
+		boolean isCheck2 = checkPlaceWidthAndLength(placeSizes);
+		if(!isCheck || !isCheck2){
 			return false;
 		}
 		if(mId >= 0){
@@ -653,16 +703,17 @@ public class AddObjectActivity extends Activity {
 			boolean dbIsOwnerLess = place.IsOwnerLess;
 			String placeName = etPlace.getText().toString();
 			String oldPlaceName = etOldPlace.getText().toString();
-			boolean isOwnerLess = cbOwnerLess.isChecked();
-			if(dbPlaceName != placeName || dbIsOwnerLess != isOwnerLess || dbOldPlaceName != oldPlaceName){
-				place.Name = placeName;
-				place.OldName = oldPlaceName;
-				place.IsOwnerLess = isOwnerLess;
-				place.IsChanged = 1;
-				DB.dao(Place.class).update(place);
+			boolean isOwnerLess = cbOwnerLess.isChecked();			
+			place.Name = placeName;
+			place.OldName = oldPlaceName;
+			place.IsOwnerLess = isOwnerLess;
+			place.Length = placeSizes[0];
+			place.Width = placeSizes[1];
+			place.IsChanged = 1;
+			DB.dao(Place.class).update(place);
+			if(!placeName.equals(dbPlaceName)){
 				ComplexGrave.renamePlace(place, dbPlaceName);
-			}			
-			
+			}
 		} else {
 			Place place = new Place();
 			place.Row = row;
@@ -670,6 +721,8 @@ public class AddObjectActivity extends Activity {
 			place.Name = etPlace.getText().toString();
 			place.OldName = etOldPlace.getText().toString();
 			place.IsOwnerLess = cbOwnerLess.isChecked();
+			place.Length = placeSizes[0];
+			place.Width = placeSizes[1];
 			place.IsChanged = 1;
 			DB.dao(Place.class).create(place);
 			this.mId = place.Id;
@@ -685,9 +738,11 @@ public class AddObjectActivity extends Activity {
 			region = place.Region;
 		} else {
 			region = DB.dao(Region.class).queryForId(this.mParentId);
-		}		
+		}
+		Double[] placeSizes = new Double[2];
 		boolean isCheck = checkPlaceName(region, null, etPlace.getText().toString(), this.mId);
-		if(!isCheck){
+		boolean isCheck2 = checkPlaceWidthAndLength(placeSizes);
+		if(!isCheck || !isCheck2){
 			return false;
 		}
 		if(mId >= 0){
@@ -701,17 +756,17 @@ public class AddObjectActivity extends Activity {
 			boolean dbIsOwnerLess = place.IsOwnerLess;
 			String placeName = etPlace.getText().toString();
 			String oldPlaceName = etOldPlace.getText().toString();
-			boolean isOwnerLess = cbOwnerLess.isChecked();
-			if(!placeName.equals(dbPlaceName) || dbIsOwnerLess != isOwnerLess || dbOldPlaceName != oldPlaceName){
-				place.Name = placeName;
-				place.OldName = oldPlaceName;
-				place.IsOwnerLess = isOwnerLess;
-				place.IsChanged = 1;
-				DB.dao(Place.class).update(place);
-				if(!placeName.equals(dbPlaceName)){
-					ComplexGrave.renamePlace(place, dbPlaceName);
-				}
-			}		
+			boolean isOwnerLess = cbOwnerLess.isChecked();			
+			place.Name = placeName;
+			place.OldName = oldPlaceName;
+			place.IsOwnerLess = isOwnerLess;
+			place.Length = placeSizes[0];
+			place.Width = placeSizes[1];
+			place.IsChanged = 1;
+			DB.dao(Place.class).update(place);
+			if(!placeName.equals(dbPlaceName)){
+				ComplexGrave.renamePlace(place, dbPlaceName);
+			}				
 			
 		} else {
 			Place place = new Place();
@@ -720,6 +775,8 @@ public class AddObjectActivity extends Activity {
 			place.Name = etPlace.getText().toString();
 			place.OldName = etOldPlace.getText().toString();
 			place.IsOwnerLess = cbOwnerLess.isChecked();
+			place.Length = placeSizes[0];
+			place.Width = placeSizes[1];
 			place.IsChanged = 1;
 			DB.dao(Place.class).create(place);
 			this.mId = place.Id;
