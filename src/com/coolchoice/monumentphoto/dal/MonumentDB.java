@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import android.util.Log;
 
+import com.coolchoice.monumentphoto.data.Burial;
 import com.coolchoice.monumentphoto.data.Cemetery;
 import com.coolchoice.monumentphoto.data.ComplexGrave;
 import com.coolchoice.monumentphoto.data.DeletedObject;
@@ -115,6 +116,39 @@ public class MonumentDB {
 		}		
 	}
 	
+	public List<ComplexGrave.PlaceWithFIO> getPlaceWithFIO(int cemeteryId, String filterLastName){
+		String selectQuery = String.format(selectPlaceByName1, cemeteryId, filterLastName);
+		List<ComplexGrave.PlaceWithFIO> result1 = getPlaceWithFIOByQuery(selectQuery);
+		selectQuery = String.format(selectPlaceByName2, cemeteryId, filterLastName);
+		List<ComplexGrave.PlaceWithFIO> result2 = getPlaceWithFIOByQuery(selectQuery);
+		result1.addAll(result2);
+		return result1;
+	}
+	
+	private List<ComplexGrave.PlaceWithFIO> getPlaceWithFIOByQuery(String selectQuery){
+		List<ComplexGrave.PlaceWithFIO> listResults = new ArrayList<ComplexGrave.PlaceWithFIO>(); 
+		try {
+			RuntimeExceptionDao<Burial, Integer> dao = DB.db().dao(Burial.class);
+			GenericRawResults<String[]> rawResults = dao.queryRaw(selectQuery);
+			List<String[]> results = rawResults.getResults();
+			if(results != null && results.size() > 0){
+				for(String[] row : results){					
+					ComplexGrave.PlaceWithFIO obj = new ComplexGrave.PlaceWithFIO();					
+					obj.FName = row[0];
+					obj.MName = row[1];
+					obj.LName = row[2];
+					obj.PlaceName = row[3];
+					obj.OldPlaceName = row[4];
+					obj.PlaceId = Integer.parseInt(row[5]);
+					listResults.add(obj);
+				}
+			}			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return listResults;
+	}
+	
 	public List<Integer> getGravePhotoIds(Cemetery cemetery){
 		String selectQuery = String.format(selectGravePhotoIdsByCemetery1, cemetery.Id);
 		List<Integer> result1 = getGravePhotoIds(selectQuery);
@@ -150,6 +184,12 @@ public class MonumentDB {
 		List<Integer> result = getGravePhotoIds(selectQuery);
 		return result;
 	}
+	
+	//search Place by name
+	private String selectPlaceByName1 = "select distinct b.FName, b.MName, b.LName, p.Name, p.OldName, p.Id from burial b, grave g, place p, row row, region reg, cemetery c where b.Grave_id = g.id and g.Place_id = p.id and p.Row_id = row.id and row.Region_id = reg.Id and reg.Cemetery_id = c.Id and c.Id = %d and b.LName like '%s' ";
+	
+	private String selectPlaceByName2 = "select distinct b.FName, b.MName, b.LName, p.Name, p.OldName, p.Id from burial b, grave g, place p, region reg, cemetery c where b.Grave_id = g.id and g.Place_id = p.id and p.Region_id = reg.Id and reg.Cemetery_id = c.Id and c.Id = %d and b.LName like '%s' ";
+	
 	
 	//Cemetery change
 	private String selectGravePhotoIdsByCemetery1 = "select distinct gp.id from gravephoto gp, grave g, place p, row row, region reg, cemetery c where gp.Grave_id = g.id and g.Place_id = p.id and p.Row_id = row.id and row.Region_id = reg.Id and reg.Cemetery_id = c.Id and c.Id = %d ";

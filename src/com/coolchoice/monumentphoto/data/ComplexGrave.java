@@ -26,6 +26,15 @@ public class ComplexGrave {
 		setToNullObject();
 	}
 	
+	public static class PlaceWithFIO{
+		public String PlaceName;
+		public String OldPlaceName;
+		public int PlaceId;
+		public String FName;
+		public String MName;
+		public String LName;
+	}
+	
 	public void setToNullObject(){
 		this.Grave = null;
 		this.Place = null;

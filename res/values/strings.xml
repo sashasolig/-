@@ -9,6 +9,7 @@
     <string name="action_remove">Удалить</string>
     <string name="settings_title">Настройки</string>
     <string name="monument_info_title">Фотографии памятников</string>
+    <string name="place_search_activity">Поиск старого места по фамилии</string>
     
     
     <string name="cb_place_is_ownerless">  Бесхозное место</string>

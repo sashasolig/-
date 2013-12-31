@@ -62,7 +62,7 @@ public class Settings {
     public static final String TASK_REMOVEPHOTOGRAVE = "removePhotoGrave";
     
         
-    private static String DefaultServerAddress = "http://192.168.53.11:8443";
+    private static String DefaultServerAddress = "http://192.168.53.11:8000";
     //private static String DefaultServerAddress = "http://pd2.pohoronnoedelo.ru";
     private static String RelativeUploadPhotoUrl = "/mobile/uploadphoto/";
     private static String RelativeRemovePhotoUrl = "/mobile/removephoto/";

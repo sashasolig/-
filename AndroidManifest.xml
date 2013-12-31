@@ -52,6 +52,11 @@
             android:name="com.coolchoice.monumentphoto.SettingsActivity"
             android:label="@string/settings_title">
         </activity>
+        <activity
+            android:name="com.coolchoice.monumentphoto.PlaceSearchActivity"
+            android:label="@string/place_search_activity"
+            android:theme="@style/ThemeMobileDialog">
+        </activity>
         <service android:name="com.coolchoice.monumentphoto.service.PhotoUploadService" android:process=":services" />
     </application>
 

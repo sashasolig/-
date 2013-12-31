@@ -188,7 +188,8 @@ public class AddObjectActivity extends Activity {
 			
 			@Override
 			public void onClick(View v) {
-								
+				Intent intent = new Intent(AddObjectActivity.this, PlaceSearchActivity.class);
+				startActivity(intent);
 			}
 		});
 		
