@@ -135,14 +135,28 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	
 	private TextView tvPersons = null;
 	
+	private EditText etOldPlaceInAlert;
+	
 	public void enterOldPlaceName(){
 		final AlertDialog.Builder alert = new AlertDialog.Builder(this);
-	    final EditText input = new EditText(this);
+		LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View mainView = inflater.inflate(R.layout.enter_old_place_alert, null, false);
+		this.etOldPlaceInAlert = (EditText) mainView.findViewById(R.id.etPlace);
+		final Button btnSearch = (Button) mainView.findViewById(R.id.btnSearchPlace);	    
 	    alert.setTitle("Введите старое место");
-	    alert.setView(input);
+	    alert.setView(mainView);
+	    btnSearch.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View view) {
+				Intent intent = new Intent(BrowserCemeteryActivity.this, PlaceSearchActivity.class);
+				intent.putExtra(PlaceSearchActivity.EXTRA_CEMETERY_ID, mCemeteryId);
+				startActivityForResult(intent, PlaceSearchActivity.PLACE_SEARCH_REQUESTCODE);
+			}
+		});
 	    alert.setPositiveButton(getString(R.string.yes), new DialogInterface.OnClickListener() {
 	        public void onClick(DialogInterface dialog, int whichButton) {
-	            String value = input.getText().toString().trim();
+	            String value = etOldPlaceInAlert.getText().toString().trim();
 	            makePhotoNextPlace(value);
 	            dialog.cancel();
 	        }
@@ -1552,6 +1566,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 			StringBuilder sb = new StringBuilder();
 			for(int i = 0; i < burials.size(); i++){
 				Burial burial = burials.get(i);
+				burial.toUpperFirstCharacterInFIO();
 				String fio = String.format("ФИО: <u>%s %s %s</u>   Дата захоронения: <u>%s</u>", (burial.LName != null) ? burial.LName : "", 
 						(burial.FName != null) ? burial.FName : "", (burial.MName != null ) ? burial.MName : "",
 								 (burial.FactDate != null) ? android.text.format.DateFormat.format("dd.MM.yyyy", burial.FactDate) : "");
@@ -1887,7 +1902,17 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 				mType = getIntent().getIntExtra(EXTRA_TYPE, -1);				
 				updateContent(mType);
 				break;
-			}
+			case PlaceSearchActivity.PLACE_SEARCH_REQUESTCODE:
+				String oldPlaceName = data.getStringExtra(PlaceSearchActivity.EXTRA_PLACE_OLDNAME);
+	        	if(oldPlaceName == null){
+	        		oldPlaceName = data.getStringExtra(PlaceSearchActivity.EXTRA_PLACE_NAME);
+	        	}
+	        	if(this.etOldPlaceInAlert == null){
+	        		enterOldPlaceName();	        		
+	        	}
+	        	this.etOldPlaceInAlert.setText(oldPlaceName);
+				break;
+			}			
 		} 
 		
 	}

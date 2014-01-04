@@ -3,6 +3,7 @@ package com.coolchoice.monumentphoto.dal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -35,8 +36,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	
     private final String LOG_TAG = getClass().getSimpleName();
     
-    public static final String DATABASE_NAME = "/mnt/sdcard/monument.db";
-    //public static final String DATABASE_NAME = "monument.db";
+    //public static final String DATABASE_NAME = "/mnt/sdcard/monument.db";
+    public static final String DATABASE_NAME = "monument.db";
     
     public static final int DATABASE_VERSION = 6;
     
@@ -179,6 +180,13 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         	db.setTransactionSuccessful();               
         } finally {
             db.endTransaction();
+        }
+        
+        RuntimeExceptionDao<Burial, Integer> burialDAO = DB.dao(Burial.class);
+        List<Burial> burials = burialDAO.queryForAll();
+        for(Burial b : burials){
+        	b.toLowerCaseFIO();
+        	burialDAO.update(b);
         }
     }
     

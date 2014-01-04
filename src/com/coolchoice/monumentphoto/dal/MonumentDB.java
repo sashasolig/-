@@ -1,6 +1,7 @@
 package com.coolchoice.monumentphoto.dal;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -117,6 +118,14 @@ public class MonumentDB {
 	}
 	
 	public List<ComplexGrave.PlaceWithFIO> getPlaceWithFIO(int cemeteryId, String filterLastName){
+		try {
+			String utf8String = new String(filterLastName.getBytes(), "UTF-8");
+			filterLastName = utf8String;
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		String selectQuery = String.format(selectPlaceByName1, cemeteryId, filterLastName);
 		List<ComplexGrave.PlaceWithFIO> result1 = getPlaceWithFIOByQuery(selectQuery);
 		selectQuery = String.format(selectPlaceByName2, cemeteryId, filterLastName);
@@ -186,9 +195,9 @@ public class MonumentDB {
 	}
 	
 	//search Place by name
-	private String selectPlaceByName1 = "select distinct b.FName, b.MName, b.LName, p.Name, p.OldName, p.Id from burial b, grave g, place p, row row, region reg, cemetery c where b.Grave_id = g.id and g.Place_id = p.id and p.Row_id = row.id and row.Region_id = reg.Id and reg.Cemetery_id = c.Id and c.Id = %d and b.LName like '%s' ";
+	private String selectPlaceByName1 = "select distinct b.FName, b.MName, b.LName, p.Name, p.OldName, p.Id from burial b, grave g, place p, row row, region reg, cemetery c where b.Grave_id = g.id and g.Place_id = p.id and p.Row_id = row.id and row.Region_id = reg.Id and reg.Cemetery_id = c.Id and c.Id = %d and b.LName like '%s%%' ORDER BY b.LName LIMIT 20 OFFSET 0";
 	
-	private String selectPlaceByName2 = "select distinct b.FName, b.MName, b.LName, p.Name, p.OldName, p.Id from burial b, grave g, place p, region reg, cemetery c where b.Grave_id = g.id and g.Place_id = p.id and p.Region_id = reg.Id and reg.Cemetery_id = c.Id and c.Id = %d and b.LName like '%s' ";
+	private String selectPlaceByName2 = "select distinct b.FName, b.MName, b.LName, p.Name, p.OldName, p.Id from burial b, grave g, place p, region reg, cemetery c where b.Grave_id = g.id and g.Place_id = p.id and p.Region_id = reg.Id and reg.Cemetery_id = c.Id and c.Id = %d and b.LName like '%s%%' ORDER BY b.LName LIMIT 20 OFFSET 0 ";
 	
 	
 	//Cemetery change

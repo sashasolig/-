@@ -33,6 +33,30 @@ public class ComplexGrave {
 		public String FName;
 		public String MName;
 		public String LName;
+		
+		public void toUpperFirstCharacterInFIO(){
+			if(this.FName != null && this.FName.length() > 0){
+				if(this.FName.length() == 1){
+					this.FName = this.FName.toUpperCase();
+				} else {
+					this.FName = this.FName.substring(0, 1).toUpperCase() + this.FName.substring(1);
+				}
+			}
+			if(this.LName != null && this.LName.length() > 0){
+				if(this.LName.length() == 1){
+					this.LName = this.LName.toUpperCase();
+				} else {
+					this.LName = this.LName.substring(0, 1).toUpperCase() + this.LName.substring(1);
+				}
+			}
+			if(this.MName != null && this.MName.length() > 0){
+				if(this.MName.length() == 1){
+					this.MName = this.MName.toUpperCase();
+				} else {
+					this.MName = this.MName.substring(0, 1).toUpperCase() + this.MName.substring(1);
+				}
+			}
+		}
 	}
 	
 	public void setToNullObject(){

@@ -188,8 +188,10 @@ public class AddObjectActivity extends Activity {
 			
 			@Override
 			public void onClick(View v) {
+				int cemeteryId = (Integer) v.getTag();
 				Intent intent = new Intent(AddObjectActivity.this, PlaceSearchActivity.class);
-				startActivity(intent);
+				intent.putExtra(PlaceSearchActivity.EXTRA_CEMETERY_ID, cemeteryId);
+				startActivityForResult(intent, PlaceSearchActivity.PLACE_SEARCH_REQUESTCODE);
 			}
 		});
 		
@@ -381,8 +383,11 @@ public class AddObjectActivity extends Activity {
 			this.cbIsGraveWrongFIO.setChecked(complexGrave.Grave.IsWrongFIO);
 		} else {
 			this.etGrave.setText(null);
-		}		
+		}
 		
+		if(complexGrave.Cemetery != null){
+			this.btnFindOldPlace.setTag(complexGrave.Cemetery.Id);
+		}
 		
 	}
 	
@@ -1062,7 +1067,14 @@ public class AddObjectActivity extends Activity {
 	        switch (requestCode) {
 	        case ADD_GPS_ACTIVITY_REQUEST_CODE:
 	            mGPSListString = data.getStringExtra(AddGPSActivity.GPS_LIST_KEY);	            
-	            break;	      
+	            break;	
+	        case PlaceSearchActivity.PLACE_SEARCH_REQUESTCODE:
+	        	String oldPlaceName = data.getStringExtra(PlaceSearchActivity.EXTRA_PLACE_OLDNAME);
+	        	if(oldPlaceName == null){
+	        		oldPlaceName = data.getStringExtra(PlaceSearchActivity.EXTRA_PLACE_NAME);
+	        	}
+	        	this.etOldPlace.setText(oldPlaceName);
+	        	break;
 	        }
 	    }
 	}

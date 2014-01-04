@@ -910,6 +910,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         		burial.FName = person.FName;
         		burial.LName = person.LName;
         		burial.MName = person.MName;
+        		burial.toLowerCaseFIO();
         		burialDAO.update(burial);
         	}
         }
