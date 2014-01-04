@@ -65,7 +65,7 @@ public class PlaceSearchActivity extends Activity {
 	
 	private Thread placeSearchThread;
 	
-	private static final int NUMBER_LETTER_FOR_SEARCH = 3;
+	private static final int NUMBER_LETTER_FOR_SEARCH = 2;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
