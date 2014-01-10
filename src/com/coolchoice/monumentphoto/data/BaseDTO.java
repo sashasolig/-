@@ -8,6 +8,12 @@ public class BaseDTO {
 	
 	public static final String COLUMN_NAME = "Name";
 	
+	public static final String COLUMN_ID = "Id";
+	
+	public static final String COLUMN_SERVER_ID = "ServerId";
+	
+	public static final String COLUMN_PARENT_SERVER_ID = "ParentServerId";
+	
 	public static final int INT_NULL_VALUE = Integer.MIN_VALUE;;
 	
 	public BaseDTO() {

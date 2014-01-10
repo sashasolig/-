@@ -327,6 +327,36 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		}		
 	}
 	
+	private int getPrevType(int currentType){
+		int prevType = -1;
+		switch (currentType) {
+		case AddObjectActivity.ADD_CEMETERY:
+			prevType = -1;
+			break;
+		case AddObjectActivity.ADD_REGION:
+			prevType = AddObjectActivity.ADD_CEMETERY;
+			break;
+		case AddObjectActivity.ADD_ROW:
+			prevType = AddObjectActivity.ADD_REGION;
+			break;
+		case AddObjectActivity.ADD_PLACE_WITHOUTROW:
+			prevType = AddObjectActivity.ADD_REGION;
+			break;
+		case AddObjectActivity.ADD_PLACE_WITHROW :
+			prevType = AddObjectActivity.ADD_ROW;
+			break;
+		case AddObjectActivity.ADD_GRAVE_WITHOUTROW:
+			prevType = AddObjectActivity.ADD_PLACE_WITHOUTROW;
+			break;
+		case AddObjectActivity.ADD_GRAVE_WITHROW:
+			prevType = AddObjectActivity.ADD_PLACE_WITHROW;
+			break;
+		default:
+			break;
+		}
+		return prevType;
+	}
+	
 	private SpannableString getSpanStringForLink(String linkText){
 		SpannableString spanText = new SpannableString(linkText);
 		spanText.setSpan(new StyleSpan(Typeface.BOLD), 0, linkText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -350,6 +380,18 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		}
 		updateContent(mType);
 		updateOptionsMenu();
+	}
+	
+	@Override
+	public void onBackPressed() {
+		int nextType = getPrevType(this.mType);		
+		if(nextType < 0){
+			super.onBackPressed();
+		} else {
+			this.mType = nextType;
+			setNewIdInExtras(EXTRA_TYPE, mType);
+			updateContent(nextType);
+		}
 	}
 	
 	@Override

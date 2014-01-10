@@ -637,8 +637,32 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 				} else{
 					//insert place
 					if(place.Row != null){
-		        		rowDAO.create(place.Row);
-		        		placeDAO.create(place);
+						//дубликаты рядов создавать не нужно
+						Row dbRow = null;
+						QueryBuilder<Row, Integer> rowBuilder = rowDAO.queryBuilder();
+						rowBuilder.where().eq(BaseDTO.COLUMN_PARENT_SERVER_ID, place.Row.ParentServerId).and().eq(BaseDTO.COLUMN_NAME, place.Row.Name);
+						List<Row> findedRow = rowDAO.query(rowBuilder.prepare());
+						if(findedRow.size() > 0){
+							dbRow = findedRow.get(0);
+						} else {
+							Region dbRegion = null;
+							dbRegion =  regionDAO.queryForEq(BaseDTO.COLUMN_SERVER_ID, place.Row.ParentServerId).get(0);
+							rowBuilder = rowDAO.queryBuilder();
+							rowBuilder.where().eq("Region_id", dbRegion.Id).and().eq(BaseDTO.COLUMN_NAME, place.Row.Name);
+							findedRow = rowDAO.query(rowBuilder.prepare());
+							if(findedRow.size() > 0){
+								dbRow = findedRow.get(0);
+							}							
+						}
+						
+						if(dbRow == null){
+							rowDAO.create(place.Row);
+							placeDAO.create(place);
+						} else {
+							place.Row = dbRow;
+							placeDAO.create(place);
+						}		        		
+		        		
 		        	} else {
 		        		placeDAO.create(place);
 		        	}	
