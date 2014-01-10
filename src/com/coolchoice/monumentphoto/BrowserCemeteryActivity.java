@@ -877,8 +877,10 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT);
 		mainView.addView(contentView, params);
 		if(Settings.IsAutoDownloadData(this)){
-			if((mPrevType < type) && (type != AddObjectActivity.ADD_ROW)){
-				actionGet(false);
+			if(mPrevType < type){
+				if(type != AddObjectActivity.ADD_ROW){
+					actionGet(false);
+				}
 			}
 		}
 		mPrevType = type;
