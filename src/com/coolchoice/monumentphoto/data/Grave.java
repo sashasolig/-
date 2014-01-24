@@ -15,7 +15,7 @@ public class Grave extends BaseDTO {
 	
 	@DatabaseField
 	public boolean IsMilitary;
-	
+
 	@DatabaseField
 	public boolean IsWrongFIO;
 	
@@ -30,5 +30,36 @@ public class Grave extends BaseDTO {
 	
 	@ForeignCollectionField
 	public Collection<Burial> BurialList;
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + (IsMilitary ? 1231 : 1237);
+		result = prime * result + (IsWrongFIO ? 1231 : 1237);
+		result = prime * result + ((Place == null) ? 0 : Place.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Grave other = (Grave) obj;
+		if (IsMilitary != other.IsMilitary)
+			return false;
+		if (IsWrongFIO != other.IsWrongFIO)
+			return false;
+		if (Place == null) {
+			if (other.Place != null)
+				return false;
+		} else if (!Place.equals(other.Place))
+			return false;
+		return true;
+	}
 
 }
