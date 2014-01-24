@@ -77,7 +77,7 @@ public class Settings {
     private static String RelativeUploadRegionDataUrl = "/mobile/uploadarea/";
     private static String RelativeUploadPlaceDataUrl = "/mobile/uploadplace/";
     private static String RelativeUploadGraveDataUrl = "/mobile/uploadgrave/";
-        
+    
     private static final String StorageDirPhoto = "MonumentPhoto";
     private static Location CurrentLocation;
     

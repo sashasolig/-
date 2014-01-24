@@ -48,7 +48,7 @@ public class SettingsActivity extends Activity implements SyncTaskHandler.SyncCo
 	
 	private CheckBox cbIsAutoPhotoSend, cbIsAutoDownloadData, cbIsOldPlace ;
 	
-	private Button btnCheck, btnClearHistory, btnSyncData, btnUploadData;
+	private Button btnCheck, btnClearHistory, btnSyncData, btnUploadData, btnExit;
 	
 	private TextView tvStatusServer;
 	
@@ -78,7 +78,8 @@ public class SettingsActivity extends Activity implements SyncTaskHandler.SyncCo
 		this.btnSyncData = (Button) findViewById(R.id.btnSyncData);
 		this.btnUploadData = (Button) findViewById(R.id.btnUploadData);
 		this.tvStatusServer = (TextView) findViewById(R.id.tvStatusServer);
-		this.ivStatusServer = (ImageView) findViewById(R.id.ivStatusServer);		
+		this.ivStatusServer = (ImageView) findViewById(R.id.ivStatusServer);
+		this.btnExit = (Button) findViewById(R.id.btnExit);
 		this.btnCheck.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
@@ -127,6 +128,14 @@ public class SettingsActivity extends Activity implements SyncTaskHandler.SyncCo
 			public void onClick(View v) {
 				saveSettingsData();
 				mSyncTaskHandler.startUploadData();				
+			}
+		});
+		
+		this.btnExit.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View view) {
+				finish();		
 			}
 		});
 		
