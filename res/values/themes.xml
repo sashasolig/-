@@ -16,13 +16,6 @@
 	    <item name="android:spinnerItemStyle">@style/spinner_item</item-->
    	</style>
 
-	<style name="ThemeSpinnerStatuses" >
-	   <!-- item name="android:spinnerStyle">@style/spinner</item>
-	   <item name="android:spinnerItemStyle">@style/spinner_item</item-->
-	    
-	</style>
-	
-	
 	
 	<style name="ThemeDialogNoTitle" parent="@android:style/Theme.Dialog">
 	    <item name="android:textViewStyle">@style/text</item>
@@ -46,8 +39,7 @@
    	</style>
    	<style name="ThemeMobileContextMenu" parent="@android:style/Theme.Light">
 	    <item name="android:textViewStyle">@style/text</item>
-	    <item name="android:buttonStyle">@style/button</item>
-	    <item name="android:spinnerItemStyle">@style/spinner_item</item>
+	    <item name="android:buttonStyle">@style/button</item>	    
    	</style>
 	<style name="ThemeMobileDialog_progressBar" parent="@ThemeMobileDialog">
 	    <item name="android:progressBarStyle">@style/horizontalProgressBar</item>
