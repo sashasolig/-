@@ -22,7 +22,6 @@ import com.coolchoice.monumentphoto.data.GPSPlace;
 import com.coolchoice.monumentphoto.data.GPSRegion;
 import com.coolchoice.monumentphoto.data.GPSRow;
 import com.coolchoice.monumentphoto.data.Grave;
-import com.coolchoice.monumentphoto.data.Monument;
 import com.coolchoice.monumentphoto.data.GravePhoto;
 import com.coolchoice.monumentphoto.data.Place;
 import com.coolchoice.monumentphoto.data.Region;

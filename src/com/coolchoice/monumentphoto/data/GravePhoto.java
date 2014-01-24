@@ -15,8 +15,6 @@ public class GravePhoto extends BaseDTO
 	
 	public static final String STATUS_FIELD_NAME = "Status";
 	
-	public Monument Monument;
-	
 	@DatabaseField(foreign = true, foreignAutoRefresh = false, index = true)
 	public Grave Grave;
 			

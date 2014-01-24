@@ -21,7 +21,6 @@ import com.coolchoice.monumentphoto.data.DeletedObject;
 import com.coolchoice.monumentphoto.data.DeletedObjectType;
 import com.coolchoice.monumentphoto.data.Grave;
 import com.coolchoice.monumentphoto.data.GravePhoto;
-import com.coolchoice.monumentphoto.data.Monument;
 import com.j256.ormlite.stmt.UpdateBuilder;
 
 import android.content.Context;

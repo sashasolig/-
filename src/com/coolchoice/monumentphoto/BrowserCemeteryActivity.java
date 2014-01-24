@@ -1918,22 +1918,13 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 					gravePhoto.Longitude = location.getLongitude();
 				}
 				if(Settings.IsAutoSendPhotoToServer(this)){
-					gravePhoto.Status = Monument.STATUS_WAIT_SEND;
+					gravePhoto.Status = GravePhoto.STATUS_WAIT_SEND;
 				} else {
-					gravePhoto.Status = Monument.STATUS_FORMATE;
+					gravePhoto.Status = GravePhoto.STATUS_FORMATE;
 				}
 				DB.dao(GravePhoto.class).create(gravePhoto);
 				saveExifInfo(mUri.getPath(), complexGrave, gravePhoto);
-				
-				/*PhotoGridItem item = new PhotoGridItem();
-	        	item.setPath(mUri.getPath());
-	        	item.setChecked(false);
-	        	item.setUri(mUri);
-	        	item.setBmp(null);
-	        	item.setGravePhoto(gravePhoto);
-	        	gridPhotoItems.add(item);
-	        	((BaseAdapter)gridPhotos.getAdapter()).notifyDataSetChanged();*/
-	        	
+									        	
 	        	gridPhotoItems.clear();
 	        	mType = getIntent().getIntExtra(EXTRA_TYPE, -1);				
 				updateContent(mType, extraGraveId);

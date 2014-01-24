@@ -18,7 +18,6 @@ import com.coolchoice.monumentphoto.Settings;
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.data.Grave;
 import com.coolchoice.monumentphoto.data.GravePhoto;
-import com.coolchoice.monumentphoto.data.Monument;
 import com.j256.ormlite.stmt.UpdateBuilder;
 
 import android.content.Context;
@@ -116,19 +115,5 @@ public class UploadPhotoTask extends BaseTask {
 		}					
 		return gravePhotos;
 	}
-	
-	public static void markGravePhotoAsSended(GravePhoto gravePhoto){
-		UpdateBuilder<GravePhoto, Integer> updateBuilder = DB.dao(GravePhoto.class).updateBuilder();
-		try {
-			updateBuilder.updateColumnValue(Monument.STATUS_FIELD_NAME, Monument.STATUS_SEND);
-			updateBuilder.where().idEq(gravePhoto.Id);
-			DB.dao(GravePhoto.class).update(updateBuilder.prepare());
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}		
-	}
-    
-    
-    
     
 }

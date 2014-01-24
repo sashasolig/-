@@ -17,7 +17,6 @@ import com.coolchoice.monumentphoto.data.ComplexGrave;
 import com.coolchoice.monumentphoto.data.DeletedObject;
 import com.coolchoice.monumentphoto.data.DeletedObjectType;
 import com.coolchoice.monumentphoto.data.Grave;
-import com.coolchoice.monumentphoto.data.Monument;
 import com.coolchoice.monumentphoto.data.GravePhoto;
 import com.coolchoice.monumentphoto.data.Place;
 import com.coolchoice.monumentphoto.data.Region;
@@ -29,50 +28,6 @@ import com.j256.ormlite.stmt.DeleteBuilder;
 import com.j256.ormlite.stmt.UpdateBuilder;
 
 public class MonumentDB {
-		
-	public static List<Monument> getMonuments(){
-		List<Monument> monuments = null;
-		try {
-			monuments = DB.q(Monument.class).orderBy("CreateDate", false).query();			
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}		
-		return monuments;
-	}
-	
-	public static List<Monument> getMonumentsWithPhotos(int status){
-		List<Monument> monuments = null;
-		try {
-			monuments = DB.q(Monument.class).orderBy("CreateDate", true).where().eq("Status", status).query();
-			for(Monument monument : monuments){
-				for(GravePhoto photo : monument.Photos){
-					DB.dao(GravePhoto.class).refresh(photo);				
-				}
-			}
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}		
-		return monuments;
-	}
-	
-	public static Monument getMonumentById(int id) {		
-		Monument monument = DB.dao(Monument.class).queryForId(id);
-		if(monument != null){
-			for(GravePhoto photo : monument.Photos){
-				DB.dao(GravePhoto.class).refresh(photo);				
-			}			
-			
-		}
-		return monument;				
-	}
-	
-	public static Monument saveMonument(Monument monument){
-		for(GravePhoto photo : monument.Photos){
-			DB.dao(GravePhoto.class).createOrUpdate(photo);
-		}
-		DB.dao(Monument.class).createOrUpdate(monument);		
-		return monument;
-	}
 	
 	public static GravePhoto saveMonumentPhoto(GravePhoto monumentPhoto){
 		DB.dao(GravePhoto.class).createOrUpdate(monumentPhoto);		
@@ -103,18 +58,6 @@ public class MonumentDB {
 			e.printStackTrace();
 		}					
 		return gravePhotos;
-	}
-	
-	public static void markGravePhotoAsSended(GravePhoto gravePhoto){
-		UpdateBuilder<GravePhoto, Integer> updateBuilder = DB.dao(GravePhoto.class).updateBuilder();
-		try {
-			updateBuilder.updateColumnValue(Monument.STATUS_FIELD_NAME, Monument.STATUS_SEND);
-			updateBuilder.where().idEq(gravePhoto.Id);
-			DB.dao(GravePhoto.class).update(updateBuilder.prepare());
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}		
 	}
 	
 	public List<ComplexGrave.PlaceWithFIO> getPlaceWithFIO(int cemeteryId, String filterLastName){

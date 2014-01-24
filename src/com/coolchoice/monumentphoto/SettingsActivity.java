@@ -37,11 +37,8 @@ import android.widget.Toast;
 import com.coolchoice.monumentphoto.SyncTaskHandler.OperationType;
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.dal.MonumentDB;
-import com.coolchoice.monumentphoto.data.Monument;
 import com.coolchoice.monumentphoto.data.GravePhoto;
 import com.coolchoice.monumentphoto.data.SettingsData;
-import com.coolchoice.monumentphoto.service.*;
-import java.net.HttpURLConnection;
 
 import com.coolchoice.monumentphoto.task.*;
 
@@ -178,33 +175,6 @@ public class SettingsActivity extends Activity implements SyncTaskHandler.SyncCo
 		data.IsAutoDownloadData = this.cbIsAutoDownloadData.isChecked();
 		data.IsOldPlaceName = this.cbIsOldPlace.isChecked();
 		Settings.saveSettingsData(this, data);
-	}
-	
-	private void deleteSendedMonuments(){
-		List<Monument> monuments = MonumentDB.getMonumentsWithPhotos(Monument.STATUS_SEND);
-		for(Monument monument: monuments){
-			boolean isCanDeleteMonument = true;
-			for(GravePhoto photo : monument.Photos){
-				if(photo.Status != Monument.STATUS_SEND){
-					isCanDeleteMonument = false;
-					break;
-				}
-			}
-			if(isCanDeleteMonument){
-				for(GravePhoto photo : monument.Photos){
-					try{
-						Uri uri = Uri.parse(photo.UriString);
-						File file = new File(uri.getPath());
-						file.delete();
-					}catch(Exception exc){
-						//do nothing
-					}
-					MonumentDB.deleteMonumentPhoto(photo);
-				}
-				DB.dao(Monument.class).deleteById(monument.Id);
-			}
-		}	
-		
 	}
 
 	private void setStatusServer (TaskResult taskResult) {
