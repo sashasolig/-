@@ -28,7 +28,7 @@
         	android:layout_height="wrap_content"
         	android:text=""
         	android:textSize="@dimen/link_text_size"
-        	android:drawableRight="@drawable/home_icon"/> 
+        	android:drawableRight="@drawable/home"/> 
         <Button
             android:id="@+id/btnLinkCemetery"
         	android:layout_width="wrap_content"

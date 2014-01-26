@@ -100,7 +100,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	
 	private static int mPrevType = -1; 
 		
-	private Button btnLinkCemetery, btnLinkRegion, btnLinkRow, btnLinkPlace, btnLinkGrave;
+	private Button btnLinkCemetery, btnLinkRegion, btnLinkRow, btnLinkPlace, btnLinkGrave, btnLinkHome;
 	
 	private LinearLayout mainView;
 	
@@ -211,7 +211,15 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		this.btnLinkRegion = (Button) findViewById(R.id.btnLinkRegion);
 		this.btnLinkRow = (Button) findViewById(R.id.btnLinkRow);
 		this.btnLinkPlace = (Button) findViewById(R.id.btnLinkPlace);
-		this.btnLinkGrave = (Button) findViewById(R.id.btnLinkGrave);		
+		this.btnLinkGrave = (Button) findViewById(R.id.btnLinkGrave);	
+		this.btnLinkHome = (Button) findViewById(R.id.btnLinkRoot);
+		this.btnLinkHome.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				finish();				
+			}
+		});
 								
 		btnLinkCemetery.setLinksClickable(true);
 		btnLinkCemetery.setMovementMethod(new LinkMovementMethod());
