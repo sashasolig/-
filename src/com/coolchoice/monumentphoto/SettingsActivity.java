@@ -57,6 +57,8 @@ public class SettingsActivity extends Activity implements SyncTaskHandler.SyncCo
 	private static int mStatusServer = 0;
 	
 	private static SyncTaskHandler mSyncTaskHandler;
+	
+	public static final String EXTRA_EXIT = "EXIT";
 			
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -135,7 +137,10 @@ public class SettingsActivity extends Activity implements SyncTaskHandler.SyncCo
 			
 			@Override
 			public void onClick(View view) {
-				finish();		
+				Intent intent = new Intent(getApplicationContext(), CemeteryListActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				intent.putExtra(EXTRA_EXIT, true);
+				startActivity(intent);	
 			}
 		});
 		

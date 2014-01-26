@@ -66,6 +66,9 @@ public class CemeteryListActivity extends Activity implements SyncTaskHandler.Sy
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		if (getIntent().getBooleanExtra(SettingsActivity.EXTRA_EXIT, false)) {
+		    finish();
+		}
 		super.onCreate(savedInstanceState);		
 		setContentView(R.layout.cemetery_list_activity);
 		this.lvCemetery = (ListView) findViewById(R.id.lvCemetery);
