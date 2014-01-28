@@ -107,7 +107,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mCurrentTaskIndex = -1;
 		mProgressDialogTitle = "Загрузка данных...";
 		mProgressDialogMessage = "Подождите";
-		showProgressDialogGetData();
+		showOperationInfo();
 		SettingsData settingsData = Settings.getSettingData(this.mContext);
 		LoginTask loginTask = new LoginTask(this, this, this.mContext);
 		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);
@@ -126,7 +126,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mCurrentTaskIndex = -1;
 		mProgressDialogTitle = "Загрузка данных...";
 		mProgressDialogMessage = "Подождите";
-		showProgressDialogGetData();
+		showOperationInfo();
 		SettingsData settingsData = Settings.getSettingData(this.mContext);
 		LoginTask loginTask = new LoginTask(this, this, this.mContext);
 		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);
@@ -145,7 +145,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mCurrentTaskIndex = -1;
 		mProgressDialogTitle = "Загрузка данных...";
 		mProgressDialogMessage = "Подождите";
-		showProgressDialogGetData();
+		showOperationInfo();
 		SettingsData settingsData = Settings.getSettingData(this.mContext);
 		LoginTask loginTask = new LoginTask(this, this, this.mContext);
 		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);
@@ -164,7 +164,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mCurrentTaskIndex = -1;
 		mProgressDialogTitle = "Загрузка данных...";
 		mProgressDialogMessage = "Подождите";
-		showProgressDialogGetData();
+		showOperationInfo();
 		SettingsData settingsData = Settings.getSettingData(this.mContext);
 		LoginTask loginTask = new LoginTask(this, this, this.mContext);
 		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);
@@ -183,7 +183,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mCurrentTaskIndex = -1;
 		mProgressDialogTitle = "Загрузка данных...";
 		mProgressDialogMessage = "Подождите";
-		showProgressDialogGetData();
+		showOperationInfo();
 		SettingsData settingsData = Settings.getSettingData(this.mContext);
 		LoginTask loginTask = new LoginTask(this, this, this.mContext);
 		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);
@@ -225,7 +225,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mCurrentTaskIndex = -1;
 		mProgressDialogTitle = "Загрузка данных...";
 		mProgressDialogMessage = "Авторизация";
-		showProgressDialogGetData();		
+		showOperationInfo();		
 		SettingsData settingsData = Settings.getSettingData(this.mContext);
 		LoginTask loginTask = new LoginTask(this, this, this.mContext);
 		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);
@@ -241,7 +241,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mOperationType = OperationType.GET_CHANGED_DATA;
 		mProgressDialogTitle = "Загрузка данных...";
 		mProgressDialogMessage = "Авторизация";
-		showProgressDialogGetData();	
+		showOperationInfo();	
 		SettingsData settingsData = Settings.getSettingData(this.mContext);
 		LoginTask loginTask = new LoginTask(this, this, this.mContext);
 		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);	
@@ -258,7 +258,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mCemeteryServerIds.add(cemeteryServerId);
 		mProgressDialogTitle = "Загрузка данных...";
 		mProgressDialogMessage = "Авторизация";
-		showProgressDialogGetData();	
+		showOperationInfo();	
 		SettingsData settingsData = Settings.getSettingData(this.mContext);
 		LoginTask loginTask = new LoginTask(this, this, this.mContext);
 		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);
@@ -282,15 +282,14 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mCurrentTaskIndex = -1;
 		mProgressDialogTitle = "Отправка данных...";
 		mProgressDialogMessage = "Авторизация";
-		mProgressDialogSyncData = ProgressDialog.show(this.mContext, mProgressDialogTitle, mProgressDialogMessage, true);
-		mProgressDialogSyncData.setCancelable(false);
+		showOperationInfo();
 		SettingsData settingsData = Settings.getSettingData(this.mContext);
 		LoginTask loginTask = new LoginTask(this, this, this.mContext);
 		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);
 		this.mCurrentExecutedTask = loginTask;
 	}
 	
-	private void showProgressDialogGetData(){
+	private void showOperationInfo(){
 		mProgressDialogSyncData = new ProgressDialog(this.mContext);
 		mProgressDialogSyncData.setMessage(mProgressDialogMessage);
 		mProgressDialogSyncData.setTitle(mProgressDialogTitle);
@@ -301,24 +300,24 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 	            public void onClick(DialogInterface dialog, int which) {
 	        		mIsStartExecuteNextTask = false;            		
 	        		mProgressDialogSyncData.dismiss();
-	        		showCancelQuestionGetData();
+	        		showCancelOperationQuestion();
 	            }
 	        });
 		}
-		if(mOperationType == OperationType.GET_DATA){
+		if(mOperationType == OperationType.GET_DATA || mOperationType == OperationType.UPLOAD_DATA){
 			mProgressDialogSyncData.setButton("Отменить", new DialogInterface.OnClickListener() {
 	
 	            public void onClick(DialogInterface dialog, int which) {
 	        		interruptCurrentTask();           		
 	        		mProgressDialogSyncData.dismiss();
-	        		showCancelInfoGetData();
+	        		showCancelOperationInfo();
 	            }
 	        });
 		}
 		mProgressDialogSyncData.show();
 	}
 	
-	private void showCancelQuestionGetData(){
+	private void showCancelOperationQuestion(){
 		mProgressDialogCancelQuestion = new ProgressDialog(this.mContext);
 		mProgressDialogCancelQuestion.setTitle("Принудительно завершить?");
 		mProgressDialogCancelQuestion.setMessage("Идет завершение последней операции...");		
@@ -328,13 +327,13 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
             public void onClick(DialogInterface dialog, int which) {
         		interruptCurrentTask();
         		mProgressDialogCancelQuestion.dismiss();
-        		showCancelInfoGetData();
+        		showCancelOperationInfo();
             }
         });
 		mProgressDialogCancelQuestion.show();		
 	}
 	
-	private void showCancelInfoGetData(){
+	private void showCancelOperationInfo(){
 		mProgressDialogCancelInfo = new ProgressDialog(this.mContext);
 		mProgressDialogCancelInfo.setTitle("Идет завершение последней операции");
 		mProgressDialogCancelInfo.setMessage("Завершение...");
@@ -358,12 +357,12 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		if(mOperationType == OperationType.GET_DATA || mOperationType == OperationType.GET_CHANGED_DATA || mOperationType == OperationType.GET_CHANGED_DATA_ONE_CEMETERY ){
 			setContext(context);
 			if(this.mIsStartExecuteNextTask == true){
-				showProgressDialogGetData();
+				showOperationInfo();
 			} else {
 				if(this.mIsInteruptExecutedTask){
-					showCancelInfoGetData();
+					showCancelOperationInfo();
 				} else {
-					showCancelQuestionGetData();
+					showCancelOperationQuestion();
 				}
 			}
 		}
@@ -389,7 +388,9 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 			if(result == null || result.getUploadCount() == 0){
 				continue;
 			}
-			isUploadSomething = true;
+			if(result.getStatus() != TaskResult.Status.CANCEL_TASK){
+				isUploadSomething = true;
+			}
 			sbMessage.append(System.getProperty("line.separator"));
 			if(task instanceof RemovePhotoTask){
 				sbMessage.append(String.format("Успешно удалено фотографий: %d  из %d.", result.getUploadCountSuccess(), result.getUploadCount()));				
@@ -410,6 +411,10 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 				sbMessage.append(String.format("Успешно отправлено фотографий: %d из %d.", result.getUploadCountSuccess(), result.getUploadCount()));				
 			}
 			sbMessage.append(System.getProperty("line.separator"));
+			if(result.getStatus() == TaskResult.Status.CANCEL_TASK){
+				sbMessage.append("Отправка данных отменена пользователем");
+				sbMessage.append(System.getProperty("line.separator"));
+			}
 		}
 		if(!isUploadSomething){
 			sbMessage = new StringBuilder();
@@ -480,9 +485,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		if(result.getStatus() == Status.CANCEL_TASK){
 			isCancelTask = true;
 		}
-		String getArgs = getURLArgs();		
-		Log.i("West", mOperationType.toString() + "hashCode(" + this.hashCode() +") onTaskComplete("+ result.getStatus() + "):" + finishedTask.getTaskName() + finishedTask.hashCode());
-		
+		String getArgs = getURLArgs();
 		if(mOperationType == OperationType.GET_CHANGED_DATA || mOperationType == OperationType.GET_CHANGED_DATA_ONE_CEMETERY){
 			boolean isAuthenticated = true;
 			if(finishedTask instanceof LoginTask){
@@ -667,6 +670,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						GetCemeteryTask getCemeteryTask = new GetCemeteryTask(this, this, this.mContext);
 						getCemeteryTask.execute(Settings.getCemeteryUrl(mContext) + getArgs);
 						this.mCurrentExecutedTask = getCemeteryTask;
+						this.mTasks.set(mCurrentTaskIndex, this.mCurrentExecutedTask);
 						isNextTaskStart = true;						
 					}
 					if(nextTask.getTaskName() == Settings.TASK_GETREGION){
@@ -682,8 +686,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						mProgressDialogSyncData.setMessage(mProgressDialogMessage);
 						GetPlaceTask getPlaceTask = new GetPlaceTask(this, this, this.mContext);
 						getPlaceTask.execute(Settings.getPlaceUrl(mContext) + getArgs);
-						this.mCurrentExecutedTask = getPlaceTask;
-						mFileLog.info(mOperationType.toString() + "hashCode(" + this.hashCode() +") onTaskComplete_Start:" + getPlaceTask.getTaskName() + getPlaceTask.hashCode());
+						this.mCurrentExecutedTask = getPlaceTask;						
 						isNextTaskStart = true;
 					}
 					if(nextTask.getTaskName() == Settings.TASK_GETGRAVE){
@@ -702,6 +705,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						this.mCurrentExecutedTask = getBurialTask;
 						isNextTaskStart = true;
 					}
+					this.mTasks.set(mCurrentTaskIndex, this.mCurrentExecutedTask);
 				}
 				
 				if(mCurrentTaskIndex == mTasks.size()){
@@ -716,10 +720,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 			
 		}
 		
-		if(mOperationType == OperationType.UPLOAD_DATA && (!isCancelTask)){
-			if(mCurrentTaskIndex >= 0){
-				mTasks.get(mCurrentTaskIndex).setTaskResult(result);
-			}
+		if(mOperationType == OperationType.UPLOAD_DATA && (!isCancelTask)){			
 			if(!result.isError() || (result.getStatus() == Status.HANDLE_ERROR)){
 				mCurrentTaskIndex++;
 				if(mCurrentTaskIndex < mTasks.size()){
@@ -776,17 +777,9 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						this.mCurrentExecutedTask = uploadPhotoTask;
 						isNextTaskStart = true;
 					}
-				}
-				
-				if(mCurrentTaskIndex == mTasks.size()){
-					mProgressDialogMessage = "Данные отправлены";
-					mProgressDialogSyncData.setMessage(mProgressDialogMessage);
-					Toast.makeText(this.mContext, "Отправка завершена", Toast.LENGTH_LONG).show();
-					showSummaryUploadInfo();
+					this.mTasks.set(mCurrentTaskIndex, this.mCurrentExecutedTask);
 				}
 			}
-			
-			
 		}
 		
 		if(!isNextTaskStart){
@@ -803,6 +796,10 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 			if(this.onSyncCompleteListener != null){
 				this.onSyncCompleteListener.onComplete(this.mOperationType, result);
 			}
+			
+			if(mOperationType == OperationType.UPLOAD_DATA){
+				showSummaryUploadInfo();
+			}			
 			mOperationType = OperationType.NOTHING;
 		}
 		

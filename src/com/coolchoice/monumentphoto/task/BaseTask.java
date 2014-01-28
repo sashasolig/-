@@ -106,10 +106,6 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     	return mTaskResult;
     }
     
-    public void setTaskResult(TaskResult result){
-    	this.mTaskResult = result;
-    }
-    
     public String getTaskName(){
     	return this.mTaskName;
     }
@@ -135,6 +131,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     @Override
     protected void onPostExecute(TaskResult result) {
     	//Log.i("West", "onPostExecute " + this.hashCode());
+    	this.mTaskResult = result;
     	if(callback!=null) callback.onTaskComplete(this, result);
     }
     
@@ -143,6 +140,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     	//Log.i("West", "onCancelled " + this.hashCode());    	
     	result.setError(true);
     	result.setStatus(TaskResult.Status.CANCEL_TASK);
+    	this.mTaskResult = result;
     	if(callback!=null) callback.onTaskComplete(this, result);
     }
     
