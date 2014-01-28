@@ -59,65 +59,60 @@ public class UploadGraveTask extends BaseTask {
     @Override
     protected TaskResult doInBackground(String... params) {
     	TaskResult result = new TaskResult();
-    	result.setTaskName(Settings.TASK_POSTGRAVE);    	
-        if (params.length == 1) {        	
-        	List<Grave> graveList = DB.dao(Grave.class).queryForEq("IsChanged", 1);
-        	int successCount = 0;
-        	int processedCount = 0;
-        	result.setUploadCount(graveList.size());
-        	boolean isSuccessUpload = false;
-    		for(Grave grave : graveList){
-    			if(grave.Place == null) continue;
-    			isSuccessUpload = false;
-    			processedCount++;
-    			DB.dao(Place.class).refresh(grave.Place);
-    			try {
-    				checkIsCancelTask();
-    				Dictionary<String, String> dictPostData = new Hashtable<String, String>();
-	            	dictPostData.put("placeId", Integer.toString(grave.Place.ServerId));
-	            	dictPostData.put("graveId", Integer.toString(grave.ServerId));
-	            	dictPostData.put("graveName", grave.Name);
-	            	int intWrongFIO = 0, intMilitary = 0;
-	            	if(grave.IsWrongFIO){
-	            		intWrongFIO = 1; 
-	            	}
-	            	if(grave.IsMilitary){
-	            		intMilitary = 1;
-	            	}	            	
-	            	dictPostData.put("isWrongFIO", Integer.toString(intWrongFIO));
-	            	dictPostData.put("isMilitary", Integer.toString(intMilitary));
-	            	String responseString = postData(params[0], dictPostData);
-	            	if(responseString != null){
-	            		handleResponseUploadGraveJSON(responseString);	            		
-	            	} else {
-	            		result.setError(true);
-	            		result.setStatus(TaskResult.Status.HANDLE_ERROR);
-	            	}
-	            	successCount++;
-	            	isSuccessUpload = true;
-	            } catch (AuthorizationException e) {                
-	                result.setError(true);
-	                result.setStatus(TaskResult.Status.LOGIN_FAILED);
-	            } catch (CancelTaskException cte){
-	            	result.setError(true);
-	                result.setStatus(TaskResult.Status.CANCEL_TASK);
-	            } catch (Exception e) {                
-	                result.setError(true);
-	                result.setStatus(TaskResult.Status.HANDLE_ERROR);
-	            }
-    			if(isSuccessUpload){
-	    			DB.dao(Grave.class).refresh(grave);
-	    			grave.IsChanged = 0;
-	    			DB.dao(Grave.class).update(grave);
-    			}
-    			result.setUploadCountSuccess(successCount);
-	            result.setUploadCountError(processedCount - successCount);
-	            publishUploadProgress("Отправлено могил: %d из %d...", result);
-    		}    		
-        }else{
-        	throw new IllegalArgumentException("Needs 1 param: url");
-        }
-        Log.i("West", "doInBackground " + this.hashCode());
+    	result.setTaskName(Settings.TASK_POSTGRAVE);
+    	List<Grave> graveList = DB.dao(Grave.class).queryForEq("IsChanged", 1);
+    	int successCount = 0;
+    	int processedCount = 0;
+    	result.setUploadCount(graveList.size());
+    	boolean isSuccessUpload = false;
+		for(Grave grave : graveList){
+			if(grave.Place == null) continue;
+			isSuccessUpload = false;
+			processedCount++;
+			DB.dao(Place.class).refresh(grave.Place);
+			try {
+				checkIsCancelTask();
+				Dictionary<String, String> dictPostData = new Hashtable<String, String>();
+            	dictPostData.put("placeId", Integer.toString(grave.Place.ServerId));
+            	dictPostData.put("graveId", Integer.toString(grave.ServerId));
+            	dictPostData.put("graveName", grave.Name);
+            	int intWrongFIO = 0, intMilitary = 0;
+            	if(grave.IsWrongFIO){
+            		intWrongFIO = 1; 
+            	}
+            	if(grave.IsMilitary){
+            		intMilitary = 1;
+            	}	            	
+            	dictPostData.put("isWrongFIO", Integer.toString(intWrongFIO));
+            	dictPostData.put("isMilitary", Integer.toString(intMilitary));
+            	String responseString = postData(params[0], dictPostData);
+            	if(responseString != null){
+            		handleResponseUploadGraveJSON(responseString);	            		
+            	} else {
+            		result.setError(true);
+            		result.setStatus(TaskResult.Status.HANDLE_ERROR);
+            	}
+            	successCount++;
+            	isSuccessUpload = true;
+            } catch (AuthorizationException e) {                
+                result.setError(true);
+                result.setStatus(TaskResult.Status.LOGIN_FAILED);
+            } catch (CancelTaskException cte){
+            	result.setError(true);
+                result.setStatus(TaskResult.Status.CANCEL_TASK);
+            } catch (Exception e) {                
+                result.setError(true);
+                result.setStatus(TaskResult.Status.HANDLE_ERROR);
+            }
+			if(isSuccessUpload){
+    			DB.dao(Grave.class).refresh(grave);
+    			grave.IsChanged = 0;
+    			DB.dao(Grave.class).update(grave);
+			}
+			result.setUploadCountSuccess(successCount);
+            result.setUploadCountError(processedCount - successCount);
+            publishUploadProgress("Отправлено могил: %d из %d...", result);
+		}
         return result;
     }
     

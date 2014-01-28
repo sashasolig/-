@@ -56,57 +56,53 @@ public class UploadRegionTask extends BaseTask {
     @Override
     protected TaskResult doInBackground(String... params) {
     	TaskResult result = new TaskResult();
-    	result.setTaskName(Settings.TASK_POSTREGION);
-    	if (params.length == 1) {        	
-        	List<Region> regionList = DB.dao(Region.class).queryForEq("IsChanged", 1);
-        	for(Region region : regionList){
-    			DB.dao(Cemetery.class).refresh(region.Cemetery);
-    		}
-        	int successCount = 0;
-        	int processedCount = 0;
-        	result.setUploadCount(regionList.size());
-        	boolean isSuccessUpload = false;
-        	for(Region region : regionList){
-        		if(region.Cemetery == null) continue;
-        		processedCount++;
-        		isSuccessUpload = false;
-	            try {
-	            	checkIsCancelTask();
-	            	Dictionary<String, String> dictPostData = new Hashtable<String, String>();
-	            	dictPostData.put("cemeteryId", Integer.toString(region.Cemetery.ServerId));
-	            	dictPostData.put("areaId", Integer.toString(region.ServerId));
-	            	dictPostData.put("areaName", region.Name);
-	            	String responseString = postData(params[0], dictPostData);
-	            	if(responseString != null){
-	            		handleResponseUploadRegionJSON(responseString);       		
-	            	} else{
-	            		result.setError(true);
-	            		result.setStatus(TaskResult.Status.HANDLE_ERROR);
-	            	}
-	            	successCount++;
-	            	isSuccessUpload = true;
-	            } catch (AuthorizationException e) {                
-	                result.setError(true);
-	                result.setStatus(TaskResult.Status.LOGIN_FAILED);
-	            } catch (CancelTaskException cte){
-	            	result.setError(true);
-	                result.setStatus(TaskResult.Status.CANCEL_TASK);
-	            } catch (Exception e) {                
-	                result.setError(true);
-	                result.setStatus(TaskResult.Status.HANDLE_ERROR);
-	            }
-	            if(isSuccessUpload){
-		            DB.dao(Region.class).refresh(region);
-		            region.IsChanged = 0;
-		            DB.dao(Region.class).update(region);
-	            }
-	            result.setUploadCountSuccess(successCount);
-	            result.setUploadCountError(processedCount - successCount);
-	            publishUploadProgress("Отправлено участков: %d  из %d...", result);
-        	}
-        }else{
-        	throw new IllegalArgumentException("Needs 1 param: url");
-        }
+    	result.setTaskName(Settings.TASK_POSTREGION);    	      	
+    	List<Region> regionList = DB.dao(Region.class).queryForEq("IsChanged", 1);
+    	for(Region region : regionList){
+			DB.dao(Cemetery.class).refresh(region.Cemetery);
+		}
+    	int successCount = 0;
+    	int processedCount = 0;
+    	result.setUploadCount(regionList.size());
+    	boolean isSuccessUpload = false;
+    	for(Region region : regionList){
+    		if(region.Cemetery == null) continue;
+    		processedCount++;
+    		isSuccessUpload = false;
+            try {
+            	checkIsCancelTask();
+            	Dictionary<String, String> dictPostData = new Hashtable<String, String>();
+            	dictPostData.put("cemeteryId", Integer.toString(region.Cemetery.ServerId));
+            	dictPostData.put("areaId", Integer.toString(region.ServerId));
+            	dictPostData.put("areaName", region.Name);
+            	String responseString = postData(params[0], dictPostData);
+            	if(responseString != null){
+            		handleResponseUploadRegionJSON(responseString);       		
+            	} else{
+            		result.setError(true);
+            		result.setStatus(TaskResult.Status.HANDLE_ERROR);
+            	}
+            	successCount++;
+            	isSuccessUpload = true;
+            } catch (AuthorizationException e) {                
+                result.setError(true);
+                result.setStatus(TaskResult.Status.LOGIN_FAILED);
+            } catch (CancelTaskException cte){
+            	result.setError(true);
+                result.setStatus(TaskResult.Status.CANCEL_TASK);
+            } catch (Exception e) {                
+                result.setError(true);
+                result.setStatus(TaskResult.Status.HANDLE_ERROR);
+            }
+            if(isSuccessUpload){
+	            DB.dao(Region.class).refresh(region);
+	            region.IsChanged = 0;
+	            DB.dao(Region.class).update(region);
+            }
+            result.setUploadCountSuccess(successCount);
+            result.setUploadCountError(processedCount - successCount);
+            publishUploadProgress("Отправлено участков: %d  из %d...", result);
+    	}        
         return result;
     }
     

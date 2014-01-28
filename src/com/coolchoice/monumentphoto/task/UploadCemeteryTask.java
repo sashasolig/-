@@ -58,51 +58,47 @@ public class UploadCemeteryTask extends BaseTask {
     	TaskResult result = new TaskResult();
     	result.setTaskName(Settings.TASK_POSTCEMETERY);
     	StringBuilder sbJSON = new StringBuilder();
-        if (params.length == 1) {        	
-        	List<Cemetery> cemeteryList = DB.dao(Cemetery.class).queryForEq("IsChanged", 1);
-        	result.setUploadCount(cemeteryList.size());
-        	int successCount = 0;
-        	int processedCount = 0;
-        	boolean isSuccessUpload = false;
-        	for(Cemetery cem : cemeteryList){        		
-        		isSuccessUpload = false;
-        		processedCount++;
-	            try {
-	            	checkIsCancelTask();
-	            	Dictionary<String, String> dictPostData = new Hashtable<String, String>();
-	            	dictPostData.put("cemeteryId", Integer.toString(cem.ServerId));
-	            	dictPostData.put("cemeteryName", cem.Name);
-	            	String responseString = postData(params[0], dictPostData);
-	            	if(responseString != null){
-	            		handleResponseUploadCemeteryJSON(responseString);	            		
-	            	} else{
-	            		result.setError(true);
-	            		result.setStatus(TaskResult.Status.HANDLE_ERROR);
-	            	}
-	            	successCount++;
-	            	isSuccessUpload = true;
-	            } catch (AuthorizationException e) {                
-	                result.setError(true);
-	                result.setStatus(TaskResult.Status.LOGIN_FAILED);
-	            } catch (CancelTaskException cte){
-	            	result.setError(true);
-	                result.setStatus(TaskResult.Status.CANCEL_TASK);
-	            } catch (Exception e) {                
-	                result.setError(true);
-	                result.setStatus(TaskResult.Status.HANDLE_ERROR);
-	            }
-	            if(isSuccessUpload){
-		            DB.dao(Cemetery.class).refresh(cem);
-		            cem.IsChanged = 0;
-		            DB.dao(Cemetery.class).update(cem);
-	            }
-	            result.setUploadCountSuccess(successCount);
-	            result.setUploadCountError(processedCount - successCount);
-	            publishUploadProgress("Отправлено кладбищ: %d  из %d...", result);
-        	}        	
-        }else{
-        	throw new IllegalArgumentException("Needs 1 param: url");
-        }
+    	List<Cemetery> cemeteryList = DB.dao(Cemetery.class).queryForEq("IsChanged", 1);
+    	result.setUploadCount(cemeteryList.size());
+    	int successCount = 0;
+    	int processedCount = 0;
+    	boolean isSuccessUpload = false;
+    	for(Cemetery cem : cemeteryList){        		
+    		isSuccessUpload = false;
+    		processedCount++;
+            try {
+            	checkIsCancelTask();
+            	Dictionary<String, String> dictPostData = new Hashtable<String, String>();
+            	dictPostData.put("cemeteryId", Integer.toString(cem.ServerId));
+            	dictPostData.put("cemeteryName", cem.Name);
+            	String responseString = postData(params[0], dictPostData);
+            	if(responseString != null){
+            		handleResponseUploadCemeteryJSON(responseString);	            		
+            	} else{
+            		result.setError(true);
+            		result.setStatus(TaskResult.Status.HANDLE_ERROR);
+            	}
+            	successCount++;
+            	isSuccessUpload = true;
+            } catch (AuthorizationException e) {                
+                result.setError(true);
+                result.setStatus(TaskResult.Status.LOGIN_FAILED);
+            } catch (CancelTaskException cte){
+            	result.setError(true);
+                result.setStatus(TaskResult.Status.CANCEL_TASK);
+            } catch (Exception e) {                
+                result.setError(true);
+                result.setStatus(TaskResult.Status.HANDLE_ERROR);
+            }
+            if(isSuccessUpload){
+	            DB.dao(Cemetery.class).refresh(cem);
+	            cem.IsChanged = 0;
+	            DB.dao(Cemetery.class).update(cem);
+            }
+            result.setUploadCountSuccess(successCount);
+            result.setUploadCountError(processedCount - successCount);
+            publishUploadProgress("Отправлено кладбищ: %d  из %d...", result);
+    	}
         return result;
     }
     
