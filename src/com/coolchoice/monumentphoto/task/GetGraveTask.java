@@ -38,6 +38,7 @@ public class GetGraveTask extends BaseTask {
         
         if(resultJSON != null && !result.isError()){
             try{
+            	this.mFileLog.info(resultJSON);
             	handleResponseGetGraveJSON(resultJSON, this.mCemeteryServerId, this.mRegionServerId, this.mLastQueryServerDate);	                
             } catch (CancelTaskException cte){
             	result.setError(true);
@@ -47,8 +48,7 @@ public class GetGraveTask extends BaseTask {
                 result.setStatus(TaskResult.Status.HANDLE_ERROR);
                 this.mFileLog.error(resultJSON, e);
             }
-        }
-    	Log.i("West", "doInBackground " + this.hashCode());
+        }    	
         return result;
     }   
     
