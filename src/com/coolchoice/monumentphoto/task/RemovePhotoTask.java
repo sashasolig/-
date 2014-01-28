@@ -43,40 +43,38 @@ public class RemovePhotoTask extends BaseTask {
     protected TaskResult doInBackground(String... params) {
     	TaskResult result = new TaskResult();
     	result.setTaskName(Settings.TASK_REMOVEPHOTOGRAVE);
-    	String url = null;
-    	if (params.length == 1) {            
-        	url = params[0];
-        	List<DeletedObject> gravePhotoInfoList = this.getGravePhotoForRemove();
-        	int successCount = 0;
-        	int processedCount = 0;
-        	result.setUploadCount(gravePhotoInfoList.size());
-        	for(DeletedObject deleteObj : gravePhotoInfoList){        		
-        		try {
-        			checkIsCancelTask();
-            		if(deleteObj.ServerId == BaseDTO.INT_NULL_VALUE) continue;
-            		processedCount++;
-            		StringBuilder outJSONResponseSB = new StringBuilder();
-            		boolean isUpload = this.removePhoto(this.mainContext, deleteObj, outJSONResponseSB);
-            		if(isUpload){
-            			DB.dao(DeletedObject.class).delete(deleteObj);
-            			successCount++;
-            		}
-        		} catch (AuthorizationException e) {                
-                    result.setError(true);
-                    result.setStatus(TaskResult.Status.LOGIN_FAILED);
-                } catch (CancelTaskException cte){
-	            	result.setError(true);
-	                result.setStatus(TaskResult.Status.CANCEL_TASK);
-	            } 
-                catch (Exception e) {                
-                    result.setError(true);
-                    result.setStatus(TaskResult.Status.HANDLE_ERROR);
-                }
-        		result.setUploadCountSuccess(successCount);
-	            result.setUploadCountError(processedCount - successCount);
-	            publishUploadProgress("Удалено фотографий: %d  из %d...", result);
-        	}
-        }
+    	String url = null;    	           
+    	url = params[0];
+    	List<DeletedObject> gravePhotoInfoList = this.getGravePhotoForRemove();
+    	int successCount = 0;
+    	int processedCount = 0;
+    	result.setUploadCount(gravePhotoInfoList.size());
+    	for(DeletedObject deleteObj : gravePhotoInfoList){        		
+    		try {
+    			checkIsCancelTask();
+        		if(deleteObj.ServerId == BaseDTO.INT_NULL_VALUE) continue;
+        		processedCount++;
+        		StringBuilder outJSONResponseSB = new StringBuilder();
+        		boolean isUpload = this.removePhoto(this.mainContext, deleteObj, outJSONResponseSB);
+        		if(isUpload){
+        			DB.dao(DeletedObject.class).delete(deleteObj);
+        			successCount++;
+        		}
+    		} catch (AuthorizationException e) {                
+                result.setError(true);
+                result.setStatus(TaskResult.Status.LOGIN_FAILED);
+            } catch (CancelTaskException cte){
+            	result.setError(true);
+                result.setStatus(TaskResult.Status.CANCEL_TASK);
+            } 
+            catch (Exception e) {                
+                result.setError(true);
+                result.setStatus(TaskResult.Status.HANDLE_ERROR);
+            }
+    		result.setUploadCountSuccess(successCount);
+            result.setUploadCountError(processedCount - successCount);
+            publishUploadProgress("Удалено фотографий: %d  из %d...", result);
+    	}
     	return result;
     }
     

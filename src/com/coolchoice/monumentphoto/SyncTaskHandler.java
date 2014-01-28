@@ -11,6 +11,8 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.database.CursorJoiner.Result;
+import android.text.style.ReplacementSpan;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -41,6 +43,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 	private String mProgressDialogTitle;
 	private String mProgressDialogMessage;
 	
+	private ArrayList<TaskResult> mUploadTaskResults = new ArrayList<TaskResult>();
 	private ArrayList<BaseTask> mTasks = new ArrayList<BaseTask>();
 	private BaseTask mCurrentExecutedTask = null;
 	private int mCurrentTaskIndex = -1;
@@ -270,7 +273,11 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 			Toast.makeText(this.mContext, "Идет завершение предыдущей операции", Toast.LENGTH_LONG).show();
 			return;
 		}
-		setEmptyServerId();
+		setEmptyServerId();		
+		executeStartUploadData(false);	
+	}
+	
+	private void executeStartUploadData(boolean isRepeat){
 		mOperationType = OperationType.UPLOAD_DATA;
 		mTasks.clear();
 		mTasks.add(new RemovePhotoTask(this, this, this.mContext));
@@ -282,7 +289,14 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mCurrentTaskIndex = -1;
 		mProgressDialogTitle = "Отправка данных...";
 		mProgressDialogMessage = "Авторизация";
-		showOperationInfo();
+		if(!isRepeat){
+			this.mUploadTaskResults = new ArrayList<TaskResult>();
+			for(int i = 0; i < mTasks.size(); i++){
+				TaskResult newTaskResult = new TaskResult();
+				this.mUploadTaskResults.add(newTaskResult);
+			}
+			showOperationInfo();
+		}
 		SettingsData settingsData = Settings.getSettingData(this.mContext);
 		LoginTask loginTask = new LoginTask(this, this, this.mContext);
 		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);
@@ -378,49 +392,55 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		}
 	}
 	
-	public void showSummaryUploadInfo(){
+	private void showSummaryUploadInfo(){
 		AlertDialog.Builder builder = new AlertDialog.Builder(this.mContext);
 		builder.setTitle("Статистика отправленных данных");
 		StringBuilder sbMessage = new StringBuilder();
-		boolean isUploadSomething = false;
-		for(BaseTask task : mTasks){
-			TaskResult result = task.getTaskResult();
-			if(result == null || result.getUploadCount() == 0){
-				continue;
-			}
-			if(result.getStatus() != TaskResult.Status.CANCEL_TASK){
-				isUploadSomething = true;
-			}
-			sbMessage.append(System.getProperty("line.separator"));
-			if(task instanceof RemovePhotoTask){
-				sbMessage.append(String.format("Успешно удалено фотографий: %d  из %d.", result.getUploadCountSuccess(), result.getUploadCount()));				
-			}
-			if(task instanceof UploadCemeteryTask){
-				sbMessage.append(String.format("Успешно отправлено кладбищ: %d из %d.", result.getUploadCountSuccess(), result.getUploadCount()));				
-			}
-			if(task instanceof UploadRegionTask){
-				sbMessage.append(String.format("Успешно отправлено участков: %d  из %d.", result.getUploadCountSuccess(), result.getUploadCount()));				
-			}
-			if(task instanceof UploadPlaceTask){
-				sbMessage.append(String.format("Успешно отправлено мест: %d из %d.", result.getUploadCountSuccess(), result.getUploadCount()));				
-			}
-			if(task instanceof UploadGraveTask){
-				sbMessage.append(String.format("Успешно отправлено могил: %d из %d.", result.getUploadCountSuccess(), result.getUploadCount()));				
-			}
-			if(task instanceof UploadPhotoTask){
-				sbMessage.append(String.format("Успешно отправлено фотографий: %d из %d.", result.getUploadCountSuccess(), result.getUploadCount()));				
-			}
-			sbMessage.append(System.getProperty("line.separator"));
-			if(result.getStatus() == TaskResult.Status.CANCEL_TASK){
-				sbMessage.append("Отправка данных отменена пользователем");
+		boolean isTryUploadSomething = false;
+		boolean isCancelTask = false;
+		int i = 0; 
+		for(BaseTask task : this.mTasks){
+			TaskResult result = this.mUploadTaskResults.get(i++);
+			if(result.getUploadCount() > 0){
+				isTryUploadSomething = true;
 				sbMessage.append(System.getProperty("line.separator"));
+				if(task instanceof RemovePhotoTask){
+					sbMessage.append(String.format("Успешно удалено фотографий: %d  из %d.", result.getUploadCountSuccess(), result.getUploadCount()));				
+				}
+				if(task instanceof UploadCemeteryTask){
+					sbMessage.append(String.format("Успешно отправлено кладбищ: %d из %d.", result.getUploadCountSuccess(), result.getUploadCount()));				
+				}
+				if(task instanceof UploadRegionTask){
+					sbMessage.append(String.format("Успешно отправлено участков: %d  из %d.", result.getUploadCountSuccess(), result.getUploadCount()));				
+				}
+				if(task instanceof UploadPlaceTask){
+					sbMessage.append(String.format("Успешно отправлено мест: %d из %d.", result.getUploadCountSuccess(), result.getUploadCount()));				
+				}
+				if(task instanceof UploadGraveTask){
+					sbMessage.append(String.format("Успешно отправлено могил: %d из %d.", result.getUploadCountSuccess(), result.getUploadCount()));				
+				}
+				if(task instanceof UploadPhotoTask){
+					sbMessage.append(String.format("Успешно отправлено фотографий: %d из %d.", result.getUploadCountSuccess(), result.getUploadCount()));				
+				}
+				sbMessage.append(System.getProperty("line.separator"));
+			}			
+			if(result.getStatus() == TaskResult.Status.CANCEL_TASK){
+				isCancelTask = true;
+				break;
 			}
 		}
-		if(!isUploadSomething){
-			sbMessage = new StringBuilder();
+		
+		if(isCancelTask){
 			sbMessage.append(System.getProperty("line.separator"));
-			sbMessage.append("Изменившихся данных для отправки не найдено");
+			sbMessage.append("Отправка данных отменена пользователем");
 			sbMessage.append(System.getProperty("line.separator"));
+		} else {
+			if(!isTryUploadSomething){
+				sbMessage = new StringBuilder();
+				sbMessage.append(System.getProperty("line.separator"));
+				sbMessage.append("Изменившихся данных для отправки не найдено");
+				sbMessage.append(System.getProperty("line.separator"));
+			}
 		}
 		builder.setMessage(sbMessage.toString());
 		builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
@@ -431,6 +451,31 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		
 		AlertDialog dialog = builder.create();
 		dialog.show();
+	}
+	
+	private boolean isRepeatUploadAndStoreResults(){
+		boolean isRepeat = false;
+		for(int i = 0; i < this.mTasks.size(); i++){
+			TaskResult result = this.mTasks.get(i).getTaskResult();
+			TaskResult previousResult = this.mUploadTaskResults.get(i);
+			if(result == null || result.getStatus() == TaskResult.Status.CANCEL_TASK){
+				isRepeat = false;
+				break;
+			}
+			int previousUploadCountError = (previousResult.getStatus() != null) ? previousResult.getUploadCountError() : Integer.MAX_VALUE;
+			if(result.getUploadCountError() > 0 && result.getUploadCountError() < previousUploadCountError){
+				isRepeat = true;
+			}
+			
+			//store result of tasks
+			if(previousResult.getStatus() == null){				
+				previousResult.setUploadCount(result.getUploadCount());
+			}			
+			previousResult.setUploadCountError(result.getUploadCountError());
+			previousResult.setUploadCountSuccess(previousResult.getUploadCountSuccess() + result.getUploadCountSuccess());
+			previousResult.setStatus(result.getStatus());
+		}
+		return isRepeat;		
 	}
 	
 	public String getURLArgs(){
@@ -785,22 +830,35 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		if(!isNextTaskStart){
 			if(mOperationType == OperationType.GET_DATA || mOperationType == OperationType.GET_CHANGED_DATA || mOperationType == OperationType.GET_CHANGED_DATA_ONE_CEMETERY){
 				DB.db().updateDBLink();				
-			}			
-			mProgressDialogSyncData.dismiss();
-			if(mProgressDialogCancelQuestion != null) {
-				mProgressDialogCancelQuestion.dismiss();
 			}
-			if(mProgressDialogCancelInfo != null){
-				mProgressDialogCancelInfo.dismiss();
-			}
-			if(this.onSyncCompleteListener != null){
-				this.onSyncCompleteListener.onComplete(this.mOperationType, result);
+			boolean isRepeatUpload = false;
+			if(mOperationType == OperationType.UPLOAD_DATA){
+				if(isRepeatUploadAndStoreResults()){
+					executeStartUploadData(true);
+					isRepeatUpload = true;
+				} 
+			}	
+			if(!isRepeatUpload){				
+				mProgressDialogSyncData.dismiss();
+				if(mProgressDialogCancelQuestion != null) {
+					mProgressDialogCancelQuestion.dismiss();
+				}
+				if(mProgressDialogCancelInfo != null){
+					mProgressDialogCancelInfo.dismiss();
+				}
+				if(this.onSyncCompleteListener != null){
+					this.onSyncCompleteListener.onComplete(this.mOperationType, result);
+				}				
 			}
 			
-			if(mOperationType == OperationType.UPLOAD_DATA){
+			if(mOperationType == OperationType.UPLOAD_DATA && !isRepeatUpload){
 				showSummaryUploadInfo();
-			}			
-			mOperationType = OperationType.NOTHING;
+			}
+			
+			if(!isRepeatUpload){
+				mOperationType = OperationType.NOTHING;
+			}
+			
 		}
 		
 	}
