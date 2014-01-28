@@ -48,6 +48,8 @@ public class Settings {
     public static final int STATUS_SEERVER_LOGIN_FAILED = 2;
     public static final int STATUS_SERVER_LOGIN_SUCCESS = 3;
     
+    public static final String UNEXPECTED_ERROR_MESSAGE = "unexpected error:";
+    
     public static final String TASK_LOGIN = "login";
     public static final String TASK_GETCEMETERY = "getCemetery";
     public static final String TASK_POSTCEMETERY = "postCemetery";

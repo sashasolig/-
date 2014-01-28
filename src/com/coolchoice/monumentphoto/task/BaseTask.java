@@ -219,15 +219,16 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     		} else if (statusCode == 302){
     			throw new AuthorizationException();
     		} else {
-    			this.mFileLog.error(url + "###" + EntityUtils.toString(httpResponse.getEntity()) + "###");
-    			throw new ServerException();
+    			ServerException serverException = new ServerException(null, statusCode);
+    			throw serverException;
     		}
         }
         catch(FileNotFoundException e){
         	return true;
         }
         catch(IOException exc){
-        	throw new ServerException();
+        	ServerException serverException = new ServerException(exc);
+        	throw serverException;
         }              
 	}
     
@@ -311,13 +312,14 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     		} else if (statusCode == 302){
     			throw new AuthorizationException();
     		} else {
-    			String errorResult = EntityUtils.toString(httpResponse.getEntity());
-    			mFileLog.error(url + "###" + multipartEntity.getContent().toString() + "###" + errorResult);    			
-    			throw new ServerException();
+    			//String errorResult = EntityUtils.toString(httpResponse.getEntity());
+    			ServerException serverException = new ServerException(null, statusCode);    			
+    			throw serverException;
     		}
         }
         catch(IOException exc){
-        	throw new ServerException();
+        	ServerException serverException = new ServerException(exc);
+        	throw serverException;
         }              
 	}
 	
@@ -327,13 +329,23 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 			Object key = e.nextElement();
 			String value = dictPostData.get(key);
 			try {
-				multipartEntity.addPart(key.toString(), new StringBody(value, Charset.forName("UTF-8")));				
+				multipartEntity.addPart(key.toString(), new StringBody(value, Charset.forName(Settings.DEFAULT_ENCODING)));				
 			} catch (UnsupportedEncodingException exc) {				
 				exc.printStackTrace();
-				return null;
+				mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, exc);
 			}
 		}
-		String responseString = postHTTPRequest(url, multipartEntity);
+		String responseString = null;
+		try{
+			responseString = postHTTPRequest(url, multipartEntity);
+		} catch (ServerException exc){
+			if(!exc.isIOException()){
+				String errorMessage = url + " " + dictPostData.toString();
+				mFileLog.error(errorMessage, exc);
+			}
+			throw exc;
+		}
+		 
 		return responseString;
 	}
 	
