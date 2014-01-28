@@ -71,6 +71,7 @@ public class UploadRegionTask extends BaseTask {
         		processedCount++;
         		isSuccessUpload = false;
 	            try {
+	            	checkIsCancelTask();
 	            	Dictionary<String, String> dictPostData = new Hashtable<String, String>();
 	            	dictPostData.put("cemeteryId", Integer.toString(region.Cemetery.ServerId));
 	            	dictPostData.put("areaId", Integer.toString(region.ServerId));
@@ -87,8 +88,10 @@ public class UploadRegionTask extends BaseTask {
 	            } catch (AuthorizationException e) {                
 	                result.setError(true);
 	                result.setStatus(TaskResult.Status.LOGIN_FAILED);
-	            }
-	            catch (Exception e) {                
+	            } catch (CancelTaskException cte){
+	            	result.setError(true);
+	                result.setStatus(TaskResult.Status.CANCEL_TASK);
+	            } catch (Exception e) {                
 	                result.setError(true);
 	                result.setStatus(TaskResult.Status.HANDLE_ERROR);
 	            }

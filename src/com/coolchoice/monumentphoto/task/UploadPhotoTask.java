@@ -49,6 +49,7 @@ public class UploadPhotoTask extends BaseTask {
         	result.setUploadCount(gravePhotos.size());
         	for(GravePhoto gravePhoto : gravePhotos){        		
         		try {
+        			checkIsCancelTask();
             		if(gravePhoto.Grave == null) continue;
             		processedCount++;
             		DB.dao(Grave.class).refresh(gravePhoto.Grave);
@@ -69,8 +70,10 @@ public class UploadPhotoTask extends BaseTask {
         		} catch (AuthorizationException e) {                
                     result.setError(true);
                     result.setStatus(TaskResult.Status.LOGIN_FAILED);
-                }
-                catch (Exception e) {                
+                } catch (CancelTaskException cte){
+	            	result.setError(true);
+	                result.setStatus(TaskResult.Status.CANCEL_TASK);
+	            } catch (Exception e) {                
                     result.setError(true);
                     result.setStatus(TaskResult.Status.HANDLE_ERROR);                    
                 }

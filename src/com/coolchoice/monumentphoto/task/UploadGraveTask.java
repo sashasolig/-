@@ -41,6 +41,7 @@ import com.j256.ormlite.stmt.QueryBuilder;
 
 import android.content.Context;
 import android.os.SystemClock;
+import android.util.Log;
 
 
 public class UploadGraveTask extends BaseTask {
@@ -71,6 +72,7 @@ public class UploadGraveTask extends BaseTask {
     			processedCount++;
     			DB.dao(Place.class).refresh(grave.Place);
     			try {
+    				checkIsCancelTask();
     				Dictionary<String, String> dictPostData = new Hashtable<String, String>();
 	            	dictPostData.put("placeId", Integer.toString(grave.Place.ServerId));
 	            	dictPostData.put("graveId", Integer.toString(grave.ServerId));
@@ -96,8 +98,10 @@ public class UploadGraveTask extends BaseTask {
 	            } catch (AuthorizationException e) {                
 	                result.setError(true);
 	                result.setStatus(TaskResult.Status.LOGIN_FAILED);
-	            }
-	            catch (Exception e) {                
+	            } catch (CancelTaskException cte){
+	            	result.setError(true);
+	                result.setStatus(TaskResult.Status.CANCEL_TASK);
+	            } catch (Exception e) {                
 	                result.setError(true);
 	                result.setStatus(TaskResult.Status.HANDLE_ERROR);
 	            }
@@ -113,6 +117,7 @@ public class UploadGraveTask extends BaseTask {
         }else{
         	throw new IllegalArgumentException("Needs 1 param: url");
         }
+        Log.i("West", "doInBackground " + this.hashCode());
         return result;
     }
     

@@ -98,6 +98,7 @@ public class UploadPlaceTask extends BaseTask {
     				regionServerId = place.Region.ServerId;   				
     			}
     			try {
+    				checkIsCancelTask();
     				Dictionary<String, String> dictPostData = new Hashtable<String, String>();
 	            	dictPostData.put("areaId", Integer.toString(regionServerId));
 	            	dictPostData.put("placeId", Integer.toString(place.ServerId));
@@ -137,8 +138,10 @@ public class UploadPlaceTask extends BaseTask {
                 } catch (AuthorizationException e) {                
                     result.setError(true);
                     result.setStatus(TaskResult.Status.LOGIN_FAILED);
-                }
-                catch (Exception e) {                
+                } catch (CancelTaskException cte){
+	            	result.setError(true);
+	                result.setStatus(TaskResult.Status.CANCEL_TASK);
+	            } catch (Exception e) {                
                     result.setError(true);
                     result.setStatus(TaskResult.Status.HANDLE_ERROR);
                 }

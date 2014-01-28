@@ -1,10 +1,5 @@
 package com.coolchoice.monumentphoto.task;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,17 +11,13 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 
 import com.coolchoice.monumentphoto.Settings;
-
 import android.content.Context;
-import android.os.SystemClock;
-
 
 public class LoginTask extends BaseTask {
 	
@@ -143,10 +134,7 @@ public class LoginTask extends BaseTask {
         String regexp = name + "=([^;]+)[;$]";
         Pattern pattern = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);        
         Matcher matcher = pattern.matcher(str);
-        while (matcher.find()) {
-            /*System.out.print("Start index: " + matcher.start());
-            System.out.print(" End index: " + matcher.end() + " ");
-            System.out.println(matcher.group());*/
+        while (matcher.find()) {            
         	return matcher.group(1);
         }
         return null;

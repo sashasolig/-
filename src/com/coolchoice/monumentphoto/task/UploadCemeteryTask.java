@@ -64,10 +64,11 @@ public class UploadCemeteryTask extends BaseTask {
         	int successCount = 0;
         	int processedCount = 0;
         	boolean isSuccessUpload = false;
-        	for(Cemetery cem : cemeteryList){
+        	for(Cemetery cem : cemeteryList){        		
         		isSuccessUpload = false;
         		processedCount++;
 	            try {
+	            	checkIsCancelTask();
 	            	Dictionary<String, String> dictPostData = new Hashtable<String, String>();
 	            	dictPostData.put("cemeteryId", Integer.toString(cem.ServerId));
 	            	dictPostData.put("cemeteryName", cem.Name);
@@ -83,8 +84,10 @@ public class UploadCemeteryTask extends BaseTask {
 	            } catch (AuthorizationException e) {                
 	                result.setError(true);
 	                result.setStatus(TaskResult.Status.LOGIN_FAILED);
-	            }
-	            catch (Exception e) {                
+	            } catch (CancelTaskException cte){
+	            	result.setError(true);
+	                result.setStatus(TaskResult.Status.CANCEL_TASK);
+	            } catch (Exception e) {                
 	                result.setError(true);
 	                result.setStatus(TaskResult.Status.HANDLE_ERROR);
 	            }

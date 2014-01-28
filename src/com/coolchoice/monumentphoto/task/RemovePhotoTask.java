@@ -52,6 +52,7 @@ public class RemovePhotoTask extends BaseTask {
         	result.setUploadCount(gravePhotoInfoList.size());
         	for(DeletedObject deleteObj : gravePhotoInfoList){        		
         		try {
+        			checkIsCancelTask();
             		if(deleteObj.ServerId == BaseDTO.INT_NULL_VALUE) continue;
             		processedCount++;
             		StringBuilder outJSONResponseSB = new StringBuilder();
@@ -63,7 +64,10 @@ public class RemovePhotoTask extends BaseTask {
         		} catch (AuthorizationException e) {                
                     result.setError(true);
                     result.setStatus(TaskResult.Status.LOGIN_FAILED);
-                }
+                } catch (CancelTaskException cte){
+	            	result.setError(true);
+	                result.setStatus(TaskResult.Status.CANCEL_TASK);
+	            } 
                 catch (Exception e) {                
                     result.setError(true);
                     result.setStatus(TaskResult.Status.HANDLE_ERROR);

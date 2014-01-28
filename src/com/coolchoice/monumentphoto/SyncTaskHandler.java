@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import android.R;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -58,11 +60,13 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 	private final static String PD_GETGRAVE_MESSAGE = "Получение могил";
 	private final static String PD_GETBURIAL_MESSAGE = "Получение захоронений";
 	
+	protected final Logger mFileLog = Logger.getLogger(SyncTaskHandler.class);
 	
-	private static SyncCompleteListener onSyncCompleteListener;
+	
+	private SyncCompleteListener onSyncCompleteListener;
 	
 	public void setOnSyncCompleteListener(SyncCompleteListener syncCompleteListener){
-		onSyncCompleteListener = syncCompleteListener;
+		this.onSyncCompleteListener = syncCompleteListener;
 	}
 	
 	public SyncTaskHandler(){		
@@ -103,11 +107,11 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mCurrentTaskIndex = -1;
 		mProgressDialogTitle = "Загрузка данных...";
 		mProgressDialogMessage = "Подождите";
-		mProgressDialogSyncData = ProgressDialog.show(this.mContext, mProgressDialogTitle, mProgressDialogMessage, true);
-		mProgressDialogSyncData.setCancelable(false);
+		showProgressDialogGetData();
 		SettingsData settingsData = Settings.getSettingData(this.mContext);
 		LoginTask loginTask = new LoginTask(this, this, this.mContext);
-		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);	
+		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);
+		this.mCurrentExecutedTask = loginTask;
 	}
 	
 	public void startGetRegion(int cemeteryServerId){
@@ -122,11 +126,11 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mCurrentTaskIndex = -1;
 		mProgressDialogTitle = "Загрузка данных...";
 		mProgressDialogMessage = "Подождите";
-		mProgressDialogSyncData = ProgressDialog.show(this.mContext, mProgressDialogTitle, mProgressDialogMessage, true);
-		mProgressDialogSyncData.setCancelable(false);
+		showProgressDialogGetData();
 		SettingsData settingsData = Settings.getSettingData(this.mContext);
 		LoginTask loginTask = new LoginTask(this, this, this.mContext);
 		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);
+		this.mCurrentExecutedTask = loginTask;
 	}
 	
 	public void startGetPlace(int regionServerId){
@@ -141,11 +145,11 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mCurrentTaskIndex = -1;
 		mProgressDialogTitle = "Загрузка данных...";
 		mProgressDialogMessage = "Подождите";
-		mProgressDialogSyncData = ProgressDialog.show(this.mContext, mProgressDialogTitle, mProgressDialogMessage, true);
-		mProgressDialogSyncData.setCancelable(false);
+		showProgressDialogGetData();
 		SettingsData settingsData = Settings.getSettingData(this.mContext);
 		LoginTask loginTask = new LoginTask(this, this, this.mContext);
-		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);	
+		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);
+		this.mCurrentExecutedTask = loginTask;
 	}
 	
 	public void startGetGrave(int placeServerId){
@@ -160,11 +164,11 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mCurrentTaskIndex = -1;
 		mProgressDialogTitle = "Загрузка данных...";
 		mProgressDialogMessage = "Подождите";
-		mProgressDialogSyncData = ProgressDialog.show(this.mContext, mProgressDialogTitle, mProgressDialogMessage, true);
-		mProgressDialogSyncData.setCancelable(false);
+		showProgressDialogGetData();
 		SettingsData settingsData = Settings.getSettingData(this.mContext);
 		LoginTask loginTask = new LoginTask(this, this, this.mContext);
-		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);	
+		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);
+		this.mCurrentExecutedTask = loginTask;
 	}
 	
 	public void startGetBurial(int graveServerId){
@@ -179,11 +183,11 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mCurrentTaskIndex = -1;
 		mProgressDialogTitle = "Загрузка данных...";
 		mProgressDialogMessage = "Подождите";
-		mProgressDialogSyncData = ProgressDialog.show(this.mContext, mProgressDialogTitle, mProgressDialogMessage, true);
-		mProgressDialogSyncData.setCancelable(false);
+		showProgressDialogGetData();
 		SettingsData settingsData = Settings.getSettingData(this.mContext);
 		LoginTask loginTask = new LoginTask(this, this, this.mContext);
-		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);	
+		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);
+		this.mCurrentExecutedTask = loginTask;
 	}
 	
 	public void startCheckLogin(){
@@ -201,7 +205,8 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mProgressDialogSyncData.setCancelable(false);
 		SettingsData settingsData = Settings.getSettingData(this.mContext);
 		LoginTask loginTask = new LoginTask(this, this, this.mContext);
-		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);			
+		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);
+		this.mCurrentExecutedTask = loginTask;
 	}
 	
 	public void startGetData(){
@@ -223,7 +228,8 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		showProgressDialogGetData();		
 		SettingsData settingsData = Settings.getSettingData(this.mContext);
 		LoginTask loginTask = new LoginTask(this, this, this.mContext);
-		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);			
+		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);
+		this.mCurrentExecutedTask = loginTask;
 	}
 	
 	public void startGetOnlyChangedData(){
@@ -238,7 +244,8 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		showProgressDialogGetData();	
 		SettingsData settingsData = Settings.getSettingData(this.mContext);
 		LoginTask loginTask = new LoginTask(this, this, this.mContext);
-		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);			
+		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);	
+		this.mCurrentExecutedTask = loginTask;
 	}
 	
 	public void startGetOnlyChangedData(int cemeteryServerId){
@@ -254,7 +261,8 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		showProgressDialogGetData();	
 		SettingsData settingsData = Settings.getSettingData(this.mContext);
 		LoginTask loginTask = new LoginTask(this, this, this.mContext);
-		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);			
+		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);
+		this.mCurrentExecutedTask = loginTask;
 	}
 	
 	public void startUploadData(){
@@ -278,7 +286,8 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mProgressDialogSyncData.setCancelable(false);
 		SettingsData settingsData = Settings.getSettingData(this.mContext);
 		LoginTask loginTask = new LoginTask(this, this, this.mContext);
-		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);			
+		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);
+		this.mCurrentExecutedTask = loginTask;
 	}
 	
 	private void showProgressDialogGetData(){
@@ -296,6 +305,16 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 	            }
 	        });
 		}
+		if(mOperationType == OperationType.GET_DATA){
+			mProgressDialogSyncData.setButton("Отменить", new DialogInterface.OnClickListener() {
+	
+	            public void onClick(DialogInterface dialog, int which) {
+	        		interruptCurrentTask();           		
+	        		mProgressDialogSyncData.dismiss();
+	        		showCancelInfoGetData();
+	            }
+	        });
+		}
 		mProgressDialogSyncData.show();
 	}
 	
@@ -307,22 +326,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mProgressDialogCancelQuestion.setButton("Да", new DialogInterface.OnClickListener() {
 
             public void onClick(DialogInterface dialog, int which) {
-        		mIsStartExecuteNextTask = false; 
-        		mIsInteruptExecutedTask = true;
-        		if(mCurrentExecutedTask != null){
-        			try{            			
-            			mCurrentExecutedTask.cancel(true);
-            		}catch(Exception exc){
-            			exc.printStackTrace();                			
-            		}
-        		}
-        		for(BaseTask task : mTasks){
-            		try{            			
-            			task.cancel(true);
-            		}catch(Exception exc){
-            			exc.printStackTrace();	                			
-            		}
-            	}
+        		interruptCurrentTask();
         		mProgressDialogCancelQuestion.dismiss();
         		showCancelInfoGetData();
             }
@@ -336,6 +340,18 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mProgressDialogCancelInfo.setMessage("Завершение...");
 		mProgressDialogCancelInfo.setCancelable(false);
 		mProgressDialogCancelInfo.show();		
+	}
+	
+	private void interruptCurrentTask(){
+		this.mIsStartExecuteNextTask = false; 
+		this.mIsInteruptExecutedTask = true;
+		if(this.mCurrentExecutedTask != null){
+			try{				
+    			mCurrentExecutedTask.cancel(true);
+    		}catch(Exception exc){
+    			exc.printStackTrace();        			
+    		}
+		}
 	}
 	
 	public void checkResumeDataOperation(Context context){
@@ -453,10 +469,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 	}
 	
 	@Override
-	public void onProgressUpdate(String... messages) {
-		if(mIsStartExecuteNextTask == false){
-			return;
-		}
+	public void onProgressUpdate(String... messages) {		
 		mProgressDialogSyncData.setMessage(messages[0]);		
 	}
 
@@ -467,7 +480,8 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		if(result.getStatus() == Status.CANCEL_TASK){
 			isCancelTask = true;
 		}
-		String getArgs = getURLArgs();
+		String getArgs = getURLArgs();		
+		Log.i("West", mOperationType.toString() + "hashCode(" + this.hashCode() +") onTaskComplete("+ result.getStatus() + "):" + finishedTask.getTaskName() + finishedTask.hashCode());
 		
 		if(mOperationType == OperationType.GET_CHANGED_DATA || mOperationType == OperationType.GET_CHANGED_DATA_ONE_CEMETERY){
 			boolean isAuthenticated = true;
@@ -579,6 +593,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 					mProgressDialogSyncData.setMessage(mProgressDialogMessage);
 					GetGraveTask getGraveTask = new GetGraveTask(this, this, this.mContext);
 					getArgs = getURLArgs();
+					this.mFileLog.info("onTaskCompletePrevAndStartNew:" + getGraveTask.getTaskName() + getGraveTask.hashCode());
 					getGraveTask.execute(Settings.getGraveUrl(mContext) + getArgs);
 					this.mCurrentExecutedTask = getGraveTask;
 					isNextTaskStart = true;
@@ -651,6 +666,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						mProgressDialogSyncData.setMessage(mProgressDialogMessage);						
 						GetCemeteryTask getCemeteryTask = new GetCemeteryTask(this, this, this.mContext);
 						getCemeteryTask.execute(Settings.getCemeteryUrl(mContext) + getArgs);
+						this.mCurrentExecutedTask = getCemeteryTask;
 						isNextTaskStart = true;						
 					}
 					if(nextTask.getTaskName() == Settings.TASK_GETREGION){
@@ -658,6 +674,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						mProgressDialogSyncData.setMessage(mProgressDialogMessage);
 						GetRegionTask getRegionTask = new GetRegionTask(this, this, this.mContext);
 						getRegionTask.execute(Settings.getRegionUrl(mContext) + getArgs);
+						this.mCurrentExecutedTask = getRegionTask;
 						isNextTaskStart = true;
 					}
 					if(nextTask.getTaskName() == Settings.TASK_GETPLACE){
@@ -665,13 +682,16 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						mProgressDialogSyncData.setMessage(mProgressDialogMessage);
 						GetPlaceTask getPlaceTask = new GetPlaceTask(this, this, this.mContext);
 						getPlaceTask.execute(Settings.getPlaceUrl(mContext) + getArgs);
+						this.mCurrentExecutedTask = getPlaceTask;
+						mFileLog.info(mOperationType.toString() + "hashCode(" + this.hashCode() +") onTaskComplete_Start:" + getPlaceTask.getTaskName() + getPlaceTask.hashCode());
 						isNextTaskStart = true;
 					}
 					if(nextTask.getTaskName() == Settings.TASK_GETGRAVE){
 						mProgressDialogMessage = PD_GETGRAVE_MESSAGE;
 						mProgressDialogSyncData.setMessage(mProgressDialogMessage);
-						GetGraveTask getGraveTask = new GetGraveTask(this, this, this.mContext);
+						GetGraveTask getGraveTask = new GetGraveTask(this, this, this.mContext);						
 						getGraveTask.execute(Settings.getGraveUrl(mContext) + getArgs);
+						this.mCurrentExecutedTask = getGraveTask;
 						isNextTaskStart = true;
 					}
 					if(nextTask.getTaskName() == Settings.TASK_GETBURIAL){
@@ -679,6 +699,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						mProgressDialogSyncData.setMessage(mProgressDialogMessage);
 						GetBurialTask getBurialTask = new GetBurialTask(this, this, this.mContext);
 						getBurialTask.execute(Settings.getBurialUrl(mContext) + getArgs);
+						this.mCurrentExecutedTask = getBurialTask;
 						isNextTaskStart = true;
 					}
 				}
@@ -712,6 +733,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						mProgressDialogSyncData.setMessage(mProgressDialogMessage);
 						RemovePhotoTask removePhotoTask = new RemovePhotoTask(this, this, this.mContext);
 						removePhotoTask.execute(Settings.getRemovePhotoUrl(this.mContext));
+						this.mCurrentExecutedTask = removePhotoTask;
 						isNextTaskStart = true;
 					}
 					if(nextTask.getTaskName() == Settings.TASK_POSTCEMETERY){
@@ -719,6 +741,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						mProgressDialogSyncData.setMessage(mProgressDialogMessage);
 						UploadCemeteryTask uploadCemeteryTask = new UploadCemeteryTask(this, this, this.mContext);
 						uploadCemeteryTask.execute(Settings.getUploadCemeteryUrl(this.mContext));
+						this.mCurrentExecutedTask = uploadCemeteryTask;
 						isNextTaskStart = true;
 					}
 					if(nextTask.getTaskName() == Settings.TASK_POSTREGION){
@@ -726,6 +749,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						mProgressDialogSyncData.setMessage(mProgressDialogMessage);						
 						UploadRegionTask uploadRegionTask = new UploadRegionTask(this, this, this.mContext);
 						uploadRegionTask.execute(Settings.getUploadRegionUrl(this.mContext));
+						this.mCurrentExecutedTask = uploadRegionTask;
 						isNextTaskStart = true;
 					}
 					if(nextTask.getTaskName() == Settings.TASK_POSTPLACE){
@@ -733,6 +757,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						mProgressDialogSyncData.setMessage(mProgressDialogMessage);						
 						UploadPlaceTask uploadPlaceTask = new UploadPlaceTask(this, this, this.mContext);
 						uploadPlaceTask.execute(Settings.getUploadPlaceUrl(this.mContext));
+						this.mCurrentExecutedTask = uploadPlaceTask;
 						isNextTaskStart = true;
 					}
 					if(nextTask.getTaskName() == Settings.TASK_POSTGRAVE){
@@ -740,6 +765,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						mProgressDialogSyncData.setMessage(mProgressDialogMessage);						
 						UploadGraveTask uploadGraveTask = new UploadGraveTask(this, this, this.mContext);
 						uploadGraveTask.execute(Settings.getUploadGraveUrl(this.mContext));
+						this.mCurrentExecutedTask = uploadGraveTask;
 						isNextTaskStart = true;
 					}
 					if(nextTask.getTaskName() == Settings.TASK_POSTPHOTOGRAVE){
@@ -747,6 +773,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						mProgressDialogSyncData.setMessage(mProgressDialogMessage);						
 						UploadPhotoTask uploadPhotoTask = new UploadPhotoTask(this, this, this.mContext);
 						uploadPhotoTask.execute(Settings.getUploadPhotoUrl(this.mContext));
+						this.mCurrentExecutedTask = uploadPhotoTask;
 						isNextTaskStart = true;
 					}
 				}
@@ -773,8 +800,8 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 			if(mProgressDialogCancelInfo != null){
 				mProgressDialogCancelInfo.dismiss();
 			}
-			if(onSyncCompleteListener != null){
-				onSyncCompleteListener.onComplete(this.mOperationType, result);
+			if(this.onSyncCompleteListener != null){
+				this.onSyncCompleteListener.onComplete(this.mOperationType, result);
 			}
 			mOperationType = OperationType.NOTHING;
 		}

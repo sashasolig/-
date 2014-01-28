@@ -20,7 +20,6 @@ import java.util.Enumeration;
 import java.util.List;
 
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
@@ -45,7 +44,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import com.coolchoice.monumentphoto.CemeteryListActivity;
 import com.coolchoice.monumentphoto.Settings;
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.data.BaseDTO;
@@ -62,7 +60,6 @@ import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.stmt.UpdateBuilder;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -137,16 +134,15 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 
     @Override
     protected void onPostExecute(TaskResult result) {
-    	this.mTaskResult = result;
+    	//Log.i("West", "onPostExecute " + this.hashCode());
     	if(callback!=null) callback.onTaskComplete(this, result);
     }
     
     @Override
-    protected void onCancelled(){
-    	TaskResult result = new TaskResult();
+    protected void onCancelled(TaskResult result){
+    	//Log.i("West", "onCancelled " + this.hashCode());    	
     	result.setError(true);
     	result.setStatus(TaskResult.Status.CANCEL_TASK);
-    	this.mTaskResult = result;
     	if(callback!=null) callback.onTaskComplete(this, result);
     }
     
@@ -190,7 +186,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     	
     }
     
-    private void checkIsCancelTask() throws CancelTaskException{
+    protected void checkIsCancelTask() throws CancelTaskException{
     	if(this.isCancelled()){
     		throw new CancelTaskException();
     	}
@@ -237,7 +233,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         }              
 	}
     
-    protected String getJSON(String url) throws ClientProtocolException, IOException, AuthorizationException{
+    protected String getJSON(String url) throws ClientProtocolException, IOException, AuthorizationException, CancelTaskException{
 	   	Date clientTimeBeforeRequest = new Date();
     	HttpUriRequest httpGet = new HttpGet(url);
     	HttpParams httpParams = new BasicHttpParams();
@@ -264,7 +260,8 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), Settings.DEFAULT_ENCODING));
         StringBuilder sb = new StringBuilder();
         for (String line = null; (line = reader.readLine()) != null;) {
-            sb.append(line).append("\n");
+            sb.append(line);
+            checkIsCancelTask();
         }
         Date clientTimeAfterRequest = new Date();
         if(this.mLastResponseHeaderDate != null){
@@ -791,7 +788,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 	public void handleResponseGetGraveJSON(String graveJSON, int cemeteryServerId, int regionServerId, Date syncDate) throws Exception {	
 		ArrayList<Grave> graveList = parseGraveJSON(graveJSON);                
         for(int i = 0; i < graveList.size(); i++){
-        	checkIsCancelTask();
+        	checkIsCancelTask();        	
         	Grave grave = graveList.get(i);
         	grave.Place = null;
         	RuntimeExceptionDao<Grave, Integer> graveDAO = DB.dao(Grave.class);
@@ -913,8 +910,6 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	checkIsCancelTask();
         	Burial burial = burialList.get(i);
         	RuntimeExceptionDao<Burial, Integer> burialDAO = DB.dao(Burial.class);
-        	QueryBuilder<Burial, Integer> builder = burialDAO.queryBuilder();
-        	
         	DeleteBuilder<Burial, Integer> deleteBuilder = burialDAO.deleteBuilder();
         	deleteBuilder.where().eq("ParentServerId", burial.ParentServerId).and().isNotNull("Grave_id");
         	burialDAO.delete(deleteBuilder.prepare());
