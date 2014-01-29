@@ -21,10 +21,11 @@ public class GetGraveTask extends BaseTask {
     	TaskResult result = new TaskResult();
     	result.setTaskName(Settings.TASK_GETGRAVE);
     	result.setStatus(TaskResult.Status.OK);
-    	String resultJSON = null;    	
+    	String resultJSON = null;
+    	String url = params[0];
         try {
-        	initGETQueryParameters(params[0]);
-        	resultJSON = getJSON(params[0]);            	
+        	initGETQueryParameters(url);
+        	resultJSON = getJSON(url);            	
         } catch (AuthorizationException e) {                
             result.setError(true);
             result.setStatus(TaskResult.Status.LOGIN_FAILED);
@@ -38,8 +39,7 @@ public class GetGraveTask extends BaseTask {
         }
         
         if(resultJSON != null && !result.isError()){
-            try{
-            	this.mFileLog.info(resultJSON);
+            try{            	
             	handleResponseGetGraveJSON(resultJSON, this.mCemeteryServerId, this.mRegionServerId, this.mLastQueryServerDate);	                
             } catch (CancelTaskException cte){
             	result.setError(true);
@@ -47,7 +47,7 @@ public class GetGraveTask extends BaseTask {
             } catch (Exception e) {                
                 result.setError(true);
                 result.setStatus(TaskResult.Status.HANDLE_ERROR);
-                this.mFileLog.error(resultJSON, e);
+                this.mFileLog.error(url, e);
             }
         }    	
         return result;
