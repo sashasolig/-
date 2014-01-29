@@ -21,16 +21,8 @@
         android:label="@string/app_name"
         android:theme="@style/ThemeMobile" >
         <activity
-            android:name="com.coolchoice.monumentphoto.MonumentListActivity"
-            android:label="@string/app_name">            
-        </activity>
-        <activity
-            android:name="com.coolchoice.monumentphoto.MonumentInfoActivity"
-            android:label="@string/monument_info_title">            
-        </activity>
-        <activity
             android:name="com.coolchoice.monumentphoto.CemeteryListActivity"
-            android:label="@string/monument_info_title">
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -38,15 +30,15 @@
         </activity>
         <activity
             android:name="com.coolchoice.monumentphoto.AddObjectActivity"
-            android:label="@string/monument_info_title" >         
+            android:label="@string/app_name" >         
         </activity>
         <activity
             android:name="com.coolchoice.monumentphoto.map.AddGPSActivity"
-            android:label="@string/monument_info_title" >         
+            android:label="@string/app_name" >         
         </activity>        
         <activity
             android:name="com.coolchoice.monumentphoto.BrowserCemeteryActivity"
-            android:label="@string/monument_info_title"
+            android:label="@string/app_name"
             android:configChanges="orientation|screenSize">         
         </activity>
         <activity
@@ -57,8 +49,7 @@
             android:name="com.coolchoice.monumentphoto.PlaceSearchActivity"
             android:label="@string/place_search_activity"
             android:theme="@style/ThemeMobileDialog">
-        </activity>
-        <service android:name="com.coolchoice.monumentphoto.service.PhotoUploadService" android:process=":services" />
+        </activity>        
     </application>
 
 </manifest>

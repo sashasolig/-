@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Фотографии памятников</string>
+    <string name="app_name">Мобильный смотритель</string>
     <string name="action_settings">Настройки</string>
     <string name="action_next_point">К след. могиле</string>
     <string name="action_edit">Редактировать</string>
     <string name="action_get">Загрузить</string>
     <string name="action_upload">Отправить</string>
     <string name="action_remove">Удалить</string>
-    <string name="settings_title">Настройки</string>
-    <string name="monument_info_title">Фотографии памятников</string>
+    <string name="settings_title">Настройки</string>    
     <string name="place_search_activity">Поиск старого места по фамилии</string>
     
     
