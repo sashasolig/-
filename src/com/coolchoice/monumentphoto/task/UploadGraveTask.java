@@ -60,6 +60,7 @@ public class UploadGraveTask extends BaseTask {
     protected TaskResult doInBackground(String... params) {
     	TaskResult result = new TaskResult();
     	result.setTaskName(Settings.TASK_POSTGRAVE);
+    	result.setStatus(TaskResult.Status.OK);
     	List<Grave> graveList = DB.dao(Grave.class).queryForEq("IsChanged", 1);
     	int successCount = 0;
     	int processedCount = 0;

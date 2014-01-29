@@ -43,6 +43,7 @@ public class RemovePhotoTask extends BaseTask {
     protected TaskResult doInBackground(String... params) {
     	TaskResult result = new TaskResult();
     	result.setTaskName(Settings.TASK_REMOVEPHOTOGRAVE);
+    	result.setStatus(TaskResult.Status.OK);
     	String url = null;    	           
     	url = params[0];
     	List<DeletedObject> gravePhotoInfoList = this.getGravePhotoForRemove();

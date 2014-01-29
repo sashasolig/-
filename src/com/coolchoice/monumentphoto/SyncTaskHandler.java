@@ -63,6 +63,10 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 	private final static String PD_GETGRAVE_MESSAGE = "Получение могил";
 	private final static String PD_GETBURIAL_MESSAGE = "Получение захоронений";
 	
+	private final static String HANDLE_ERROR_MESSAGE = "Ошибка обработки данных.";
+	private final static String LOGIN_FAILED_ERROR_MESSAGE = "Ошибка авторизации на сервере.";
+	private final static String SERVER_UNAVALAIBLE_ERROR_MESSAGE = "Сервер не доступен.";
+	
 	protected final Logger mFileLog = Logger.getLogger(SyncTaskHandler.class);
 	
 	
@@ -145,6 +149,27 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mOperationType = OperationType.GET_DATA;
 		mTasks.clear();
 		mTasks.add(new GetPlaceTask(this, this, this.mContext));
+		mCurrentTaskIndex = -1;
+		mProgressDialogTitle = "Загрузка данных...";
+		mProgressDialogMessage = "Подождите";
+		showOperationInfo();
+		SettingsData settingsData = Settings.getSettingData(this.mContext);
+		LoginTask loginTask = new LoginTask(this, this, this.mContext);
+		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);
+		this.mCurrentExecutedTask = loginTask;
+	}
+	
+	public void startGetPlaceAndGraveAndBurial(int regionServerId){
+		if(mOperationType != OperationType.NOTHING){
+			return;
+		}
+		setEmptyServerId();
+		this.mRegionServerId = regionServerId;
+		mOperationType = OperationType.GET_DATA;
+		mTasks.clear();
+		mTasks.add(new GetPlaceTask(this, this, this.mContext));
+		mTasks.add(new GetGraveTask(this, this, this.mContext));
+		mTasks.add(new GetBurialTask(this, this, this.mContext));
 		mCurrentTaskIndex = -1;
 		mProgressDialogTitle = "Загрузка данных...";
 		mProgressDialogMessage = "Подождите";
@@ -454,14 +479,10 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 	}
 	
 	private boolean isRepeatUploadAndStoreResults(){
-		boolean isRepeat = false;
+		boolean isRepeat = false;		
 		for(int i = 0; i < this.mTasks.size(); i++){
 			TaskResult result = this.mTasks.get(i).getTaskResult();
 			TaskResult previousResult = this.mUploadTaskResults.get(i);
-			if(result == null || result.getStatus() == TaskResult.Status.CANCEL_TASK){
-				isRepeat = false;
-				break;
-			}
 			int previousUploadCountError = (previousResult.getStatus() != null) ? previousResult.getUploadCountError() : Integer.MAX_VALUE;
 			if(result.getUploadCountError() > 0 && result.getUploadCountError() < previousUploadCountError){
 				isRepeat = true;
@@ -473,9 +494,24 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 			}			
 			previousResult.setUploadCountError(result.getUploadCountError());
 			previousResult.setUploadCountSuccess(previousResult.getUploadCountSuccess() + result.getUploadCountSuccess());
+			previousResult.setError(result.isError());
 			previousResult.setStatus(result.getStatus());
 		}
 		return isRepeat;		
+	}
+	
+	private void showErrorInfo(String infoMessage){
+		AlertDialog.Builder builder = new AlertDialog.Builder(this.mContext);
+		builder.setTitle("Ошибка");
+		builder.setMessage(infoMessage);
+		builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.dismiss();
+            }
+        });
+		
+		AlertDialog dialog = builder.create();
+		dialog.show();
 	}
 	
 	public String getURLArgs(){
@@ -525,32 +561,38 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 
 	@Override
 	public void onTaskComplete(BaseTask finishedTask, TaskResult result) {
-		boolean isNextTaskStart = false;
-		boolean isCancelTask = false;
+		boolean isNextTaskStarted = false;
+		boolean isCancelTask = false;		
+		boolean isAuthenticated = true;
+		boolean isError = false;
+		TaskResult loginTaskResult = null;
+		if(result.isError() && result.getStatus() != TaskResult.Status.CANCEL_TASK ){
+			isError = true;
+		}
 		if(result.getStatus() == Status.CANCEL_TASK){
 			isCancelTask = true;
 		}
-		String getArgs = getURLArgs();
-		if(mOperationType == OperationType.GET_CHANGED_DATA || mOperationType == OperationType.GET_CHANGED_DATA_ONE_CEMETERY){
-			boolean isAuthenticated = true;
-			if(finishedTask instanceof LoginTask){
-				if(!result.isError()){
-					LoginTask loginTask = (LoginTask) finishedTask;
-					Settings.setPDSession(loginTask.getPDSession());
-					isAuthenticated = true;
-				} else {
-					isAuthenticated = false;
-				}
+		if(finishedTask instanceof LoginTask){
+			loginTaskResult = result;
+			if(!result.isError() && result.getStatus() == TaskResult.Status.LOGIN_SUCCESSED){
+				LoginTask loginTask = (LoginTask) finishedTask;
+				Settings.setPDSession(loginTask.getPDSession());
+				isAuthenticated = true;
+			} else {
+				isAuthenticated = false;
 			}
-			
-			if((!isCancelTask) && isAuthenticated && this.mIsStartExecuteNextTask){
+		}
+		
+		if(isAuthenticated && !isError && !isCancelTask && this.mIsStartExecuteNextTask){
+			String getArgs = getURLArgs();
+			if(mOperationType == OperationType.GET_CHANGED_DATA || mOperationType == OperationType.GET_CHANGED_DATA_ONE_CEMETERY){			
 				if(finishedTask.getTaskName() == Settings.TASK_LOGIN){
 					mProgressDialogMessage = PD_GETCEMETERY_MESSAGE;
 					mProgressDialogSyncData.setMessage(mProgressDialogMessage);						
 					GetCemeteryTask getCemeteryTask = new GetCemeteryTask(this, this, this.mContext);
 					getCemeteryTask.execute(Settings.getCemeteryUrl(mContext));
 					this.mCurrentExecutedTask = getCemeteryTask;
-					isNextTaskStart = true;	
+					isNextTaskStarted = true;	
 				}
 				//finish GetCemetery
 				if(finishedTask.getTaskName() == Settings.TASK_GETCEMETERY){
@@ -581,7 +623,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						getArgs = getURLArgs();
 						getRegionTask.execute(Settings.getRegionUrl(mContext) + getArgs);
 						this.mCurrentExecutedTask = getRegionTask;
-						isNextTaskStart = true;
+						isNextTaskStarted = true;
 					}
 				}
 				//finish GetRegion
@@ -606,7 +648,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						getArgs = getURLArgs();					
 						getPlaceTask.execute(Settings.getPlaceUrl(mContext) + getArgs);
 						this.mCurrentExecutedTask = getPlaceTask;
-						isNextTaskStart = true;
+						isNextTaskStarted = true;
 					} else {
 						//нет участков у кладбища
 						if(mCurrentCemeteryIdsIndex < (mCemeteryServerIds.size() - 1)){
@@ -621,7 +663,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 							getArgs = getURLArgs();
 							getRegionTask.execute(Settings.getRegionUrl(mContext) + getArgs);
 							this.mCurrentExecutedTask = getRegionTask;
-							isNextTaskStart = true;
+							isNextTaskStarted = true;
 						} else {
 							//finish
 						}
@@ -644,7 +686,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 					this.mFileLog.info("onTaskCompletePrevAndStartNew:" + getGraveTask.getTaskName() + getGraveTask.hashCode());
 					getGraveTask.execute(Settings.getGraveUrl(mContext) + getArgs);
 					this.mCurrentExecutedTask = getGraveTask;
-					isNextTaskStart = true;
+					isNextTaskStarted = true;
 				}
 				//finish GetGrave
 				if(finishedTask.getTaskName() == Settings.TASK_GETGRAVE){
@@ -659,7 +701,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 					getArgs = getURLArgs();
 					getBurialTask.execute(Settings.getBurialUrl(mContext) + getArgs);
 					this.mCurrentExecutedTask = getBurialTask;
-					isNextTaskStart = true;
+					isNextTaskStarted = true;
 				}
 				//finish GetBurial
 				if(finishedTask.getTaskName() == Settings.TASK_GETBURIAL){
@@ -676,7 +718,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						getArgs = getURLArgs();					
 						getPlaceTask.execute(Settings.getPlaceUrl(mContext) + getArgs);
 						this.mCurrentExecutedTask = getPlaceTask;
-						isNextTaskStart = true;
+						isNextTaskStarted = true;
 					} else {
 						if(mCurrentCemeteryIdsIndex < (mCemeteryServerIds.size() - 1)){
 							mCurrentCemeteryIdsIndex++;
@@ -691,17 +733,16 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 							getArgs = getURLArgs();
 							getRegionTask.execute(Settings.getRegionUrl(mContext) + getArgs);
 							this.mCurrentExecutedTask = getRegionTask;
-							isNextTaskStart = true;
+							isNextTaskStarted = true;
 						} else {
 							//finish
 						}
 					}
 				}
-			} 
-		}
-		
-		if(mOperationType == OperationType.GET_DATA && (!isCancelTask) && this.mIsStartExecuteNextTask){
-			if(!result.isError() || (result.getStatus() == Status.HANDLE_ERROR)){
+				 
+			}
+			
+			if(mOperationType == OperationType.GET_DATA){			
 				mCurrentTaskIndex++;
 				if(mCurrentTaskIndex < mTasks.size()){
 					if(mCurrentTaskIndex == 0){
@@ -716,7 +757,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						getCemeteryTask.execute(Settings.getCemeteryUrl(mContext) + getArgs);
 						this.mCurrentExecutedTask = getCemeteryTask;
 						this.mTasks.set(mCurrentTaskIndex, this.mCurrentExecutedTask);
-						isNextTaskStart = true;						
+						isNextTaskStarted = true;						
 					}
 					if(nextTask.getTaskName() == Settings.TASK_GETREGION){
 						mProgressDialogMessage = PD_GETREGION_MESSAGE;
@@ -724,7 +765,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						GetRegionTask getRegionTask = new GetRegionTask(this, this, this.mContext);
 						getRegionTask.execute(Settings.getRegionUrl(mContext) + getArgs);
 						this.mCurrentExecutedTask = getRegionTask;
-						isNextTaskStart = true;
+						isNextTaskStarted = true;
 					}
 					if(nextTask.getTaskName() == Settings.TASK_GETPLACE){
 						mProgressDialogMessage = PD_GETPLACE_MESSAGE;
@@ -732,7 +773,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						GetPlaceTask getPlaceTask = new GetPlaceTask(this, this, this.mContext);
 						getPlaceTask.execute(Settings.getPlaceUrl(mContext) + getArgs);
 						this.mCurrentExecutedTask = getPlaceTask;						
-						isNextTaskStart = true;
+						isNextTaskStarted = true;
 					}
 					if(nextTask.getTaskName() == Settings.TASK_GETGRAVE){
 						mProgressDialogMessage = PD_GETGRAVE_MESSAGE;
@@ -740,7 +781,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						GetGraveTask getGraveTask = new GetGraveTask(this, this, this.mContext);						
 						getGraveTask.execute(Settings.getGraveUrl(mContext) + getArgs);
 						this.mCurrentExecutedTask = getGraveTask;
-						isNextTaskStart = true;
+						isNextTaskStarted = true;
 					}
 					if(nextTask.getTaskName() == Settings.TASK_GETBURIAL){
 						mProgressDialogMessage = PD_GETBURIAL_MESSAGE;
@@ -748,31 +789,23 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						GetBurialTask getBurialTask = new GetBurialTask(this, this, this.mContext);
 						getBurialTask.execute(Settings.getBurialUrl(mContext) + getArgs);
 						this.mCurrentExecutedTask = getBurialTask;
-						isNextTaskStart = true;
+						isNextTaskStarted = true;
 					}
 					this.mTasks.set(mCurrentTaskIndex, this.mCurrentExecutedTask);
-				}
-				
+				}			
 				if(mCurrentTaskIndex == mTasks.size()){
 					DB.db().updateDBLink();
 					mProgressDialogMessage = "Данные получены";
-					mProgressDialogSyncData.setMessage(mProgressDialogMessage);
-					if(mTasks.size() > 1){
-						Toast.makeText(this.mContext, "Загрузка завершена", Toast.LENGTH_LONG).show();
-					}
-				}				
-			}									
+					mProgressDialogSyncData.setMessage(mProgressDialogMessage);					
+				}
+			}			
 			
 		}
 		
-		if(mOperationType == OperationType.UPLOAD_DATA && (!isCancelTask)){			
-			if(!result.isError() || (result.getStatus() == Status.HANDLE_ERROR)){
+		if(isAuthenticated && !isCancelTask && this.mIsStartExecuteNextTask) {
+			if(mOperationType == OperationType.UPLOAD_DATA){
 				mCurrentTaskIndex++;
-				if(mCurrentTaskIndex < mTasks.size()){
-					if(mCurrentTaskIndex == 0){
-						LoginTask loginTask = (LoginTask) finishedTask;
-						Settings.setPDSession(loginTask.getPDSession());
-					}
+				if(mCurrentTaskIndex < mTasks.size()){					
 					BaseTask nextTask = mTasks.get(mCurrentTaskIndex);
 					if(nextTask.getTaskName() == Settings.TASK_REMOVEPHOTOGRAVE){
 						mProgressDialogMessage = "Удаление фотографий на сервере";
@@ -780,7 +813,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						RemovePhotoTask removePhotoTask = new RemovePhotoTask(this, this, this.mContext);
 						removePhotoTask.execute(Settings.getRemovePhotoUrl(this.mContext));
 						this.mCurrentExecutedTask = removePhotoTask;
-						isNextTaskStart = true;
+						isNextTaskStarted = true;
 					}
 					if(nextTask.getTaskName() == Settings.TASK_POSTCEMETERY){
 						mProgressDialogMessage = "Отправка кладбищ на сервер";
@@ -788,7 +821,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						UploadCemeteryTask uploadCemeteryTask = new UploadCemeteryTask(this, this, this.mContext);
 						uploadCemeteryTask.execute(Settings.getUploadCemeteryUrl(this.mContext));
 						this.mCurrentExecutedTask = uploadCemeteryTask;
-						isNextTaskStart = true;
+						isNextTaskStarted = true;
 					}
 					if(nextTask.getTaskName() == Settings.TASK_POSTREGION){
 						mProgressDialogMessage = "Отправка участков на сервер";
@@ -796,7 +829,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						UploadRegionTask uploadRegionTask = new UploadRegionTask(this, this, this.mContext);
 						uploadRegionTask.execute(Settings.getUploadRegionUrl(this.mContext));
 						this.mCurrentExecutedTask = uploadRegionTask;
-						isNextTaskStart = true;
+						isNextTaskStarted = true;
 					}
 					if(nextTask.getTaskName() == Settings.TASK_POSTPLACE){
 						mProgressDialogMessage = "Отправка мест на сервер";
@@ -804,7 +837,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						UploadPlaceTask uploadPlaceTask = new UploadPlaceTask(this, this, this.mContext);
 						uploadPlaceTask.execute(Settings.getUploadPlaceUrl(this.mContext));
 						this.mCurrentExecutedTask = uploadPlaceTask;
-						isNextTaskStart = true;
+						isNextTaskStarted = true;
 					}
 					if(nextTask.getTaskName() == Settings.TASK_POSTGRAVE){
 						mProgressDialogMessage = "Отправка могил на сервер";
@@ -812,7 +845,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						UploadGraveTask uploadGraveTask = new UploadGraveTask(this, this, this.mContext);
 						uploadGraveTask.execute(Settings.getUploadGraveUrl(this.mContext));
 						this.mCurrentExecutedTask = uploadGraveTask;
-						isNextTaskStart = true;
+						isNextTaskStarted = true;
 					}
 					if(nextTask.getTaskName() == Settings.TASK_POSTPHOTOGRAVE){
 						mProgressDialogMessage = "Отправка фотографий на сервер";
@@ -820,46 +853,69 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						UploadPhotoTask uploadPhotoTask = new UploadPhotoTask(this, this, this.mContext);
 						uploadPhotoTask.execute(Settings.getUploadPhotoUrl(this.mContext));
 						this.mCurrentExecutedTask = uploadPhotoTask;
-						isNextTaskStart = true;
+						isNextTaskStarted = true;
 					}
 					this.mTasks.set(mCurrentTaskIndex, this.mCurrentExecutedTask);
-				}
+				}			
 			}
 		}
 		
-		if(!isNextTaskStart){
-			if(mOperationType == OperationType.GET_DATA || mOperationType == OperationType.GET_CHANGED_DATA || mOperationType == OperationType.GET_CHANGED_DATA_ONE_CEMETERY){
-				DB.db().updateDBLink();				
-			}
-			boolean isRepeatUpload = false;
+		//Если были ошибки при отправке, то пытаемся заново отправить данные
+		if(mOperationType == OperationType.UPLOAD_DATA && !isNextTaskStarted && isAuthenticated){		
 			if(mOperationType == OperationType.UPLOAD_DATA){
-				if(isRepeatUploadAndStoreResults()){
-					executeStartUploadData(true);
-					isRepeatUpload = true;
-				} 
-			}	
-			if(!isRepeatUpload){				
-				mProgressDialogSyncData.dismiss();
-				if(mProgressDialogCancelQuestion != null) {
-					mProgressDialogCancelQuestion.dismiss();
+				if(!isCancelTask && this.mIsStartExecuteNextTask && isRepeatUploadAndStoreResults()){
+					isNextTaskStarted = true;
+					executeStartUploadData(true);					
 				}
-				if(mProgressDialogCancelInfo != null){
-					mProgressDialogCancelInfo.dismiss();
-				}
-				if(this.onSyncCompleteListener != null){
-					this.onSyncCompleteListener.onComplete(this.mOperationType, result);
-				}				
-			}
-			
-			if(mOperationType == OperationType.UPLOAD_DATA && !isRepeatUpload){
-				showSummaryUploadInfo();
-			}
-			
-			if(!isRepeatUpload){
-				mOperationType = OperationType.NOTHING;
 			}
 			
 		}
+		
+		
+		if(!isNextTaskStarted){	
+			if(mOperationType == OperationType.UPLOAD_DATA && isAuthenticated){
+				showSummaryUploadInfo();
+			} else {
+				String infoMessage = null;			
+				switch (result.getStatus()) {
+				    case HANDLE_ERROR :
+				    	infoMessage = "Ошибка обработки данных.";
+				    	break;
+				    case LOGIN_FAILED :
+				    	infoMessage = "Ошибка авторизации на сервере.";
+				    	break;
+				    case SERVER_UNAVALAIBLE :
+				    	infoMessage = "Сервер не доступен.";
+				    	break;
+				    default:
+				    	break;
+				}			
+				if(infoMessage != null){
+					showErrorInfo(infoMessage);
+				}				
+			}
+			
+			if(mOperationType == OperationType.GET_DATA || mOperationType == OperationType.GET_CHANGED_DATA || mOperationType == OperationType.GET_CHANGED_DATA_ONE_CEMETERY){
+				DB.db().updateDBLink();				
+			}
+			mProgressDialogSyncData.dismiss();
+			if(mProgressDialogCancelQuestion != null) {
+				mProgressDialogCancelQuestion.dismiss();
+			}
+			if(mProgressDialogCancelInfo != null){
+				mProgressDialogCancelInfo.dismiss();
+			}
+			if(this.onSyncCompleteListener != null){
+				this.onSyncCompleteListener.onComplete(this.mOperationType, result);
+			}
+			mOperationType = OperationType.NOTHING;
+			
+			
+			
+			
+			
+		}
+		
 		
 	}
 	

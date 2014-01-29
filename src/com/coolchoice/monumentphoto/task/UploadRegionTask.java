@@ -56,7 +56,8 @@ public class UploadRegionTask extends BaseTask {
     @Override
     protected TaskResult doInBackground(String... params) {
     	TaskResult result = new TaskResult();
-    	result.setTaskName(Settings.TASK_POSTREGION);    	      	
+    	result.setTaskName(Settings.TASK_POSTREGION);
+    	result.setStatus(TaskResult.Status.OK);
     	List<Region> regionList = DB.dao(Region.class).queryForEq("IsChanged", 1);
     	for(Region region : regionList){
 			DB.dao(Cemetery.class).refresh(region.Cemetery);

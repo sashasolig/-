@@ -4,7 +4,7 @@ package com.coolchoice.monumentphoto.task;
  * Результат работы фоновой задачи
  */
 public class TaskResult {
-	public enum  Status {SERVER_UNAVALAIBLE, LOGIN_FAILED, LOGIN_SUCCESSED, HANDLE_ERROR, CANCEL_TASK};
+	public enum  Status {SERVER_UNAVALAIBLE, LOGIN_FAILED, LOGIN_SUCCESSED, HANDLE_ERROR, CANCEL_TASK,  OK};
 	
 	private boolean error = false;
 	private String errorText;

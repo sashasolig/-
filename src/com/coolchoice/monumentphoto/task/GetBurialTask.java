@@ -2,6 +2,7 @@ package com.coolchoice.monumentphoto.task;
 
 import com.coolchoice.monumentphoto.Settings;
 import android.content.Context;
+import android.text.TextUtils.TruncateAt;
 
 public class GetBurialTask extends BaseTask {
 		   
@@ -19,6 +20,7 @@ public class GetBurialTask extends BaseTask {
     protected TaskResult doInBackground(String... params) {
     	TaskResult result = new TaskResult();
     	result.setTaskName(Settings.TASK_GETBURIAL);
+    	result.setStatus(TaskResult.Status.OK);
     	String resultJSON = null;        
         try {
         	initGETQueryParameters(params[0]);

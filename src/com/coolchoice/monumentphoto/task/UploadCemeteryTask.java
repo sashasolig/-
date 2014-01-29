@@ -57,6 +57,7 @@ public class UploadCemeteryTask extends BaseTask {
     protected TaskResult doInBackground(String... params) {
     	TaskResult result = new TaskResult();
     	result.setTaskName(Settings.TASK_POSTCEMETERY);
+    	result.setStatus(TaskResult.Status.OK);
     	StringBuilder sbJSON = new StringBuilder();
     	List<Cemetery> cemeteryList = DB.dao(Cemetery.class).queryForEq("IsChanged", 1);
     	result.setUploadCount(cemeteryList.size());
@@ -73,7 +74,7 @@ public class UploadCemeteryTask extends BaseTask {
             	dictPostData.put("cemeteryName", cem.Name);
             	String responseString = postData(params[0], dictPostData);
             	if(responseString != null){
-            		handleResponseUploadCemeteryJSON(responseString);	            		
+            		handleResponseUploadCemeteryJSON(responseString);            		
             	} else{
             		result.setError(true);
             		result.setStatus(TaskResult.Status.HANDLE_ERROR);

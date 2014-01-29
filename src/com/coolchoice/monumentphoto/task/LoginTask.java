@@ -55,78 +55,75 @@ public class LoginTask extends BaseTask {
     protected TaskResult doInBackground(String... params) {
     	TaskResult result = new TaskResult();
     	result.setTaskName(Settings.TASK_LOGIN);
-    	if (params.length == 3) {
-            try {
-            	String url = params[0];
-            	HttpUriRequest httpGet = new HttpGet(params[0]);
-            	this.userName = params[1];
-            	this.password = params[2];
-            	HttpParams httpParams = new BasicHttpParams();
-            	httpParams.setParameter("http.protocol.handle-redirects", false);
-            	httpGet.setParams(httpParams);
-            	HttpClient client = new DefaultHttpClient();
-            	if(WebHttpsClient.isHttps(url)){
-            		client = WebHttpsClient.wrapClient(client);
+    	result.setStatus(TaskResult.Status.OK);
+        try {
+        	String url = params[0];
+        	HttpUriRequest httpGet = new HttpGet(params[0]);
+        	this.userName = params[1];
+        	this.password = params[2];
+        	HttpParams httpParams = new BasicHttpParams();
+        	httpParams.setParameter("http.protocol.handle-redirects", false);
+        	httpGet.setParams(httpParams);
+        	HttpClient client = new DefaultHttpClient();
+        	if(WebHttpsClient.isHttps(url)){
+        		client = WebHttpsClient.wrapClient(client);
+        	}
+        	HttpResponse response = null;
+        	Header[] headers = null;
+        	String temp = null;
+        	
+            response = client.execute(httpGet);
+        	headers = response.getHeaders(HEADER_SET_COOKIE);	                
+            for(Header h : headers){
+            	temp = getCookieValue(KEY_PDSESSION, h.getValue());
+            	if(temp != null){
+            		this.pdSession = temp;
             	}
-            	HttpResponse response = null;
-            	Header[] headers = null;
-            	String temp = null;
+            	temp = getCookieValue(KEY_CSRFTOKEN, h.getValue());
+            	if(temp != null){
+            		this.csrfToken = temp;
+            	}                	
             	
-                response = client.execute(httpGet);
-            	headers = response.getHeaders(HEADER_SET_COOKIE);	                
+            }                
+            if(response.getStatusLine().getStatusCode() != HttpStatus.SC_OK){
+            	result.setError(true);
+        		result.setStatus(TaskResult.Status.SERVER_UNAVALAIBLE);
+        		return result;            	
+            }
+            
+            HttpPost httpPost = new HttpPost(params[0]);
+            httpParams = new BasicHttpParams();
+        	httpParams.setParameter("http.protocol.handle-redirects", false);
+        	httpPost.setParams(httpParams);
+        	httpPost.addHeader(HEADER_REFERER, url);
+            httpPost.addHeader(HEADER_COOKIE, String.format(KEY_PDSESSION + "=%s; " + KEY_CSRFTOKEN + "=%s;", this.pdSession, this.csrfToken));                
+            MultipartEntity multipartEntity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
+            multipartEntity.addPart(KEY_CSRFMIDDLETOKEN, new StringBody(this.csrfToken, Charset.forName(Settings.DEFAULT_ENCODING)));
+			multipartEntity.addPart(KEY_USERNAME, new StringBody(this.userName, Charset.forName(Settings.DEFAULT_ENCODING)));
+			multipartEntity.addPart(KEY_PASSWORD, new StringBody(this.password, Charset.forName(Settings.DEFAULT_ENCODING)));    			
+			httpPost.setEntity(multipartEntity);
+        	response = client.execute(httpPost);
+        	if(response.getStatusLine().getStatusCode() == 302){
+            	headers = response.getHeaders(HEADER_SET_COOKIE);
+                temp = null;
                 for(Header h : headers){
                 	temp = getCookieValue(KEY_PDSESSION, h.getValue());
                 	if(temp != null){
                 		this.pdSession = temp;
-                	}
-                	temp = getCookieValue(KEY_CSRFTOKEN, h.getValue());
-                	if(temp != null){
-                		this.csrfToken = temp;
-                	}                	
+                	}    	                	
                 	
-                }                
-                if(response.getStatusLine().getStatusCode() != HttpStatus.SC_OK){
-                	result.setError(true);
-            		result.setStatus(TaskResult.Status.SERVER_UNAVALAIBLE);
-            		return result;            	
                 }
-                
-                HttpPost httpPost = new HttpPost(params[0]);
-                httpParams = new BasicHttpParams();
-            	httpParams.setParameter("http.protocol.handle-redirects", false);
-            	httpPost.setParams(httpParams);
-            	httpPost.addHeader(HEADER_REFERER, url);
-                httpPost.addHeader(HEADER_COOKIE, String.format(KEY_PDSESSION + "=%s; " + KEY_CSRFTOKEN + "=%s;", this.pdSession, this.csrfToken));                
-                MultipartEntity multipartEntity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
-                multipartEntity.addPart(KEY_CSRFMIDDLETOKEN, new StringBody(this.csrfToken, Charset.forName("UTF-8")));
-    			multipartEntity.addPart(KEY_USERNAME, new StringBody(this.userName, Charset.forName("UTF-8")));
-    			multipartEntity.addPart(KEY_PASSWORD, new StringBody(this.password, Charset.forName("UTF-8")));    			
-    			httpPost.setEntity(multipartEntity);
-            	response = client.execute(httpPost);
-            	if(response.getStatusLine().getStatusCode() == 302){
-	            	headers = response.getHeaders(HEADER_SET_COOKIE);
-	                temp = null;
-	                for(Header h : headers){
-	                	temp = getCookieValue(KEY_PDSESSION, h.getValue());
-	                	if(temp != null){
-	                		this.pdSession = temp;
-	                	}    	                	
-	                	
-	                }
-	                result.setError(false);
-            		result.setStatus(TaskResult.Status.LOGIN_SUCCESSED);
-            	} else {
-            		result.setError(true);
-            		result.setStatus(TaskResult.Status.LOGIN_FAILED);
-            	}
-            	
-            } catch (Exception e) {                
-                result.setError(true);
-        		result.setStatus(TaskResult.Status.SERVER_UNAVALAIBLE);            }
-        
-        }else{
-        	throw new IllegalArgumentException("Needs 3 param: url, login, password");        	
-        }
+                result.setError(false);
+        		result.setStatus(TaskResult.Status.LOGIN_SUCCESSED);
+        	} else {
+        		result.setError(true);
+        		result.setStatus(TaskResult.Status.LOGIN_FAILED);
+        	}
+        	
+        } catch (Exception e) {                
+            result.setError(true);
+    		result.setStatus(TaskResult.Status.SERVER_UNAVALAIBLE);
+    	}
         return result;
     }
     

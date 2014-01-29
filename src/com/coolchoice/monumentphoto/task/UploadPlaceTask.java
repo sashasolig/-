@@ -59,7 +59,8 @@ public class UploadPlaceTask extends BaseTask {
     @Override
     protected TaskResult doInBackground(String... params) {
     	TaskResult result = new TaskResult();
-    	result.setTaskName(Settings.TASK_POSTPLACE);    	       	
+    	result.setTaskName(Settings.TASK_POSTPLACE);
+    	result.setStatus(TaskResult.Status.OK);
     	List<Place> placeList = DB.dao(Place.class).queryForEq("IsChanged", 1);    	
     	List<Row> rowList = DB.dao(Row.class).queryForEq("IsChanged", 1);
     	for(Row row : rowList){

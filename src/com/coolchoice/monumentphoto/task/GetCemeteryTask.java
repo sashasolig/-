@@ -19,6 +19,7 @@ public class GetCemeteryTask extends BaseTask {
     protected TaskResult doInBackground(String... params) {
     	TaskResult result = new TaskResult();
     	result.setTaskName(Settings.TASK_GETCEMETERY);
+    	result.setStatus(TaskResult.Status.OK);
     	String resultJSON = null;       
         try {
         	initGETQueryParameters(params[0]);

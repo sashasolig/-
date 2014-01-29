@@ -40,6 +40,7 @@ public class UploadPhotoTask extends BaseTask {
     protected TaskResult doInBackground(String... params) {
     	TaskResult result = new TaskResult();
     	result.setTaskName(Settings.TASK_POSTPHOTOGRAVE);
+    	result.setStatus(TaskResult.Status.OK);
     	String url = null;
     	if (params.length == 1) {            
         	url = params[0];

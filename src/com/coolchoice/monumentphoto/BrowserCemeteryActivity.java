@@ -471,13 +471,13 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 			break;
 		case AddObjectActivity.ADD_REGION:
 			mRegionId = getIntent().getIntExtra(BrowserCemeteryActivity.EXTRA_REGION_ID, -1);
-			startGetPlace(mRegionId);
+			startGetPlaceAndGraveAndBurial(mRegionId);
 			break;
 		case AddObjectActivity.ADD_ROW:
 			mRowId = getIntent().getIntExtra(BrowserCemeteryActivity.EXTRA_ROW_ID, -1);
 			Row row = DB.dao(Row.class).queryForId(mRowId);
 			DB.dao(Region.class).refresh(row.Region);
-			startGetPlace(row.Region.Id);
+			startGetPlaceAndGraveAndBurial(row.Region.Id);
 			break;
 		case AddObjectActivity.ADD_PLACE_WITHOUTROW:
 			mPlaceId = getIntent().getIntExtra(BrowserCemeteryActivity.EXTRA_PLACE_ID, -1);
@@ -510,11 +510,11 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		
 	}
 	
-	private void startGetPlace(int regionId){
+	private void startGetPlaceAndGraveAndBurial(int regionId){
 		if(mSyncTaskHandler != null){
 			Region region = DB.dao(Region.class).queryForId(regionId);
 			if(region.ServerId > 0){
-				mSyncTaskHandler.startGetPlace(region.ServerId);
+				mSyncTaskHandler.startGetPlaceAndGraveAndBurial(region.ServerId);
 			}
 		}
 	}
