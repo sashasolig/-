@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.apache.sanselan.Sanselan;
 import org.apache.sanselan.common.IImageMetadata;
 import org.apache.sanselan.formats.jpeg.JpegImageMetadata;
@@ -81,6 +82,7 @@ import com.coolchoice.monumentphoto.SyncTaskHandler.OperationType;
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.dal.MonumentDB;
 import com.coolchoice.monumentphoto.data.*;
+import com.coolchoice.monumentphoto.task.BaseTask;
 import com.coolchoice.monumentphoto.task.TaskResult;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
 import com.j256.ormlite.stmt.QueryBuilder;
@@ -136,6 +138,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	private TextView tvPersons = null;
 	
 	private EditText etOldPlaceInAlert;
+	
+	protected final Logger mFileLog = Logger.getLogger(BrowserCemeteryActivity.class);
 	
 	public void enterOldPlaceName(){
 		final AlertDialog.Builder alert = new AlertDialog.Builder(this);
@@ -1136,10 +1140,10 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
     	QueryBuilder<Region, Integer> regionBuilder = regionDAO.queryBuilder();
     	List<Region> regionList = new ArrayList<Region>();
     	try {
-			regionBuilder.orderBy(BaseDTO.COLUMN_NAME, true).where().eq("Cemetery_id", cemeteryId);
+			regionBuilder.orderByRaw(BaseDTO.ORDER_BY_COLUMN_NAME).where().eq("Cemetery_id", cemeteryId);
 			regionList = regionDAO.query(regionBuilder.prepare());		
 		} catch (SQLException e) {
-			e.printStackTrace();
+			this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
 		}
 		return regionList;
 	}
@@ -1151,13 +1155,13 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
     	QueryBuilder<Place, Integer> placeBuilder = placeDAO.queryBuilder();
     	List<Row> rows = new ArrayList<Row>();
     	List<Place> places = new ArrayList<Place>();
-    	try {
-			rowBuilder.orderBy(BaseDTO.COLUMN_NAME, true).where().eq("Region_id", regionId);
+    	try {    		
+			rowBuilder.orderByRaw(BaseDTO.ORDER_BY_COLUMN_NAME).where().eq("Region_id", regionId);
 			rows = rowDAO.query(rowBuilder.prepare());
-			placeBuilder.orderBy(BaseDTO.COLUMN_NAME, true).where().eq("Region_id", regionId);
+			placeBuilder.orderByRaw(BaseDTO.ORDER_BY_COLUMN_NAME).where().eq("Region_id", regionId);
 			places = placeDAO.query(placeBuilder.prepare());
 		} catch (SQLException e) {
-			e.printStackTrace();
+			this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
 		}		
 		RowGridAdapter instance = new RowGridAdapter(null);
 		List<RowOrPlace> list = new ArrayList<BrowserCemeteryActivity.RowGridAdapter.RowOrPlace>();
@@ -1179,10 +1183,10 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
     	QueryBuilder<Place, Integer> placeBuilder = placeDAO.queryBuilder();
     	List<Place> placeList = new ArrayList<Place>();
     	try {
-			placeBuilder.orderBy(BaseDTO.COLUMN_NAME, true).where().eq("Row_id", rowId);
+			placeBuilder.orderByRaw(BaseDTO.ORDER_BY_COLUMN_NAME).where().eq("Row_id", rowId);
 			placeList = placeDAO.query(placeBuilder.prepare());		
 		} catch (SQLException e) {
-			e.printStackTrace();
+			this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
 		}
 		return placeList;
 	}
@@ -1192,10 +1196,10 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
     	QueryBuilder<Grave, Integer> graveBuilder = graveDAO.queryBuilder();
     	List<Grave> graveList = new ArrayList<Grave>();
     	try {
-			graveBuilder.orderBy(BaseDTO.COLUMN_NAME, true).where().eq("Place_id", placeId);
+			graveBuilder.orderByRaw(BaseDTO.ORDER_BY_COLUMN_NAME).where().eq("Place_id", placeId);
 			graveList = graveDAO.query(graveBuilder.prepare());		
 		} catch (SQLException e) {
-			e.printStackTrace();
+			this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
 		}
 		return graveList;
 	}
@@ -1634,7 +1638,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 				tvPersons.setVisibility(View.GONE);
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
+			this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
 		}
 		
 		
@@ -1700,8 +1704,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 				nextGrave = findedGraves.get(0);
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
 		}
 		graveDAO.createOrUpdate(nextGrave);
 		
@@ -1808,8 +1811,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 					nextPlace.OldName = filterOldPlaceName;					
 				}
 			}
-		}catch(SQLException exc){
-			exc.printStackTrace();
+		} catch(SQLException e){
+			this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
 		}
 		nextGrave.Place = nextPlace;
 		placeDAO.createOrUpdate(nextPlace);
@@ -1845,7 +1848,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 				value = Integer.parseInt(s);
 				value++;
 				result = Integer.toString(value);
-			}catch(Exception e){
+			} catch(Exception e){
 				char lastChar = s.charAt(s.length() - 1);
 				if(Character.isDigit(lastChar)){
 					value = Integer.parseInt(Character.toString(lastChar));
@@ -2008,7 +2011,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 				output.write(baos.toByteArray());
 				output.close();				
 			}
-		} catch (Exception ex) {
+		} catch (Exception e) {
+			this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
 			return false;
 		}
 		return true;
@@ -2059,8 +2063,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 						}
 						
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
 					}
 	                Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
 	                heightScaledPhotoPx = myBitmap.getHeight() * widthScaledPhotoPx / myBitmap.getWidth();

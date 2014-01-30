@@ -6,6 +6,9 @@ import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.log4j.Logger;
+
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.data.BaseDTO;
 import com.coolchoice.monumentphoto.data.Cemetery;
@@ -22,6 +25,7 @@ import com.coolchoice.monumentphoto.data.Region;
 import com.coolchoice.monumentphoto.data.Row;
 
 import com.coolchoice.monumentphoto.map.AddGPSActivity;
+import com.coolchoice.monumentphoto.task.BaseTask;
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.stmt.QueryBuilder;
 
@@ -85,7 +89,9 @@ public class AddObjectActivity extends Activity {
 	
 	public static final int ADD_GPS_ACTIVITY_REQUEST_CODE = 1;
 	
-	private static String mGPSListString = "";	
+	private static String mGPSListString = "";
+	
+	protected final Logger mFileLog = Logger.getLogger(AddObjectActivity.class);
           	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -212,24 +218,24 @@ public class AddObjectActivity extends Activity {
 			(this.mId < 0 && this.mParentId > 0 && this.etPlace.getText().length() == 0)){
 			if(this.mType == ADD_PLACE_WITHOUTROW){				
 				try {
-					PreparedQuery<Place> query = DB.dao(Place.class).queryBuilder().orderBy(BaseDTO.COLUMN_NAME, false).where().eq("Region_id", this.mParentId).prepare();
+					PreparedQuery<Place> query = DB.dao(Place.class).queryBuilder().orderByRaw(BaseDTO.ORDER_BY_DESC_COLUMN_NAME).where().eq("Region_id", this.mParentId).prepare();
 					List<Place> list = DB.dao(Place.class).query(query);
 					if(list.size() > 0){
 						nextPlaceName = list.get(0).Name;
 					}
 				} catch (SQLException e) {
-					
+					this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
 				}
 			}
 			if(this.mType == ADD_PLACE_WITHROW){
 				try {
-					PreparedQuery<Place> query = DB.dao(Place.class).queryBuilder().orderBy(BaseDTO.COLUMN_NAME, false).where().eq("Row_id", this.mParentId).prepare();
+					PreparedQuery<Place> query = DB.dao(Place.class).queryBuilder().orderByRaw(BaseDTO.ORDER_BY_DESC_COLUMN_NAME).where().eq("Row_id", this.mParentId).prepare();
 					List<Place> list = DB.dao(Place.class).query(query);
 					if(list.size() > 0){
 						nextPlaceName = list.get(0).Name;
 					}
 				} catch (SQLException e) {
-					
+					this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
 				}
 			}
 			if(nextPlaceName != null){
@@ -504,7 +510,7 @@ public class AddObjectActivity extends Activity {
 				return false;
 			}
 		} catch (SQLException e) {					
-			e.printStackTrace();
+			this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
 		}
 		return true;
 	}
@@ -549,7 +555,7 @@ public class AddObjectActivity extends Activity {
 				return false;
 			}
 		} catch (SQLException e) {					
-			e.printStackTrace();
+			this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
 		}
 		return true;
 	}
@@ -602,7 +608,7 @@ public class AddObjectActivity extends Activity {
 				return false;
 			}
 		} catch (SQLException e) {					
-			e.printStackTrace();
+			this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
 		}
 		return true;
 	}
@@ -659,7 +665,7 @@ public class AddObjectActivity extends Activity {
 				return false;
 			}
 		} catch (SQLException e) {					
-			e.printStackTrace();
+			this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
 		}
 		return true;
 	}
@@ -828,7 +834,7 @@ public class AddObjectActivity extends Activity {
 				return false;
 			}
 		} catch (SQLException e) {					
-			e.printStackTrace();
+			this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
 		}
 		return true;
 	}

@@ -107,7 +107,7 @@ public class CemeteryListActivity extends Activity implements SyncTaskHandler.Sy
 	private void updateCemeteryList(){
 		RuntimeExceptionDao<Cemetery, Integer> cemeteryDAO = DB.dao(Cemetery.class);
     	QueryBuilder<Cemetery, Integer> cemeteryBuilder = cemeteryDAO.queryBuilder();
-		cemeteryBuilder.orderBy(BaseDTO.COLUMN_NAME, true);
+		cemeteryBuilder.orderByRaw(BaseDTO.ORDER_BY_COLUMN_NAME);
 		List<Cemetery> cemeteryList = new ArrayList<Cemetery>();
 		try {
 			cemeteryList = cemeteryDAO.query(cemeteryBuilder.prepare());
