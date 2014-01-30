@@ -38,7 +38,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     public static final String DATABASE_NAME = "/mnt/sdcard/monument.db";
     //public static final String DATABASE_NAME = "monument.db";
     
-    public static final int DATABASE_VERSION = 6;
+    public static final int DATABASE_VERSION = 7;
     
     private Context context;
 
@@ -111,6 +111,9 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	    	case 5:
 	    		migrateDBFromVer5ToLast(db, connectionSource);
 	    		break;
+	    	case 6:
+	    		migrateDBFromVer6ToLast(db, connectionSource);
+	    		break;
 	    	
     	}
     	
@@ -176,6 +179,35 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         try {
         	db.execSQL("alter table place add column Width DOUBLE PRECISION;");
         	db.execSQL("alter table place add column Length DOUBLE PRECISION;");
+        	db.setTransactionSuccessful();               
+        } finally {
+            db.endTransaction();
+        }
+        
+        RuntimeExceptionDao<Burial, Integer> burialDAO = DB.dao(Burial.class);
+        List<Burial> burials = burialDAO.queryForAll();
+        for(Burial b : burials){
+        	b.toLowerCaseFIO();
+        	burialDAO.update(b);
+        }
+        migrateDBFromVer6ToLast(db, connectionSource);
+    }
+    
+    private void migrateDBFromVer6ToLast(SQLiteDatabase db, ConnectionSource connectionSource){
+    	db.beginTransaction();
+        try {
+        	db.execSQL("alter table gpscemetery add column OrdinalNumber INTEGER;");
+        	db.execSQL("alter table gpsregion add column OrdinalNumber INTEGER;");
+        	db.execSQL("alter table gpsrow add column OrdinalNumber INTEGER;");
+        	db.execSQL("alter table gpsplace add column OrdinalNumber INTEGER;");
+        	db.execSQL("alter table gpsgrave add column OrdinalNumber INTEGER;");
+        	
+        	db.execSQL("delete from gpscemetery;");
+        	db.execSQL("delete from gpsregion;");
+        	db.execSQL("delete from gpsrow;");
+        	db.execSQL("delete from gpsplace;");
+        	db.execSQL("delete from gpsgrave;");
+        	
         	db.setTransactionSuccessful();               
         } finally {
             db.endTransaction();
