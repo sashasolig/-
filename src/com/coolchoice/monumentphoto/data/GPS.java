@@ -12,6 +12,9 @@ public class GPS {
 	@DatabaseField(generatedId = true, allowGeneratedIdInsert = true)
 	public int Id;
 	
+	@DatabaseField
+	public int ServerId;
+	
 	@DatabaseField(canBeNull = false)
 	public double Latitude;
 	

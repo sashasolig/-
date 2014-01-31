@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.http.Header;
@@ -49,6 +50,8 @@ import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.data.BaseDTO;
 import com.coolchoice.monumentphoto.data.Burial;
 import com.coolchoice.monumentphoto.data.Cemetery;
+import com.coolchoice.monumentphoto.data.GPSCemetery;
+import com.coolchoice.monumentphoto.data.GPSRegion;
 import com.coolchoice.monumentphoto.data.Grave;
 import com.coolchoice.monumentphoto.data.GravePhoto;
 import com.coolchoice.monumentphoto.data.Place;
@@ -353,24 +356,49 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 		JSONTokener tokener = new JSONTokener(cemeteryJSON);
         JSONArray jsonArray = new JSONArray(tokener);
         ArrayList<Cemetery> cemeteryList = new ArrayList<Cemetery>();
+        HashMap<Integer, List<GPSCemetery>> hashMapGPS = new HashMap<Integer, List<GPSCemetery>>();
         for(int i = 0; i < jsonArray.length(); i++){  
-        	checkIsCancelTask();
-        	Cemetery cemetery = new Cemetery();
+        	checkIsCancelTask();        	
         	JSONObject jsonObj = jsonArray.getJSONObject(i);
-        	cemetery.ServerId = jsonObj.getInt("pk");
         	JSONObject fields = jsonObj.getJSONObject("fields");
-        	cemetery.Name = fields.getString("name");
-        	cemeteryList.add(cemetery);
+        	String modelName = jsonObj.getString("model");
+        	if(modelName.equalsIgnoreCase("burials.cemetery")){
+        		Cemetery cemetery = new Cemetery();
+            	cemetery.ServerId = jsonObj.getInt("pk");            	
+            	cemetery.Name = fields.getString("name");
+            	cemeteryList.add(cemetery);
+        	}
+        	if(modelName.equalsIgnoreCase("burials.cemeterycoordinates")){
+        		GPSCemetery gps = new GPSCemetery();
+            	gps.ServerId = jsonObj.getInt("pk");            	
+            	gps.OrdinalNumber = fields.getInt("angle_number");
+            	gps.Latitude = fields.getDouble("lat");
+            	gps.Longitude = fields.getDouble("lng");
+            	int cemeteryServerId = fields.getInt("cemetery");
+            	if(hashMapGPS.containsKey(cemeteryServerId)){
+            		hashMapGPS.get(cemeteryServerId).add(gps);
+            	} else {
+            		List<GPSCemetery> listGPS = new ArrayList<GPSCemetery>();
+            		listGPS.add(gps);
+            		hashMapGPS.put(cemeteryServerId, listGPS);
+            	}
+        	}
+        }
+        for(Cemetery cem : cemeteryList){
+        	if(hashMapGPS.containsKey(cem.ServerId)){
+        		cem.GPSCemeteryList = hashMapGPS.get(cem.ServerId);
+        	}
         }
         return cemeteryList;
 	}
 	
 	public void handleResponseGetCemeteryJSON(String cemeteryJSON) throws Exception {    	
         ArrayList<Cemetery> cemeteryList = parseCemeteryJSON(cemeteryJSON);
+        RuntimeExceptionDao<Cemetery, Integer> dao = DB.dao(Cemetery.class);
+        RuntimeExceptionDao<GPSCemetery, Integer> gpsCemeteryDao = DB.dao(GPSCemetery.class);
         for(int i = 0; i < cemeteryList.size(); i++){
         	checkIsCancelTask();
-        	Cemetery cemetery = cemeteryList.get(i);
-        	RuntimeExceptionDao<Cemetery, Integer> dao = DB.dao(Cemetery.class);
+        	Cemetery cemetery = cemeteryList.get(i);        	
 			QueryBuilder<Cemetery, Integer> builder = dao.queryBuilder();
 			builder.where().eq("ServerId", cemetery.ServerId); 
 			List<Cemetery> findedCemeteries = dao.query(builder.prepare());
@@ -379,6 +407,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 				findedCemetery = findedCemeteries.get(0);
 				cemetery.Id = findedCemetery.Id;
 				cemetery.RegionSyncDate = findedCemetery.RegionSyncDate;
+				cemetery.IsGPSChanged = findedCemetery.IsGPSChanged;
 				if(findedCemetery.IsChanged == 0){
 					dao.createOrUpdate(cemetery);
 				}
@@ -390,8 +419,19 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 					findedCemetery = findedCemeteries.get(0);
 					cemetery.Id = findedCemetery.Id;
 					cemetery.RegionSyncDate = findedCemetery.RegionSyncDate;
+					cemetery.IsGPSChanged = findedCemetery.IsGPSChanged;
 				}
 				dao.createOrUpdate(cemetery);
+			}
+			
+			if(cemetery.IsGPSChanged == 0 && cemetery.GPSCemeteryList != null){
+				DeleteBuilder<GPSCemetery, Integer> deleteBuilderGPS = gpsCemeteryDao.deleteBuilder();					
+				deleteBuilderGPS.where().eq("Cemetery_id", cemetery.Id);
+				gpsCemeteryDao.delete(deleteBuilderGPS.prepare());
+				for(GPSCemetery gps : cemetery.GPSCemeteryList){
+					gps.Cemetery = cemetery;
+					gpsCemeteryDao.create(gps);
+				}
 			}
 			
         }    
@@ -416,28 +456,53 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 		JSONTokener tokener = new JSONTokener(regionJSON);
         JSONArray jsonArray = new JSONArray(tokener);
         ArrayList<Region> regionList = new ArrayList<Region>();
+        HashMap<Integer, List<GPSRegion>> hashMapGPS = new HashMap<Integer, List<GPSRegion>>();
         for(int i = 0; i < jsonArray.length(); i++){
-        	checkIsCancelTask();
-        	Region region = new Region();	                	
+        	checkIsCancelTask();        	
         	JSONObject jsonObj = jsonArray.getJSONObject(i);
-        	region.ServerId = jsonObj.getInt("pk");
         	JSONObject fields = jsonObj.getJSONObject("fields");
-        	region.Name = fields.getString("name");
-        	region.ParentServerId = fields.getInt("cemetery");
-        	region.Cemetery = new Cemetery();
-        	region.Cemetery.ServerId = region.ParentServerId;
-        	regionList.add(region);
+        	String modelName = jsonObj.getString("model");
+        	if(modelName.equalsIgnoreCase("burials.area")){
+        		Region region = new Region();
+        		region.ServerId = jsonObj.getInt("pk");
+        		region.Name = fields.getString("name");
+            	region.ParentServerId = fields.getInt("cemetery");
+            	region.Cemetery = new Cemetery();
+            	region.Cemetery.ServerId = region.ParentServerId;
+            	regionList.add(region);
+        	}
+        	if(modelName.equalsIgnoreCase("burials.areacoordinates")){
+        		GPSRegion gps = new GPSRegion();
+            	gps.ServerId = jsonObj.getInt("pk");            	
+            	gps.OrdinalNumber = fields.getInt("angle_number");
+            	gps.Latitude = fields.getDouble("lat");
+            	gps.Longitude = fields.getDouble("lng");
+            	int regionServerId = fields.getInt("area");
+            	if(hashMapGPS.containsKey(regionServerId)){
+            		hashMapGPS.get(regionServerId).add(gps);
+            	} else {
+            		List<GPSRegion> listGPS = new ArrayList<GPSRegion>();
+            		listGPS.add(gps);
+            		hashMapGPS.put(regionServerId, listGPS);
+            	}
+        	}
+        }
+        for(Region reg : regionList){
+        	if(hashMapGPS.containsKey(reg.ServerId)){
+        		reg.GPSRegionList = hashMapGPS.get(reg.ServerId);
+        	}
         }
         return regionList;
 	}
 	
 	public void handleResponseGetRegionJSON(String regionJSON, int cemeteryServerId, Date syncDate) throws Exception {	
 		ArrayList<Region> regionList = parseRegionJSON(regionJSON);
+		RuntimeExceptionDao<Region, Integer> dao = DB.dao(Region.class);
+		RuntimeExceptionDao<GPSRegion, Integer> gpsRegionDao = DB.dao(GPSRegion.class);
         for(int i = 0; i < regionList.size(); i++){        	
         	checkIsCancelTask();
         	Region region = regionList.get(i);
-        	region.Cemetery = null;
-        	RuntimeExceptionDao<Region, Integer> dao = DB.dao(Region.class);
+        	region.Cemetery = null;        	
         	QueryBuilder<Region, Integer> builder = dao.queryBuilder();
 			builder.where().eq("ServerId", region.ServerId); 
 			List<Region> findedRegions = dao.query(builder.prepare());
@@ -460,18 +525,24 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 				region.PlaceSyncDate = findedRegion.PlaceSyncDate;
 				region.GraveSyncDate = findedRegion.GraveSyncDate;
 				region.BurialSyncDate = findedRegion.BurialSyncDate;
-				boolean isStory = false;
-				if(region.Name != null){
-					if(region.Name.equals(findedRegion.Name)){
-						isStory = true;
-					}
-				}
-				if(findedRegion.IsChanged == 0 || isStory){
+				region.IsGPSChanged = findedRegion.IsGPSChanged;				
+				if(findedRegion.IsChanged == 0){
 					dao.createOrUpdate(region);
 				}
 			} else {
 				dao.createOrUpdate(region);
-			}			
+			}
+			
+			if(region.IsGPSChanged == 0 && region.GPSRegionList != null){
+				DeleteBuilder<GPSRegion, Integer> deleteBuilderGPS = gpsRegionDao.deleteBuilder();					
+				deleteBuilderGPS.where().eq("Region_id", region.Id);
+				gpsRegionDao.delete(deleteBuilderGPS.prepare());
+				for(GPSRegion gps : region.GPSRegionList){
+					gps.Region = region;
+					gpsRegionDao.create(gps);
+				}
+			}
+			
         }
         if(syncDate != null && cemeteryServerId > 0){
         	List<Cemetery> findedCemeteryList = DB.dao(Cemetery.class).queryForEq("ServerId", cemeteryServerId);

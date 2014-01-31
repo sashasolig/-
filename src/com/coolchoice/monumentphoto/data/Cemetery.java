@@ -15,5 +15,8 @@ public class Cemetery extends BaseDTO {
 	
 	@DatabaseField
 	public Date RegionSyncDate;
+	
+	@DatabaseField
+	public byte IsGPSChanged;
 
 }

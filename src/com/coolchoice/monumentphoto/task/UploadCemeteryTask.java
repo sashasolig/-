@@ -33,6 +33,7 @@ import org.json.JSONTokener;
 import com.coolchoice.monumentphoto.Settings;
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.data.Cemetery;
+import com.coolchoice.monumentphoto.data.GPSCemetery;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
 import com.j256.ormlite.stmt.QueryBuilder;
@@ -58,7 +59,7 @@ public class UploadCemeteryTask extends BaseTask {
     	TaskResult result = new TaskResult();
     	result.setTaskName(Settings.TASK_POSTCEMETERY);
     	result.setStatus(TaskResult.Status.OK);
-    	StringBuilder sbJSON = new StringBuilder();
+    	StringBuilder sbJSON = new StringBuilder();    	
     	List<Cemetery> cemeteryList = DB.dao(Cemetery.class).queryForEq("IsChanged", 1);
     	result.setUploadCount(cemeteryList.size());
     	int successCount = 0;
@@ -69,9 +70,13 @@ public class UploadCemeteryTask extends BaseTask {
     		processedCount++;
             try {
             	checkIsCancelTask();
+            	for(GPSCemetery gps : cem.GPSCemeteryList){
+            		DB.dao(GPSCemetery.class).refresh(gps);
+            	}
             	Dictionary<String, String> dictPostData = new Hashtable<String, String>();
             	dictPostData.put("cemeteryId", Integer.toString(cem.ServerId));
             	dictPostData.put("cemeteryName", cem.Name);
+            	dictPostData.put("gps", "");
             	String responseString = postData(params[0], dictPostData);
             	if(responseString != null){
             		handleResponseUploadCemeteryJSON(responseString);            		

@@ -2,14 +2,8 @@ package com.coolchoice.monumentphoto.map;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.log4j.Logger;
-
-import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.data.*;
 import com.coolchoice.monumentphoto.map.PointBalloonItem.OnRemoveOverlayItem;
-
-
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -27,19 +21,15 @@ import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SlidingDrawer;
 import android.widget.TextView;
@@ -50,7 +40,6 @@ import com.coolchoice.monumentphoto.R;
 import com.coolchoice.monumentphoto.Settings;
 
 import ru.yandex.yandexmapkit.*;
-import ru.yandex.yandexmapkit.overlay.Overlay;
 import ru.yandex.yandexmapkit.overlay.OverlayItem;
 import ru.yandex.yandexmapkit.overlay.balloon.BalloonItem;
 import ru.yandex.yandexmapkit.overlay.balloon.OnBalloonListener;
@@ -192,12 +181,17 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
 	            		GPS gps = new GPS();
 						gps.Latitude = myLocationItem.getGeoPoint().getLat();
 						gps.Longitude = myLocationItem.getGeoPoint().getLon();
+						int nextOrdinalNumberGPS = mGPSList.size() + 1;
 						boolean isExistSuchGPS = false;
 						for(GPS g : mGPSList){
 							if(g.Latitude == gps.Latitude && g.Longitude == gps.Longitude){
 								isExistSuchGPS = true;
 							}
+							if(g.OrdinalNumber >= nextOrdinalNumberGPS){
+								nextOrdinalNumberGPS = g.OrdinalNumber + 1;
+							}
 						}
+						gps.OrdinalNumber = nextOrdinalNumberGPS;
 						if(!isExistSuchGPS){
 							addGPS(gps);
 							mMapController.setPositionAnimationTo(myLocationItem.getGeoPoint());
@@ -257,14 +251,13 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
     public void showObject(){
     	DragAndDropOverlay prevOverlay = this.mOverlay;
     	Resources res = getResources();
-        this.mOverlay = new DragAndDropOverlay(mMapController);
-        int i = 1;
+        this.mOverlay = new DragAndDropOverlay(mMapController);        
         for(GPS  gps : mGPSList){
 	        DragAndDropItem overlayItem = new DragAndDropItem(new GeoPoint(gps.Latitude, gps.Longitude), res.getDrawable(R.drawable.map_point));
 	        overlayItem.setOffsetX(offsetX);
 	        overlayItem.setOffsetY(offsetY);
 	        overlayItem.setDragable(false);
-	        BitmapDrawable marker = writeOnDrawable(R.drawable.map_point, i++);
+	        BitmapDrawable marker = writeOnDrawable(R.drawable.map_point, gps.OrdinalNumber);
 	        overlayItem.setDrawable(marker);
 	        
 	        
@@ -396,8 +389,7 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
             if (convertView == null) {
             	LayoutInflater inflater = (LayoutInflater) AddGPSActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 convertView = inflater.inflate(R.layout.map_gps_list_item, parent, false);
-            }
-            Log.i("pos=", Integer.toString(position));
+            }           
             if(position == this.mSelectedPosition){
             	convertView.setSelected(true);
             	convertView.setBackgroundResource(R.drawable.list_selector);
@@ -408,7 +400,7 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
             TextView tvIndex = (TextView) convertView.findViewById(R.id.tvIndex);
             TextView tvGPS = (TextView) convertView.findViewById(R.id.tvGPS);
             ImageButton btnRemoveGPS = (ImageButton) convertView.findViewById(R.id.btnRemoveGPS);
-            tvIndex.setText(String.format("%d.", position + 1));
+            tvIndex.setText(String.format("%d.", mGPSList.get(position).OrdinalNumber));
             btnRemoveGPS.setTag(position);
             double lat = mGPSList.get(position).Latitude;
         	double lng = mGPSList.get(position).Longitude;

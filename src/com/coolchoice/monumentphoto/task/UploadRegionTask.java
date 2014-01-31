@@ -32,6 +32,8 @@ import org.json.JSONTokener;
 import com.coolchoice.monumentphoto.Settings;
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.data.Cemetery;
+import com.coolchoice.monumentphoto.data.GPSCemetery;
+import com.coolchoice.monumentphoto.data.GPSRegion;
 import com.coolchoice.monumentphoto.data.Region;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
@@ -72,10 +74,14 @@ public class UploadRegionTask extends BaseTask {
     		isSuccessUpload = false;
             try {
             	checkIsCancelTask();
+            	for(GPSRegion gps : region.GPSRegionList){
+            		DB.dao(GPSRegion.class).refresh(gps);
+            	}
             	Dictionary<String, String> dictPostData = new Hashtable<String, String>();
             	dictPostData.put("cemeteryId", Integer.toString(region.Cemetery.ServerId));
             	dictPostData.put("areaId", Integer.toString(region.ServerId));
             	dictPostData.put("areaName", region.Name);
+            	dictPostData.put("gps", "");
             	String responseString = postData(params[0], dictPostData);
             	if(responseString != null){
             		handleResponseUploadRegionJSON(responseString);       		

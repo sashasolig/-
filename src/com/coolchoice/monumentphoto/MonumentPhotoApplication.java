@@ -10,9 +10,10 @@ public class MonumentPhotoApplication extends Application {
 
     @Override
     public void onCreate() {
+    	Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler());
+    	ConfigureLog4J.configure();
         super.onCreate();
         DB.setContext(getApplicationContext());
-        ConfigureLog4J.configure();
     }
 
     @Override

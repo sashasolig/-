@@ -181,8 +181,8 @@ public class AddObjectActivity extends Activity {
 			public void onClick(View v) {
 				Intent intent = new Intent(AddObjectActivity.this, AddGPSActivity.class);
 				intent.putExtra(EXTRA_ID, mId);
-				intent.putExtra(EXTRA_TYPE, mType);
-				if(mGPSListString.equals("")){
+				intent.putExtra(EXTRA_TYPE, mType);				
+				if(TextUtils.isEmpty(mGPSListString)){
 					List<GPS> gpsList = getGPSListFromDB();
 					mGPSListString = GPSListToString(gpsList);
 				}						
@@ -272,9 +272,8 @@ public class AddObjectActivity extends Activity {
 			default:
 				break;
 		}
-		if(isSave){
-            List<GPS> gpsList = parseGPSListString(mGPSListString);
-            saveGPSToDB(gpsList);
+		if(isSave){            
+            saveGPSToDB(mGPSListString);
 		}
 		return isSave;		
 	}
@@ -926,79 +925,108 @@ public class AddObjectActivity extends Activity {
 		List<GPS> dbGPSList = new ArrayList<GPS>();		
 		switch(mType){
 		case AddObjectActivity.ADD_CEMETERY:
-			List<GPSCemetery> tempGPSCemeteryList = DB.dao(GPSCemetery.class).queryForEq("Cemetery_id", mId);
-			for(GPSCemetery gpsCemetery: tempGPSCemeteryList){
-				dbGPSList.add(gpsCemetery);
+			try {
+				QueryBuilder<GPSCemetery, Integer> qbGPSCemetery = DB.dao(GPSCemetery.class).queryBuilder();
+				qbGPSCemetery.orderBy(GPS.ORDINAL_COLUMN, true).where().eq("Cemetery_id", mId);
+				List<GPSCemetery> tempGPSCemeteryList = DB.dao(GPSCemetery.class).query(qbGPSCemetery.prepare());
+				for(GPSCemetery gpsCemetery: tempGPSCemeteryList){
+					dbGPSList.add(gpsCemetery);
+				}
+			} catch (SQLException e) {
+				this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
 			}
 			break;
 		case AddObjectActivity.ADD_REGION:
-			List<GPSRegion> tempGPSRegionList = DB.dao(GPSRegion.class).queryForEq("Region_id", mId);
-			for(GPSRegion gpsRegion: tempGPSRegionList){
-				dbGPSList.add(gpsRegion);
+			try {
+				QueryBuilder<GPSRegion, Integer> qbGPSRegion = DB.dao(GPSRegion.class).queryBuilder();
+				qbGPSRegion.orderBy(GPS.ORDINAL_COLUMN, true).where().eq("Region_id", mId);
+				List<GPSRegion> tempGPSRegionList = DB.dao(GPSRegion.class).query(qbGPSRegion.prepare());
+				for(GPSRegion gpsRegion: tempGPSRegionList){
+					dbGPSList.add(gpsRegion);
+				}
+			} catch (SQLException e) {
+				this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
+			}
+			break;	
+		case AddObjectActivity.ADD_ROW:
+			try {
+				QueryBuilder<GPSRow, Integer> qbGPSRow = DB.dao(GPSRow.class).queryBuilder();
+				qbGPSRow.orderBy(GPS.ORDINAL_COLUMN, true).where().eq("Row_id", mId);
+				List<GPSRow> tempGPSRowList = DB.dao(GPSRow.class).query(qbGPSRow.prepare());
+				for(GPSRow gpsRow: tempGPSRowList){
+					dbGPSList.add(gpsRow);
+				}
+			} catch (SQLException e) {
+				this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
 			}
 			break;		
-		case AddObjectActivity.ADD_ROW:
-			List<GPSRow> tempGPSRowList = DB.dao(GPSRow.class).queryForEq("Row_id", mId);
-			for(GPSRow gpsRow: tempGPSRowList){
-				dbGPSList.add(gpsRow);
+		case AddObjectActivity.ADD_PLACE_WITHOUTROW :
+		case AddObjectActivity.ADD_PLACE_WITHROW :
+			try {
+				QueryBuilder<GPSPlace, Integer> qbGPSPlace = DB.dao(GPSPlace.class).queryBuilder();
+				qbGPSPlace.orderBy(GPS.ORDINAL_COLUMN, true).where().eq("Place_id", mId);
+				List<GPSPlace> tempGPSPlaceList = DB.dao(GPSPlace.class).query(qbGPSPlace.prepare());
+				for(GPSPlace gpsPlace : tempGPSPlaceList){
+					dbGPSList.add(gpsPlace);
+				}
+			} catch (SQLException e) {
+				this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
 			}
-			break;			
-		case AddObjectActivity.ADD_PLACE_WITHOUTROW:
-			List<GPSPlace> tempGPSPlaceList1 = DB.dao(GPSPlace.class).queryForEq("Place_id", mId);
-			for(GPSPlace gpsPlace: tempGPSPlaceList1){
-				dbGPSList.add(gpsPlace);
-			}				
-			break;
-		case AddObjectActivity.ADD_PLACE_WITHROW:
-			List<GPSPlace> tempGPSPlaceList2 = DB.dao(GPSPlace.class).queryForEq("Place_id", mId);
-			for(GPSPlace gpsPlace: tempGPSPlaceList2){
-				dbGPSList.add(gpsPlace);
-			}	
-			break;
-		case AddObjectActivity.ADD_GRAVE_WITHOUTROW:
-			List<GPSGrave> tempGPSGraveList1 = DB.dao(GPSGrave.class).queryForEq("Grave_id", mId);
-			for(GPSGrave gpsGrave: tempGPSGraveList1){
-				dbGPSList.add(gpsGrave);
-			}				
-			break;
-		case AddObjectActivity.ADD_GRAVE_WITHROW:
-			List<GPSGrave> tempGPSGraveList2 = DB.dao(GPSGrave.class).queryForEq("Grave_id", mId);
-			for(GPSGrave gpsGrave: tempGPSGraveList2){
-				dbGPSList.add(gpsGrave);
-			}				
-			break;
+			break;		
+		case AddObjectActivity.ADD_GRAVE_WITHOUTROW :
+		case AddObjectActivity.ADD_GRAVE_WITHROW :
+			try {
+				QueryBuilder<GPSGrave, Integer> qbGPSGrave = DB.dao(GPSGrave.class).queryBuilder();
+				qbGPSGrave.orderBy(GPS.ORDINAL_COLUMN, true).where().eq("Grave_id", mId);
+				List<GPSGrave> tempGPSGraveList = DB.dao(GPSGrave.class).query(qbGPSGrave.prepare());
+				for(GPSGrave gpsGrave : tempGPSGraveList){
+					dbGPSList.add(gpsGrave);
+				}
+			} catch (SQLException e) {
+				this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
+			}
+			break;	
 		default:
 			break;
 		}		
 		return dbGPSList;			
 	}
 	
-	private void saveGPSToDB(List<GPS> gpsList){
-    	switch (mType) {
-		case AddObjectActivity.ADD_CEMETERY:
-			Cemetery cemetery = DB.dao(Cemetery.class).queryForId(mId);
-			saveGPSCemetery(cemetery, gpsList);
-			break;
-		case AddObjectActivity.ADD_REGION:
-			Region region = DB.dao(Region.class).queryForId(mId);
-			saveGPSRegion(region, gpsList);
-			break;		
-		case AddObjectActivity.ADD_ROW:
-			Row row = DB.dao(Row.class).queryForId(mId);
-			saveGPSRow(row, gpsList);
-			break;			
-		case AddObjectActivity.ADD_PLACE_WITHOUTROW:
-		case AddObjectActivity.ADD_PLACE_WITHROW:
-			Place place = DB.dao(Place.class).queryForId(mId);
-			saveGPSPlace(place, gpsList);
-			break;		
-		case AddObjectActivity.ADD_GRAVE_WITHOUTROW:
-		case AddObjectActivity.ADD_GRAVE_WITHROW:
-			Grave grave = DB.dao(Grave.class).queryForId(mId);
-			saveGPSGrave(grave, gpsList);
-			break;
-		default:
-			break;
+	private void saveGPSToDB(String gpsListString){
+		List<GPS> gpsList = parseGPSListString(gpsListString);
+		List<GPS> gpsListInDB = getGPSListFromDB();
+		String gpsListStringInDB = GPSListToString(gpsListInDB);
+		if(!gpsListString.equals(gpsListStringInDB)){
+	    	switch (mType) {
+			case AddObjectActivity.ADD_CEMETERY:
+				Cemetery cemetery = DB.dao(Cemetery.class).queryForId(mId);
+				saveGPSCemetery(cemetery, gpsList);
+				cemetery.IsGPSChanged = 1;
+				DB.dao(Cemetery.class).update(cemetery);
+				break;
+			case AddObjectActivity.ADD_REGION:
+				Region region = DB.dao(Region.class).queryForId(mId);
+				saveGPSRegion(region, gpsList);
+				region.IsGPSChanged = 1;
+				DB.dao(Region.class).update(region);
+				break;		
+			case AddObjectActivity.ADD_ROW:
+				Row row = DB.dao(Row.class).queryForId(mId);
+				saveGPSRow(row, gpsList);				
+				break;			
+			case AddObjectActivity.ADD_PLACE_WITHOUTROW:
+			case AddObjectActivity.ADD_PLACE_WITHROW:
+				Place place = DB.dao(Place.class).queryForId(mId);
+				saveGPSPlace(place, gpsList);
+				break;		
+			case AddObjectActivity.ADD_GRAVE_WITHOUTROW:
+			case AddObjectActivity.ADD_GRAVE_WITHROW:
+				Grave grave = DB.dao(Grave.class).queryForId(mId);
+				saveGPSGrave(grave, gpsList);
+				break;
+			default:
+				break;
+			}
 		}
     }
     
@@ -1080,7 +1108,7 @@ public class AddObjectActivity extends Activity {
 		StringBuilder sb = new StringBuilder();
 		DecimalFormat df = new DecimalFormat("##0.000000000000");
 		for(GPS gps: gpsList){
-			sb.append(String.format("%d~%s~%s~", gps.Id, df.format(gps.Longitude), df.format(gps.Latitude)));			
+			sb.append(String.format("%d~%d~%s~%s~", gps.Id, gps.OrdinalNumber, df.format(gps.Longitude), df.format(gps.Latitude)));			
 		}
 		if(sb.lastIndexOf("~") == (sb.length() - 1) && sb.length() > 0){
 			sb.deleteCharAt(sb.length() - 1);
@@ -1093,12 +1121,13 @@ public class AddObjectActivity extends Activity {
 		DecimalFormat df = new DecimalFormat("##0.000000000000");
 		if(gpsListString != null && gpsListString.length() > 0){
 			String[] arr = gpsListString.split("~");
-			for(int i = 0; i < arr.length; i+=3){
+			for(int i = 0; i < arr.length; i+=4){
 				GPS gps = new GPS();
 				gps.Id = Integer.parseInt(arr[i]);
+				gps.OrdinalNumber = Integer.parseInt(arr[i+1]);
 				try {
-					gps.Longitude = df.parse(arr[i+1]).doubleValue();
-					gps.Latitude = df.parse(arr[i+2]).doubleValue();
+					gps.Longitude = df.parse(arr[i+2]).doubleValue();
+					gps.Latitude = df.parse(arr[i+3]).doubleValue();
 				} catch (ParseException e) {					
 					e.printStackTrace();
 				}				

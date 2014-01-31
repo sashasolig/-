@@ -24,5 +24,8 @@ public class Region extends BaseDTO {
 	
 	@DatabaseField
 	public Date BurialSyncDate;
+	
+	@DatabaseField
+	public byte IsGPSChanged;
 
 }
