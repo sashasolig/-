@@ -90,6 +90,7 @@ public class AddObjectActivity extends Activity {
 	public static final int ADD_GPS_ACTIVITY_REQUEST_CODE = 1;
 	
 	private static String mGPSListString = "";
+	private static boolean mIsStoreGPS = false;
 	
 	protected final Logger mFileLog = Logger.getLogger(AddObjectActivity.class);
           	
@@ -209,6 +210,7 @@ public class AddObjectActivity extends Activity {
 		super.onDestroy();
 		if(isFinishing()){
 			mGPSListString = "";
+			mIsStoreGPS = false;		
 		}
 	}
 	
@@ -272,7 +274,7 @@ public class AddObjectActivity extends Activity {
 			default:
 				break;
 		}
-		if(isSave){            
+		if(isSave && mIsStoreGPS){            
             saveGPSToDB(mGPSListString);
 		}
 		return isSave;		
@@ -916,11 +918,6 @@ public class AddObjectActivity extends Activity {
 		return true;
 	}
 	
-	@Override
-    protected void onPause() {
-		super.onPause();
-    }
-	
 	private List<GPS> getGPSListFromDB(){
 		List<GPS> dbGPSList = new ArrayList<GPS>();		
 		switch(mType){
@@ -1001,12 +998,14 @@ public class AddObjectActivity extends Activity {
 			case AddObjectActivity.ADD_CEMETERY:
 				Cemetery cemetery = DB.dao(Cemetery.class).queryForId(mId);
 				saveGPSCemetery(cemetery, gpsList);
+				cemetery.IsChanged = 1;
 				cemetery.IsGPSChanged = 1;
 				DB.dao(Cemetery.class).update(cemetery);
 				break;
 			case AddObjectActivity.ADD_REGION:
 				Region region = DB.dao(Region.class).queryForId(mId);
 				saveGPSRegion(region, gpsList);
+				region.IsChanged = 1;
 				region.IsGPSChanged = 1;
 				DB.dao(Region.class).update(region);
 				break;		
@@ -1040,11 +1039,13 @@ public class AddObjectActivity extends Activity {
 			}
 			gpsCemetery.Latitude = gps.Latitude;
 			gpsCemetery.Longitude = gps.Longitude;
+			gpsCemetery.OrdinalNumber = gps.OrdinalNumber;
 			gpsCemetery.Cemetery = cemetery;
 			DB.dao(GPSCemetery.class).create(gpsCemetery);
 		}
 	}
-	private void saveGPSRegion(Region region, List<GPS> gpsList){
+	
+    private void saveGPSRegion(Region region, List<GPS> gpsList){
 		List<GPSRegion> deletedGPS = DB.dao(GPSRegion.class).queryForEq("Region_id", region.Id);
 		DB.dao(GPSRegion.class).delete(deletedGPS);
 		for(GPS gps : gpsList){
@@ -1054,6 +1055,7 @@ public class AddObjectActivity extends Activity {
 			}
 			gpsRegion.Latitude = gps.Latitude;
 			gpsRegion.Longitude = gps.Longitude;
+			gpsRegion.OrdinalNumber = gps.OrdinalNumber;
 			gpsRegion.Region = region;
 			DB.dao(GPSRegion.class).create(gpsRegion);
 		}
@@ -1139,10 +1141,14 @@ public class AddObjectActivity extends Activity {
 	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+	    if(resultCode != RESULT_OK && requestCode == ADD_GPS_ACTIVITY_REQUEST_CODE){
+	        mIsStoreGPS = false;
+	    }
 	    if (resultCode == RESULT_OK) {
 	        switch (requestCode) {
 	        case ADD_GPS_ACTIVITY_REQUEST_CODE:
-	            mGPSListString = data.getStringExtra(AddGPSActivity.GPS_LIST_KEY);	            
+	            mGPSListString = data.getStringExtra(AddGPSActivity.GPS_LIST_KEY);
+	            mIsStoreGPS = true;
 	            break;	
 	        case PlaceSearchActivity.PLACE_SEARCH_REQUESTCODE:
 	        	String oldPlaceName = data.getStringExtra(PlaceSearchActivity.EXTRA_PLACE_OLDNAME);
@@ -1153,6 +1159,14 @@ public class AddObjectActivity extends Activity {
 	        	break;
 	        }
 	    }
+	}
+	
+	@Override
+	public void onBackPressed() {
+	    if(mIsStoreGPS){
+	        saveGPSToDB(mGPSListString);
+	    }
+	    super.onBackPressed();
 	}
 
 }

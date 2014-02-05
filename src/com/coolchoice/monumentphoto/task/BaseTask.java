@@ -392,6 +392,33 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         return cemeteryList;
 	}
 	
+	protected String createGPSCemeteryJSON(Cemetery cemetery){
+        StringBuilder sbJSON = new StringBuilder();
+        String delimeter = ", "; 
+        sbJSON.append("[");
+        String template = "{\"pk\": %s, \"model\": \"burials.cemeterycoordinates\", \"fields\": {\"lat\": %s, \"lng\": %s, \"angle_number\": %s, \"cemetery\": %s}}";        
+        for(GPSCemetery gps : cemetery.GPSCemeteryList){
+            String idString, cemeteryString, latString, lngString, angleNumberString;
+            idString = cemeteryString = latString = lngString = angleNumberString = "null";
+            if(gps.ServerId > 0){
+                idString = Integer.toString(gps.ServerId);
+            }
+            if(cemetery.ServerId > 0){
+                cemeteryString = Integer.toString(cemetery.ServerId);
+            }
+            angleNumberString = Integer.toString(gps.OrdinalNumber);
+            latString = Double.toString(gps.Latitude);
+            lngString = Double.toString(gps.Longitude);                        
+            sbJSON.append(String.format(template, idString, latString, lngString, angleNumberString, cemeteryString));
+            sbJSON.append(delimeter);
+        }
+        if(cemetery.GPSCemeteryList.size() > 0){
+            sbJSON.delete(sbJSON.length() - delimeter.length(), sbJSON.length());
+        }
+        sbJSON.append("]");
+        return sbJSON.toString();        
+    }
+	
 	public void handleResponseGetCemeteryJSON(String cemeteryJSON) throws Exception {    	
         ArrayList<Cemetery> cemeteryList = parseCemeteryJSON(cemeteryJSON);
         RuntimeExceptionDao<Cemetery, Integer> dao = DB.dao(Cemetery.class);
@@ -494,6 +521,33 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         }
         return regionList;
 	}
+	
+	protected String createGPSRegionJSON(Region region){
+        StringBuilder sbJSON = new StringBuilder();
+        String delimeter = ", "; 
+        sbJSON.append("[");
+        String template = "{\"pk\": %s, \"model\": \"burials.areacoordinates\", \"fields\": {\"lat\": %s, \"lng\": %s, \"angle_number\": %s, \"area\": %s}}";        
+        for(GPSRegion gps : region.GPSRegionList){
+            String idString, regionString, latString, lngString, angleNumberString;
+            idString = regionString = latString = lngString = angleNumberString = "null";
+            if(gps.ServerId > 0){
+                idString = Integer.toString(gps.ServerId);
+            }
+            if(region.ServerId > 0){
+                regionString = Integer.toString(region.ServerId);
+            }
+            angleNumberString = Integer.toString(gps.OrdinalNumber);
+            latString = Double.toString(gps.Latitude);
+            lngString = Double.toString(gps.Longitude);                        
+            sbJSON.append(String.format(template, idString, latString, lngString, angleNumberString, regionString));
+            sbJSON.append(delimeter);
+        }
+        if(region.GPSRegionList.size() > 0){
+            sbJSON.delete(sbJSON.length() - delimeter.length(), sbJSON.length());
+        }
+        sbJSON.append("]");
+        return sbJSON.toString();        
+    }
 	
 	public void handleResponseGetRegionJSON(String regionJSON, int cemeteryServerId, Date syncDate) throws Exception {	
 		ArrayList<Region> regionList = parseRegionJSON(regionJSON);

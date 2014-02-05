@@ -70,13 +70,17 @@ public class UploadCemeteryTask extends BaseTask {
     		processedCount++;
             try {
             	checkIsCancelTask();
-            	for(GPSCemetery gps : cem.GPSCemeteryList){
-            		DB.dao(GPSCemetery.class).refresh(gps);
-            	}
+            	String gpsJSON = "";
+            	if(cem.IsGPSChanged != 0) {
+            	    for(GPSCemetery gps : cem.GPSCemeteryList){
+                        DB.dao(GPSCemetery.class).refresh(gps);
+                    }
+            	    gpsJSON = createGPSCemeteryJSON(cem);
+            	}            	
             	Dictionary<String, String> dictPostData = new Hashtable<String, String>();
             	dictPostData.put("cemeteryId", Integer.toString(cem.ServerId));
             	dictPostData.put("cemeteryName", cem.Name);
-            	dictPostData.put("gps", "");
+            	dictPostData.put("gps", gpsJSON);
             	String responseString = postData(params[0], dictPostData);
             	if(responseString != null){
             		handleResponseUploadCemeteryJSON(responseString);            		
@@ -99,6 +103,7 @@ public class UploadCemeteryTask extends BaseTask {
             if(isSuccessUpload){
 	            DB.dao(Cemetery.class).refresh(cem);
 	            cem.IsChanged = 0;
+	            cem.IsGPSChanged = 0;
 	            DB.dao(Cemetery.class).update(cem);
             }
             result.setUploadCountSuccess(successCount);

@@ -19,7 +19,10 @@ import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
+import android.location.Criteria;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -51,7 +54,7 @@ import ru.yandex.yandexmapkit.utils.GeoPoint;
 
 
 
-public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyLocationListener, OnRemoveOverlayItem {
+public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyLocationListener, OnRemoveOverlayItem, LocationListener {
     
 	private MapView mMapView;
     private MapController mMapController;
@@ -72,6 +75,8 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
     int offsetX = 0;
     int offsetY = 0;
     
+    private LocationManager locationManager;
+    
     public static final String SLIDING_DRAWER_KEY = "sliding_drawer_key";
     public static final String GPS_LIST_KEY = "gps_list_key";
     public static boolean mIsSlidingDrawerOpen = false;
@@ -82,10 +87,24 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
         int offsetX = (int)(-7 * density);
         int offsetY = (int)(20 * density); 
     }
+    
+    @Override
+    public void onResume(){
+        super.onResume();
+        /*this.locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
+        this.locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);*/
+    }
+    
+    @Override
+    protected void onPause() {
+        super.onPause();
+        this.locationManager.removeUpdates(this);
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-    	super.onCreate(savedInstanceState);
+    	super.onCreate(savedInstanceState);    	
+    	this.locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);    	
     	this.mType = getIntent().getIntExtra(AddObjectActivity.EXTRA_TYPE, 0);
     	this.mId = getIntent().getIntExtra(AddObjectActivity.EXTRA_ID, 0);
         initializeOffsetForDrag();
@@ -173,43 +192,50 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
     
     @Override
     public void onMyLocationChange(final MyLocationItem myLocationItem) {
-    	if(myLocationItem.getType() == MyLocationItem.GPS){
-    		runOnUiThread(new Runnable() {
-	            @Override
-	            public void run() {
-	            	if(mWaitGPSHandler.isFindNewGPS()){
-	            		GPS gps = new GPS();
-						gps.Latitude = myLocationItem.getGeoPoint().getLat();
-						gps.Longitude = myLocationItem.getGeoPoint().getLon();
-						int nextOrdinalNumberGPS = mGPSList.size() + 1;
-						boolean isExistSuchGPS = false;
-						for(GPS g : mGPSList){
-							if(g.Latitude == gps.Latitude && g.Longitude == gps.Longitude){
-								isExistSuchGPS = true;
-							}
-							if(g.OrdinalNumber >= nextOrdinalNumberGPS){
-								nextOrdinalNumberGPS = g.OrdinalNumber + 1;
-							}
-						}
-						gps.OrdinalNumber = nextOrdinalNumberGPS;
-						if(!isExistSuchGPS){
-							addGPS(gps);
-							mMapController.setPositionAnimationTo(myLocationItem.getGeoPoint());
-						} else {
-							Toast.makeText(AddGPSActivity.this, "Полученная GPS координата уже была добавлена", Toast.LENGTH_LONG ).show();
-						}						
-	        		}	            	                
-	            }			
-				
-	        });
-    	}
-        
+        if(myLocationItem.getType() == MyLocationItem.GPS){
+            handleNewLocation(myLocationItem);
+        }
     }
     
     @Override
-    public void onResume(){
-    	super.onResume();    	
+    public void onLocationChanged(Location location) {
+        GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());        
+        MyLocationItem myLocationItem = new MyLocationItem(geoPoint, this.getResources().getDrawable(R.drawable.ymk_find_me_drawable));        
+        handleNewLocation(myLocationItem);
     }
+    
+    private void handleNewLocation(final MyLocationItem myLocationItem){        
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if(mWaitGPSHandler.isFindNewGPS()){
+                    GPS gps = new GPS();
+                    gps.Latitude = myLocationItem.getGeoPoint().getLat();
+                    gps.Longitude = myLocationItem.getGeoPoint().getLon();
+                    int nextOrdinalNumberGPS = mGPSList.size() + 1;
+                    boolean isExistSuchGPS = false;
+                    for(GPS g : mGPSList){
+                        if(g.Latitude == gps.Latitude && g.Longitude == gps.Longitude){
+                            isExistSuchGPS = true;
+                        }
+                        if(g.OrdinalNumber >= nextOrdinalNumberGPS){
+                            nextOrdinalNumberGPS = g.OrdinalNumber + 1;
+                        }
+                    }
+                    gps.OrdinalNumber = nextOrdinalNumberGPS;
+                    if(!isExistSuchGPS){
+                        addGPS(gps);
+                        mMapController.setPositionAnimationTo(myLocationItem.getGeoPoint());
+                    } else {
+                        Toast.makeText(AddGPSActivity.this, "Полученная GPS координата уже была добавлена", Toast.LENGTH_LONG ).show();
+                    }                       
+                }                                   
+            }           
+            
+        });        
+    }
+    
+    
     
     @Override
 	protected void onDestroy(){
@@ -499,5 +525,23 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
 		}
 		
 				
-	}	
+	}
+
+    @Override
+    public void onProviderDisabled(String provider) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+        // TODO Auto-generated method stub
+        
+    }	
 }

@@ -74,14 +74,18 @@ public class UploadRegionTask extends BaseTask {
     		isSuccessUpload = false;
             try {
             	checkIsCancelTask();
-            	for(GPSRegion gps : region.GPSRegionList){
-            		DB.dao(GPSRegion.class).refresh(gps);
-            	}
+            	String gpsJSON = "";
+                if(region.IsGPSChanged != 0) {
+                    for(GPSRegion gps : region.GPSRegionList){
+                        DB.dao(GPSRegion.class).refresh(gps);
+                    }
+                    gpsJSON = createGPSRegionJSON(region);
+                }  
             	Dictionary<String, String> dictPostData = new Hashtable<String, String>();
             	dictPostData.put("cemeteryId", Integer.toString(region.Cemetery.ServerId));
             	dictPostData.put("areaId", Integer.toString(region.ServerId));
             	dictPostData.put("areaName", region.Name);
-            	dictPostData.put("gps", "");
+            	dictPostData.put("gps", gpsJSON);
             	String responseString = postData(params[0], dictPostData);
             	if(responseString != null){
             		handleResponseUploadRegionJSON(responseString);       		
@@ -104,6 +108,7 @@ public class UploadRegionTask extends BaseTask {
             if(isSuccessUpload){
 	            DB.dao(Region.class).refresh(region);
 	            region.IsChanged = 0;
+	            region.IsGPSChanged = 0;
 	            DB.dao(Region.class).update(region);
             }
             result.setUploadCountSuccess(successCount);
