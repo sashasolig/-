@@ -107,7 +107,7 @@
         		android:singleLine="false"
         		android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:text="ФИО: Дата захоранения:"
+                android:text="ФИО: Дата захоронения:"
                 android:textSize="@dimen/header_text_size"
                 android:background="@drawable/border" />
 

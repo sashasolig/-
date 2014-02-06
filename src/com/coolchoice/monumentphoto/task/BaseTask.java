@@ -1022,9 +1022,15 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	burial.ServerId = jsonObj.getInt("pk");
         	JSONObject fields = jsonObj.getJSONObject("fields");
         	burial.ParentServerId = fields.getInt("grave");
+        	String containerString = fields.getString("burial_container");
+        	try{
+        	    burial.ContainerType = Burial.ContainerTypeEnum.getEnum(containerString);
+        	} catch(Exception exc){
+        	    burial.ContainerType = null;
+        	}
         	try {
         		burial.DeadManId = fields.getInt("deadman");
-        	}catch(Exception exc){
+        	} catch(Exception exc){
         		burial.DeadManId = BaseDTO.INT_NULL_VALUE;
         	}
         	String factDateString = fields.getString("fact_date");

@@ -1623,9 +1623,10 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 			for(int i = 0; i < burials.size(); i++){
 				Burial burial = burials.get(i);
 				burial.toUpperFirstCharacterInFIO();
-				String fio = String.format("ФИО: <u>%s %s %s</u>   Дата захоронения: <u>%s</u>", (burial.LName != null) ? burial.LName : "", 
+				String fio = String.format("ФИО: <u>%s %s %s</u>    Дата захоронения: <u>%s</u>   Тип захоронения:<u>%s</u>", (burial.LName != null) ? burial.LName : "", 
 						(burial.FName != null) ? burial.FName : "", (burial.MName != null ) ? burial.MName : "",
-								 (burial.FactDate != null) ? android.text.format.DateFormat.format("dd.MM.yyyy", burial.FactDate) : "");
+								 (burial.FactDate != null) ? android.text.format.DateFormat.format("dd.MM.yyyy", burial.FactDate) : "",
+								 (burial.ContainerType != null ? burial.ContainerType.toString() : ""));
 				sb.append(fio);
 				if(i < (burials.size() - 1)){
 					sb.append("<br/>");

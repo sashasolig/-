@@ -2,11 +2,35 @@ package com.coolchoice.monumentphoto.data;
 
 import java.util.Date;
 
+import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable
 public class Burial extends BaseDTO {
+    
+    public enum ContainerTypeEnum {
+        CONTAINER_COFFIN("Гроб"),
+        CONTAINER_URN("Урна"),
+        CONTAINER_ASH("Прах"),
+        CONTAINER_BIO("Биоотходы"); 
+        String value;
+        ContainerTypeEnum(String s) {
+            value = s;
+        }
+        
+        public static ContainerTypeEnum getEnum(String value) {
+            if(value == null){
+                return null;
+            }
+            return ContainerTypeEnum.valueOf(value.toUpperCase());
+        }
+        
+        @Override
+        public String toString(){
+            return this.value;
+        }
+    }
 	
 	@DatabaseField(foreign = true, foreignAutoRefresh = false, index = true)
 	public Grave Grave;
@@ -25,6 +49,9 @@ public class Burial extends BaseDTO {
 	
 	@DatabaseField
 	public long DeadManId;
+	
+	@DatabaseField(dataType = DataType.ENUM_INTEGER)
+    public ContainerTypeEnum ContainerType;
 	
 	public void toLowerCaseFIO(){
 		if(this.FName != null){
@@ -60,6 +87,6 @@ public class Burial extends BaseDTO {
 				this.MName = this.MName.substring(0, 1).toUpperCase() + this.MName.substring(1);
 			}
 		}
-	}
-
+	}	
+	
 }

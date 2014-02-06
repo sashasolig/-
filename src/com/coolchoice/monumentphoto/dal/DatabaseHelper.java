@@ -35,8 +35,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	
     private final String LOG_TAG = getClass().getSimpleName();
     
-    public static final String DATABASE_NAME = "/mnt/sdcard/monument.db";
-    //public static final String DATABASE_NAME = "monument.db";
+    //public static final String DATABASE_NAME = "/mnt/sdcard/monument.db";
+    public static final String DATABASE_NAME = "monument.db";
     
     public static final int DATABASE_VERSION = 7;
     
@@ -196,6 +196,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     private void migrateDBFromVer6ToLast(SQLiteDatabase db, ConnectionSource connectionSource){
     	db.beginTransaction();
         try {
+            db.execSQL("alter table burial add column ContainerType INTEGER;");
+            
         	db.execSQL("alter table gpscemetery add column OrdinalNumber INTEGER;");
         	db.execSQL("alter table gpscemetery add column ServerId INTEGER;");
         	db.execSQL("alter table gpsregion add column OrdinalNumber INTEGER;");
@@ -221,13 +223,6 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         	db.setTransactionSuccessful();               
         } finally {
             db.endTransaction();
-        }
-        
-        RuntimeExceptionDao<Burial, Integer> burialDAO = DB.dao(Burial.class);
-        List<Burial> burials = burialDAO.queryForAll();
-        for(Burial b : burials){
-        	b.toLowerCaseFIO();
-        	burialDAO.update(b);
         }
     }
     
