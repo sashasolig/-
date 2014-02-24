@@ -1423,7 +1423,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
     }
 
 	//make photo
-	private Button btnMakePhoto, btnDeletePhoto, btnSendPhoto, btnMakePhotoNextGrave, btnMakePhotoNextPlace;
+	private Button btnMakePhoto, btnMakePhotoNextGrave, btnMakePhotoNextPlace;
 	
 	private GridView gridPhotos;
 	
@@ -1457,9 +1457,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		this.cbIsGraveMilitary = (CheckBox) contentView.findViewById(R.id.cb_grave_is_military);
 		this.cbIsGraveWrongFIO = (CheckBox) contentView.findViewById(R.id.cb_grave_is_wrong_fio);
 		this.tvPersons = (TextView) contentView.findViewById(R.id.tvPersons);
-		this.btnDeletePhoto = (Button) contentView.findViewById(R.id.btnDeletePhoto);
-        this.btnMakePhoto = (Button) contentView.findViewById(R.id.btnMakePhoto);
-        this.btnSendPhoto = (Button) contentView.findViewById(R.id.btnSend);
+		this.btnMakePhoto = (Button) contentView.findViewById(R.id.btnMakePhoto);
         this.btnMakePhotoNextGrave = (Button) contentView.findViewById(R.id.btnMakePhotoNextGrave);
         this.btnMakePhotoNextPlace = (Button) contentView.findViewById(R.id.btnMakePhotoNextPlace);
         this.gridPhotos = (GridView) contentView.findViewById(R.id.gvPhotos);
@@ -1600,9 +1598,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 			@Override
 			public boolean onItemLongClick(AdapterView<?> parent, View v, int position, long id) {
 				gridPhotoItems.get(position).setChecked(!gridPhotoItems.get(position).isChecked());
-				((BaseAdapter)gridPhotos.getAdapter()).notifyDataSetChanged();
-				btnDeletePhoto.setEnabled(mPhotoGridAdapter.isChoosePhoto());
-				btnSendPhoto.setEnabled(mPhotoGridAdapter.isChoosePhoto());
+				((BaseAdapter)gridPhotos.getAdapter()).notifyDataSetChanged();				
 				MenuItem actionRemoveMenuItem = BrowserCemeteryActivity.this.mOptionsMenu.findItem(R.id.action_remove);
 				actionRemoveMenuItem.setEnabled(mPhotoGridAdapter.isChoosePhoto());
 				return true;
@@ -1640,12 +1636,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 			}
 		} catch (SQLException e) {
 			this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
-		}
-		
-		
-        
-        this.btnDeletePhoto.setEnabled(this.mPhotoGridAdapter.isChoosePhoto());
-        this.btnSendPhoto.setEnabled(this.mPhotoGridAdapter.isChoosePhoto());
+		}		
         if(BrowserCemeteryActivity.this.mOptionsMenu != null){
         	MenuItem actionRemoveMenuItem = BrowserCemeteryActivity.this.mOptionsMenu.findItem(R.id.action_remove);
         	actionRemoveMenuItem.setEnabled(mPhotoGridAdapter.isChoosePhoto());
@@ -1664,11 +1655,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		}
 		gridPhotoItems.removeAll(deletedItems);
 		((BaseAdapter)gridPhotos.getAdapter()).notifyDataSetChanged();
-		btnDeletePhoto.setEnabled(mPhotoGridAdapter.isChoosePhoto());
 		MenuItem actionRemoveMenuItem = BrowserCemeteryActivity.this.mOptionsMenu.findItem(R.id.action_remove);
-		actionRemoveMenuItem.setEnabled(mPhotoGridAdapter.isChoosePhoto());
-		btnSendPhoto.setEnabled(mPhotoGridAdapter.isChoosePhoto());	
-		
+		actionRemoveMenuItem.setEnabled(mPhotoGridAdapter.isChoosePhoto());		
 	}
 	
 	private void makePhotoCurrentGrave(){

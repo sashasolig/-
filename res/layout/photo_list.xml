@@ -42,35 +42,6 @@
         
     </LinearLayout>
     
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingLeft="15dp"
-        android:paddingRight="15dp"
-        android:paddingTop="15dp"
-        android:visibility="gone" >        
-        <Button
-            android:id="@+id/btnDeletePhoto"
-            android:layout_width="0dp"
-            android:layout_height="fill_parent"
-            android:layout_weight="1"
-            android:drawableTop="@android:drawable/ic_menu_delete"
-            android:text="Удалить фото"
-            android:layout_margin="2dp" />
-        
-        <Button
-            android:id="@+id/btnSend"
-            android:layout_width="0dp"
-            android:layout_height="fill_parent"
-            android:layout_weight="1"
-            android:drawableTop="@android:drawable/ic_menu_send"
-            android:text="Отправить фото" 
-            android:layout_margin="2dp"/>
-        
-        
-    </LinearLayout>
-    
     <LinearLayout android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
