@@ -144,12 +144,14 @@ public class ComplexGrave {
 				return null;
 			}
 		}
-		dir = new File(dir, this.Grave.Name);
-		if(!dir.exists()){
-			if(!dir.mkdirs()){
-				return null;
-			}
-		}		
+		if(this.Grave != null){
+    		dir = new File(dir, this.Grave.Name);
+    		if(!dir.exists()){
+    			if(!dir.mkdirs()){
+    				return null;
+    			}
+    		}
+		}
 		String timeValue = String.valueOf(System.currentTimeMillis());
 		File newFile = new File(dir.getPath() + File.separator + timeValue	+ ".jpg");
 		return Uri.fromFile(newFile);

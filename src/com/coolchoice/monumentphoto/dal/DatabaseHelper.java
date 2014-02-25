@@ -24,6 +24,7 @@ import com.coolchoice.monumentphoto.data.GPSRow;
 import com.coolchoice.monumentphoto.data.Grave;
 import com.coolchoice.monumentphoto.data.GravePhoto;
 import com.coolchoice.monumentphoto.data.Place;
+import com.coolchoice.monumentphoto.data.PlacePhoto;
 import com.coolchoice.monumentphoto.data.Region;
 import com.coolchoice.monumentphoto.data.Row;
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
@@ -35,10 +36,10 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	
     private final String LOG_TAG = getClass().getSimpleName();
     
-    //public static final String DATABASE_NAME = "/mnt/sdcard/monument.db";
-    public static final String DATABASE_NAME = "monument.db";
+    public static final String DATABASE_NAME = "/mnt/sdcard/monument.db";
+    //public static final String DATABASE_NAME = "monument.db";
     
-    public static final int DATABASE_VERSION = 7;
+    public static final int DATABASE_VERSION = 8;
     
     private Context context;
 
@@ -54,6 +55,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         entityClassesArray.add(Place.class);
         entityClassesArray.add(Grave.class);
         entityClassesArray.add(GravePhoto.class);
+        entityClassesArray.add(PlacePhoto.class);
         entityClassesArray.add(Burial.class);
         entityClassesArray.add(GPSCemetery.class);
         entityClassesArray.add(GPSRegion.class);
@@ -112,8 +114,11 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	    		migrateDBFromVer5ToLast(db, connectionSource);
 	    		break;
 	    	case 6:
-	    		migrateDBFromVer6ToLast(db, connectionSource);
+	    		migrateDBFromVer6ToLast(db, connectionSource);	    		
 	    		break;
+	    	case 7:
+                migrateDBFromVer7ToLast(db, connectionSource);
+                break;
 	    	
     	}
     	
@@ -221,6 +226,21 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         	db.execSQL("delete from gpsgrave;");
         	
         	db.setTransactionSuccessful();               
+        } finally {
+            db.endTransaction();
+        }
+        migrateDBFromVer7ToLast(db, connectionSource);
+    }
+    
+    private void migrateDBFromVer7ToLast(SQLiteDatabase db, ConnectionSource connectionSource){
+        db.beginTransaction();
+        try {               
+            TableUtils.createTable(connectionSource, PlacePhoto.class);
+            db.execSQL("alter table place add column MilitaryDate VARCHAR;");
+            db.execSQL("alter table place add column WrongFIODate VARCHAR;");
+            db.setTransactionSuccessful();                
+        } catch (SQLException e) {
+            e.printStackTrace();
         } finally {
             db.endTransaction();
         }

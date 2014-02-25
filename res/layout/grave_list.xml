@@ -4,18 +4,129 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <LinearLayout 
-    	android:layout_width="match_parent"
-    	android:layout_height="wrap_content"
-    	android:orientation="horizontal"
-    	android:layout_margin="10dp" >
-	    <Button
-	        android:id="@+id/btnAddGrave"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:text="Добавить могилу"
-	        android:drawableBottom="@android:drawable/ic_menu_add" />
-	</LinearLayout>    
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingTop="15dp" >
+
+        <Button
+            android:id="@+id/btnAddGrave"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:drawableTop="@android:drawable/ic_menu_add"
+            android:text="Добавить место" />
+
+        <Button
+            android:id="@+id/btnMakePhoto"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:drawableTop="@android:drawable/ic_menu_camera"
+            android:text="Cделать фото" />
+
+        <Button
+            android:id="@+id/btnMakePhotoNextPlace"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_margin="2dp"
+            android:layout_weight="1"
+            android:drawableTop="@android:drawable/ic_menu_camera"
+            android:text="Сделать фото следующего места" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:layout_marginLeft="10dp"
+        android:orientation="horizontal" >
+
+        <CheckBox
+            android:id="@+id/cbIsOwnerLess"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cb_place_is_ownerless"
+            android:textSize="@dimen/header_text_size" />
+
+        <CheckBox
+            android:id="@+id/cb_grave_is_wrong_fio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:text="@string/cb_grave_is_wrong_fio"
+            android:textSize="@dimen/header_text_size" />
+
+        <CheckBox
+            android:id="@+id/cb_grave_is_military"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:text="@string/cb_grave_is_military"
+            android:textSize="@dimen/header_text_size" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llPlaceSize"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:layout_marginLeft="10dp"
+        android:orientation="horizontal" >
+
+        <TextView
+            android:id="@+id/tvPlaceWidth"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:text="Ширина:"
+            android:textSize="@dimen/header_text_size" />
+
+        <EditText
+            android:id="@+id/etPlaceWidth"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:ems="30"
+            android:inputType="number|numberDecimal"
+            android:maxLength="8"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvPlaceLength"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:text="Длина:"
+            android:textSize="@dimen/header_text_size" />
+
+        <EditText
+            android:id="@+id/etPlaceLength"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:ems="30"
+            android:inputType="number|numberDecimal"
+            android:maxLength="8"
+            android:textStyle="bold" />
+        
+        <TextView
+            android:id="@+id/tvPlaceResponsiblePersonTitle"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:text="Ответственный:"
+            android:textSize="@dimen/header_text_size" />
+        
+        <TextView
+            android:id="@+id/tvPlaceResponsiblePerson"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ФИО. Телефон. Адрес."
+            android:textSize="@dimen/header_text_size" />
+        
+    </LinearLayout>
 
     <GridView
         android:id="@+id/gvGraves"
@@ -29,5 +140,17 @@
         android:stretchMode="columnWidth"
         android:fadeScrollbars="false"  >
     </GridView>
+    
+    <GridView        
+        android:id="@+id/gvPhotos"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:columnWidth="140dp"
+        android:gravity="center_vertical|center_horizontal"
+        android:numColumns="auto_fit"
+        android:stretchMode="columnWidth"
+        android:verticalSpacing="3dp"
+        android:horizontalSpacing="3dp"        
+        android:fadeScrollbars="false" />
 
 </LinearLayout>

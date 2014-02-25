@@ -1,6 +1,7 @@
 package com.coolchoice.monumentphoto.data;
 
 import java.util.Collection;
+import java.util.Date;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
@@ -10,6 +11,12 @@ import com.j256.ormlite.table.DatabaseTable;
 public class Place extends BaseDTO {
 	
 	public static final String IsOwnerLessColumnName = "IsOwnerLess";
+	
+	@DatabaseField
+    public Date MilitaryDate;
+
+    @DatabaseField
+    public Date WrongFIODate;
 	
 	@DatabaseField
 	public Double Width;
@@ -31,6 +38,14 @@ public class Place extends BaseDTO {
 	
 	@ForeignCollectionField
 	public Collection<GPSPlace> GPSPlaceList;
+	
+	public boolean isMilitary(){
+	    return this.MilitaryDate != null ? true : false;
+	}
+
+    public boolean isWrongFIO(){
+        return this.WrongFIODate != null ? true : false;
+    }
 	
 	public Place createClone(){
 		Place newPlace = new Place();
