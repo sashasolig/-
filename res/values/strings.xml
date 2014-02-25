@@ -11,9 +11,13 @@
     <string name="place_search_activity">Поиск старого места по фамилии</string>
     
     
-    <string name="cb_place_is_ownerless">  Бесхозное место</string>
+    <string name="cb_place_is_ownerless">  Заброшенное место</string>
     <string name="cb_grave_is_wrong_fio">  ФИО не совпадает</string>
     <string name="cb_grave_is_military">  Воинская могила</string>
+    <string name="cb_place_is_size_violated">  Нарушения размеров</string>
+    <string name="cb_place_is_unindentified">  Неопознанное</string>
+    
+    
     
     <string name="turnOnGPSQuestion">Для корректной работы программы вам необходимо включить GPS. Включить GPS?</string>
     <string name="yes">Да</string>

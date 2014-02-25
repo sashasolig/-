@@ -13,6 +13,15 @@ public class Place extends BaseDTO {
 	public static final String IsOwnerLessColumnName = "IsOwnerLess";
 	
 	@DatabaseField
+    public Date SizeViolatedDate;
+
+    @DatabaseField
+    public Date UnindentifiedDate;
+    
+    @DatabaseField
+    public Date UnownedDate;
+	
+	@DatabaseField
     public Date MilitaryDate;
 
     @DatabaseField
@@ -38,6 +47,21 @@ public class Place extends BaseDTO {
 	
 	@ForeignCollectionField
 	public Collection<GPSPlace> GPSPlaceList;
+	
+	@ForeignCollectionField
+    public Collection<PlacePhoto> Photos;
+	
+	public boolean isSizeViolated(){
+        return this.SizeViolatedDate != null ? true : false;
+    }
+
+    public boolean isUnindentified(){
+        return this.UnindentifiedDate != null ? true : false;
+    }
+    
+    public boolean isUnowned(){
+        return this.UnownedDate != null ? true : false;
+    }    
 	
 	public boolean isMilitary(){
 	    return this.MilitaryDate != null ? true : false;

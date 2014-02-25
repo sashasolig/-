@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -176,14 +178,30 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	    alert.setPositiveButton(getString(R.string.yes), new DialogInterface.OnClickListener() {
 	        public void onClick(DialogInterface dialog, int whichButton) {
 	            String value = etOldPlaceInAlert.getText().toString().trim();
-	            makeGravePhotoNextPlace(value);
+	            switch (mMakePhotoType) {               
+                case GRAVEPHOTO_NEXTPLACE:
+                    makeGravePhotoNextPlace(value);
+                    break;                
+                case PLACEPHOTO_NEXTPLACE:
+                    makePlacePhotoNextPlace(value);
+                default:
+                    break;
+                }	            
 	            dialog.cancel();
 	        }
 	    });
 
 	    alert.setNegativeButton(getString(R.string.no), new DialogInterface.OnClickListener() {
 	        public void onClick(DialogInterface dialog, int whichButton) {
-	        	makeGravePhotoNextPlace(null);
+	            switch (mMakePhotoType) {               
+                case GRAVEPHOTO_NEXTPLACE:
+                    makeGravePhotoNextPlace(null);
+                    break;                
+                case PLACEPHOTO_NEXTPLACE:
+                    makePlacePhotoNextPlace(null);
+                default:
+                    break;
+	            }
 	            dialog.cancel();
 	        }
 	    });
@@ -1147,9 +1165,9 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                 mMakePhotoType = PHOTOTYPE.PLACEPHOTO_CURRENT;
                 if(isMayMakePhoto()){
                     if(Settings.IsOldPlaceNameOption(BrowserCemeteryActivity.this)){
-                        //enterOldPlaceName();
+                        enterOldPlaceName();
                     } else {
-                        //makePhotoNextPlace(null);
+                        makePlacePhotoNextPlace(null);
                     }
                 }
                 
@@ -1290,6 +1308,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
         } else {
             this.etPlaceLength.setText("");
         }
+		updatePhotoGrid();
 		
 	}
 	
@@ -1890,90 +1909,28 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		ComplexGrave complexGrave = new ComplexGrave();
 		complexGrave.loadByGraveId(grave.Id);
 		
-		String nextPlaceName = nextString(complexGrave.Place.Name);
-		Place nextPlace = new Place();
-		nextPlace.Name = nextPlaceName;
-		nextPlace.Row = complexGrave.Row;
-		nextPlace.Region = complexGrave.Region;
-		nextPlace.IsChanged = 1;
-		Grave nextGrave = new Grave();
-		nextGrave.Name = "1";
-		nextGrave.Place = nextPlace;
-		nextGrave.IsChanged = 1;
-		
+		Place nextPlace = null;
+		Grave nextGrave = null;		
 		RuntimeExceptionDao<Place, Integer> placeDAO = DB.dao(Place.class);
 		RuntimeExceptionDao<Grave, Integer> graveDAO = DB.dao(Grave.class);
-		List<Place> findedPlaces = null;
-		boolean isFindByOldName = false;
-		try{
-			if(complexGrave.Row != null){
-				QueryBuilder<Place, Integer> placeBuilder = placeDAO.queryBuilder();
-				if(filterOldPlaceName != null && filterOldPlaceName != ""){
-					placeBuilder.where().eq("Name", filterOldPlaceName).and().eq("Row_id", complexGrave.Row.Id);
-					findedPlaces = placeDAO.query(placeBuilder.prepare());
-					if(findedPlaces.size() > 0 ){
-						isFindByOldName = true;
-					} else {
-						placeBuilder = placeDAO.queryBuilder();
-						placeBuilder.where().eq("OldName", filterOldPlaceName).and().eq("Row_id", complexGrave.Row.Id);
-						findedPlaces = placeDAO.query(placeBuilder.prepare());
-						if(findedPlaces.size() > 0 ){
-							isFindByOldName = true;
-						}
-					}					
-				}
-				if(isFindByOldName == false){
-					placeBuilder = placeDAO.queryBuilder();
-					placeBuilder.where().eq("Name", nextPlaceName).and().eq("Row_id", complexGrave.Row.Id);
-					findedPlaces = placeDAO.query(placeBuilder.prepare());
-				}
-			} else {
-				QueryBuilder<Place, Integer> placeBuilder = placeDAO.queryBuilder();
-				if(filterOldPlaceName != null && filterOldPlaceName != ""){
-					placeBuilder.where().eq("Name", filterOldPlaceName).and().eq("Region_id", complexGrave.Region.Id);
-					findedPlaces = placeDAO.query(placeBuilder.prepare());
-					if(findedPlaces.size() > 0 ){
-						isFindByOldName = true;
-					} else {
-						placeBuilder = placeDAO.queryBuilder();
-						placeBuilder.where().eq("OldName", filterOldPlaceName).and().eq("Region_id", complexGrave.Region.Id);
-						findedPlaces = placeDAO.query(placeBuilder.prepare());
-						if(findedPlaces.size() > 0 ){
-							isFindByOldName = true;
-						}	
-					}					
-				}
-				if(isFindByOldName == false){
-					placeBuilder = placeDAO.queryBuilder();
-					placeBuilder.where().eq("Name", nextPlaceName).and().eq("Region_id", complexGrave.Region.Id);
-					findedPlaces = placeDAO.query(placeBuilder.prepare());
-				}
-			}					
-			if(findedPlaces != null && findedPlaces.size() > 0){
-				nextPlace = findedPlaces.get(0);
-				if(isFindByOldName){
-					nextPlace.OldName = filterOldPlaceName;
-					nextPlace.Name = nextPlaceName;
-				}
-				else{
-					nextPlace.OldName = filterOldPlaceName;
-				}
-				nextPlace.IsChanged = 1;
-				
-				QueryBuilder<Grave, Integer> graveBuilder = graveDAO.queryBuilder();
-				graveBuilder.orderBy("Name", true).where().eq("Place_id", nextPlace.Id);
-				List<Grave> findedGraves = graveDAO.query(graveBuilder.prepare());
-				if(findedGraves != null && findedGraves.size() > 0){
-					nextGrave = findedGraves.get(0);
-				}
-			} else {
-				if(filterOldPlaceName != null && filterOldPlaceName != ""){
-					nextPlace.OldName = filterOldPlaceName;					
-				}
-			}
-		} catch(SQLException e){
-			this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
-		}
+		nextPlace = getPlaceForMakePhotoInNextPlace(filterOldPlaceName, complexGrave);		
+		List<Grave> findedGraves = null;
+        try {
+            QueryBuilder<Grave, Integer> graveBuilder = graveDAO.queryBuilder();
+            graveBuilder.orderBy("Name", true).where().eq("Place_id", nextPlace.Id);
+            findedGraves = graveDAO.query(graveBuilder.prepare());
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }        
+        if(findedGraves != null && findedGraves.size() > 0){
+            nextGrave = findedGraves.get(0);
+        } else {
+            nextGrave = new Grave();
+            nextGrave.Name = "1";
+            nextGrave.Place = nextPlace;
+            nextGrave.IsChanged = 1;
+        }		
 		nextGrave.Place = nextPlace;
 		placeDAO.createOrUpdate(nextPlace);
 		graveDAO.createOrUpdate(nextGrave);
@@ -1996,6 +1953,114 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 		intent.putExtra(MediaStore.EXTRA_OUTPUT, mUri);
 		startActivityForResult(intent, REQUEST_CODE_PHOTO_INTENT);
+	}
+	
+	private void makePlacePhotoNextPlace(String filterOldPlaceName){
+        Place place = DB.dao(Place.class).queryForId(getIntent().getIntExtra(EXTRA_PLACE_ID, -1));
+        ComplexGrave complexGrave = new ComplexGrave();
+        complexGrave.loadByPlaceId(place.Id);        
+        Place nextPlace = null;        
+        RuntimeExceptionDao<Place, Integer> placeDAO = DB.dao(Place.class);        
+        nextPlace = getPlaceForMakePhotoInNextPlace(filterOldPlaceName, complexGrave);      
+        placeDAO.createOrUpdate(nextPlace);       
+               
+        complexGrave = new ComplexGrave();
+        complexGrave.loadByPlaceId(nextPlace.Id);
+        mPlaceId = nextPlace.Id;       
+        setNewIdInExtras(EXTRA_PLACE_ID, nextPlace.Id);        
+        
+        mUri = generateFileUri(complexGrave);
+        if (mUri == null) {
+            Toast.makeText(BrowserCemeteryActivity.this, "Невозможно сделать фото", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, mUri);
+        startActivityForResult(intent, REQUEST_CODE_PHOTO_INTENT);
+    }
+	
+	private Place getPlaceForMakePhotoInNextPlace(String filterOldPlaceName, ComplexGrave complexGrave){
+	    RuntimeExceptionDao<Place, Integer> placeDAO = DB.dao(Place.class);
+	    String nextPlaceName = nextString(complexGrave.Place.Name);
+        Place nextPlace = new Place();
+        nextPlace.Name = nextPlaceName;
+        nextPlace.Row = complexGrave.Row;
+        nextPlace.Region = complexGrave.Region;
+        nextPlace.IsChanged = 1;
+        
+        List<Place> findedPlaces = null;
+        boolean isFindByOldName = false;
+        try{
+            if(complexGrave.Row != null){
+                QueryBuilder<Place, Integer> placeBuilder = placeDAO.queryBuilder();
+                if(!TextUtils.isEmpty(filterOldPlaceName)){
+                    placeBuilder.where().eq("Name", filterOldPlaceName).and().eq("Row_id", complexGrave.Row.Id);
+                    findedPlaces = placeDAO.query(placeBuilder.prepare());
+                    if(findedPlaces.size() > 0 ){
+                        isFindByOldName = true;
+                    } else {
+                        placeBuilder = placeDAO.queryBuilder();
+                        placeBuilder.where().eq("OldName", filterOldPlaceName).and().eq("Row_id", complexGrave.Row.Id);
+                        findedPlaces = placeDAO.query(placeBuilder.prepare());
+                        if(findedPlaces.size() > 0 ){
+                            isFindByOldName = true;
+                        }
+                    }                   
+                }
+                if(isFindByOldName == false){
+                    placeBuilder = placeDAO.queryBuilder();
+                    placeBuilder.where().eq("Name", nextPlaceName).and().eq("Row_id", complexGrave.Row.Id);
+                    findedPlaces = placeDAO.query(placeBuilder.prepare());
+                }
+            } else {
+                QueryBuilder<Place, Integer> placeBuilder = placeDAO.queryBuilder();
+                if(filterOldPlaceName != null && filterOldPlaceName != ""){
+                    placeBuilder.where().eq("Name", filterOldPlaceName).and().eq("Region_id", complexGrave.Region.Id);
+                    findedPlaces = placeDAO.query(placeBuilder.prepare());
+                    if(findedPlaces.size() > 0 ){
+                        isFindByOldName = true;
+                    } else {
+                        placeBuilder = placeDAO.queryBuilder();
+                        placeBuilder.where().eq("OldName", filterOldPlaceName).and().eq("Region_id", complexGrave.Region.Id);
+                        findedPlaces = placeDAO.query(placeBuilder.prepare());
+                        if(findedPlaces.size() > 0 ){
+                            isFindByOldName = true;
+                        }   
+                    }                   
+                }
+                if(isFindByOldName == false){
+                    placeBuilder = placeDAO.queryBuilder();
+                    placeBuilder.where().eq("Name", nextPlaceName).and().eq("Region_id", complexGrave.Region.Id);
+                    findedPlaces = placeDAO.query(placeBuilder.prepare());
+                }
+            }                   
+            if(findedPlaces != null && findedPlaces.size() > 0){
+                nextPlace = findedPlaces.get(0);
+                if(isFindByOldName){
+                    nextPlace.OldName = filterOldPlaceName;
+                    nextPlace.Name = nextPlaceName;
+                }
+                else{
+                    nextPlace.OldName = filterOldPlaceName;
+                }
+                nextPlace.IsChanged = 1;
+                
+                /*QueryBuilder<Grave, Integer> graveBuilder = graveDAO.queryBuilder();
+                graveBuilder.orderBy("Name", true).where().eq("Place_id", nextPlace.Id);
+                List<Grave> findedGraves = graveDAO.query(graveBuilder.prepare());
+                if(findedGraves != null && findedGraves.size() > 0){
+                    nextGrave = findedGraves.get(0);
+                }*/
+            } else {
+                if(!TextUtils.isEmpty(filterOldPlaceName)){
+                    nextPlace.OldName = filterOldPlaceName;                 
+                }
+            }
+        } catch(SQLException e){
+            this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
+        }        
+	    return nextPlace;	    
 	}
 	
 	public static String nextString(String s){
@@ -2023,35 +2088,81 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	}
 	
 	private void updatePhotoGridItems(){
-		int graveId = getIntent().getIntExtra(EXTRA_GRAVE_ID, -1);
-		Grave grave = DB.dao(Grave.class).queryForId(graveId);
-        boolean isAddImage = true;
-        if(gridPhotoItems.size() > 0){
-        	if(grave.Id != gridPhotoItems.get(0).getGravePhoto().Grave.Id){
-        		gridPhotoItems.clear();        		
-        	}else{
-        		isAddImage = false;
-        	}
+	    Grave grave = null;
+	    Place place = null;
+	    int type = getIntent().getIntExtra(EXTRA_TYPE, -1);
+	    switch (type) {
+        case AddObjectActivity.ADD_PLACE_WITHROW:
+        case AddObjectActivity.ADD_PLACE_WITHOUTROW:
+            int placeId = getIntent().getIntExtra(EXTRA_PLACE_ID, -1);
+            place = DB.dao(Place.class).queryForId(placeId);            
+            break;
+        case AddObjectActivity.ADD_GRAVE_WITHROW:
+        case AddObjectActivity.ADD_GRAVE_WITHOUTROW:
+            int graveId = getIntent().getIntExtra(EXTRA_GRAVE_ID, -1);
+            grave = DB.dao(Grave.class).queryForId(graveId);
+            break;
+        default:
+            break;
         }
+	    boolean isAddImage = true;
         if(isAddImage){
-        	if(grave != null){
-		        for(GravePhoto monumentPhoto : grave.Photos){
+            gridPhotoItems.clear();
+        	if(grave != null){        	    
+		        for(GravePhoto photo : grave.Photos){
 		        	PhotoGridItem item = new PhotoGridItem();
-		        	Uri uri = Uri.parse(monumentPhoto.UriString);
+		        	Uri uri = Uri.parse(photo.UriString);
 		        	item.setPath(uri.getPath());
 		        	item.setChecked(false);
 		        	item.setUri(uri);
 		        	item.setBmp(null);
-		        	item.setGravePhoto(monumentPhoto);
+		        	item.setGravePhoto(photo);
 		        	gridPhotoItems.add(item);
 		        }
         	}
-        } else {
-        	if(grave != null){
-        		for(PhotoGridItem item : gridPhotoItems){
-		        	DB.dao(GravePhoto.class).refresh(item.getGravePhoto());		        	
-		        }
+        	if(place != null){
+        	    ArrayList<Photo> photoList = new ArrayList<Photo>();
+        	    for(PlacePhoto photo : place.Photos){        	        
+                    photoList.add(photo);                    
+        	    }
+        	    List<Grave> graves = DB.dao(Grave.class).queryForEq("Place_id", place.Id);
+        	    for(Grave g : graves){
+        	        DB.dao(Grave.class).refresh(g);
+        	        for(GravePhoto photo : g.Photos){
+        	            photoList.add(photo);
+        	        }
+        	    }
+        	    Collections.sort(photoList, new Comparator<Photo>() {
+                    @Override
+                    public int compare(Photo one, Photo two) {
+                        return one.CreateDate.compareTo(two.CreateDate);
+                    }
+                });        	    
+        	    for(Photo photo : photoList){
+        	        PhotoGridItem item = new PhotoGridItem();
+                    Uri uri = Uri.parse(photo.UriString);
+                    item.setPath(uri.getPath());
+                    item.setChecked(false);
+                    item.setUri(uri);
+                    item.setBmp(null);
+                    if(photo instanceof PlacePhoto){
+                        item.setPlacePhoto((PlacePhoto)photo);
+                    }
+                    if(photo instanceof GravePhoto){
+                        item.setGravePhoto((GravePhoto)photo);
+                    }                   
+                    gridPhotoItems.add(item);
+        	    }
         	}
+        } else {
+        	for(PhotoGridItem item : gridPhotoItems){
+        	    if(item.getGravePhoto() != null){
+        	        DB.dao(GravePhoto.class).refresh(item.getGravePhoto());
+        	    }
+        	    if(item.getPlacePhoto() != null){
+        	        DB.dao(PlacePhoto.class).refresh(item.getPlacePhoto());     
+        	    }
+		    }
         }
 	}
 	
@@ -2407,6 +2518,11 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 			    makePlacePhotoCurrent();
 			    break;
 			case PLACEPHOTO_NEXTPLACE:
+			    if(Settings.IsOldPlaceNameOption(BrowserCemeteryActivity.this)){
+                    enterOldPlaceName();
+                } else {
+                    makePlacePhotoNextPlace(null);
+                }                
 			    break;
 			default:
 				break;

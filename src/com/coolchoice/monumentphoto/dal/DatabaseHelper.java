@@ -2,6 +2,7 @@ package com.coolchoice.monumentphoto.dal;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,7 @@ import com.coolchoice.monumentphoto.data.Region;
 import com.coolchoice.monumentphoto.data.Row;
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
+import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
@@ -238,6 +240,10 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.createTable(connectionSource, PlacePhoto.class);
             db.execSQL("alter table place add column MilitaryDate VARCHAR;");
             db.execSQL("alter table place add column WrongFIODate VARCHAR;");
+            db.execSQL("alter table place add column SizeViolatedDate VARCHAR;");
+            db.execSQL("alter table place add column UnindentifiedDate VARCHAR;");
+            db.execSQL("alter table place add column UnownedDate VARCHAR;");
+                        
             db.setTransactionSuccessful();                
         } catch (SQLException e) {
             e.printStackTrace();

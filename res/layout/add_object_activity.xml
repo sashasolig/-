@@ -216,7 +216,8 @@
 		            android:id="@+id/llPlaceSize"
 		            android:layout_width="fill_parent"
 		            android:layout_height="wrap_content"
-		            android:orientation="horizontal" >            
+		            android:orientation="horizontal"
+		            android:layout_marginTop="5dp" >            
 		            
 		            <TextView
 		                android:id="@+id/tvPlaceWidth"
@@ -247,7 +248,14 @@
 		                android:inputType="number|numberDecimal"
 		                android:maxLength="8"
 		                android:ems="30"
-		                android:textStyle="bold" />		    
+		                android:textStyle="bold" />
+				    
+				    <CheckBox
+			            android:id="@+id/cbIsSizeViolated"
+			            android:layout_width="wrap_content"
+			            android:layout_height="wrap_content"
+			            android:text="@string/cb_place_is_size_violated"
+			            android:textSize="@dimen/header_text_size" />		    
 		
 		            <Button
 		                android:id="@+id/btnFindOldPlace"
@@ -260,13 +268,27 @@
 		                android:text="Старое место"
 		                android:visibility="visible" />
 		        </LinearLayout>
-		
-		        <CheckBox
-		            android:id="@+id/cbIsOwnerLess"
-		            android:layout_width="wrap_content"
+		        
+		        <LinearLayout android:layout_width="wrap_content"
 		            android:layout_height="wrap_content"
-		            android:text="@string/cb_place_is_ownerless"
-		            android:textSize="@dimen/header_text_size" />
+		            android:orientation="horizontal">
+		            <CheckBox
+			            android:id="@+id/cbIsOwnerLess"
+			            android:layout_width="wrap_content"
+			            android:layout_height="wrap_content"
+			            android:text="@string/cb_place_is_ownerless"
+			            android:textSize="@dimen/header_text_size" />
+			        <CheckBox
+			            android:id="@+id/cbIsUnindentified"
+			            android:layout_width="wrap_content"
+			            android:layout_height="wrap_content"
+			            android:layout_marginLeft="5dp"
+			            android:text="@string/cb_place_is_unindentified"
+			            android:textSize="@dimen/header_text_size" />
+		            
+		        </LinearLayout>
+		
+		        
 		    </LinearLayout>
 		    
 		    <LinearLayout

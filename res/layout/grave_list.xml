@@ -53,6 +53,14 @@
             android:layout_height="wrap_content"
             android:text="@string/cb_place_is_ownerless"
             android:textSize="@dimen/header_text_size" />
+        
+        <CheckBox
+            android:id="@+id/cbIsUnindentified"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:text="@string/cb_place_is_unindentified"
+            android:textSize="@dimen/header_text_size" />
 
         <CheckBox
             android:id="@+id/cb_grave_is_wrong_fio"
@@ -112,10 +120,18 @@
             android:maxLength="8"
             android:textStyle="bold" />
         
+        <CheckBox
+            android:id="@+id/cbIsSizeViolated"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cb_place_is_size_violated"
+            android:textSize="@dimen/header_text_size" />	
+        
         <TextView
             android:id="@+id/tvPlaceResponsiblePersonTitle"
-            android:layout_width="80dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
             android:text="Ответственный:"
             android:textSize="@dimen/header_text_size" />
         

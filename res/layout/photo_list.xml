@@ -52,7 +52,14 @@
 	           android:layout_width="wrap_content"
 	           android:layout_height="wrap_content"
 	           android:text="@string/cb_place_is_ownerless"
-	           android:textSize="@dimen/header_text_size" />	    
+	           android:textSize="@dimen/header_text_size" />
+	    <CheckBox
+            android:id="@+id/cbIsUnindentified"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:text="@string/cb_place_is_unindentified"
+            android:textSize="@dimen/header_text_size" />	    	    
 	    <CheckBox
 	           android:id="@+id/cb_grave_is_wrong_fio"
 	           android:layout_width="wrap_content"
