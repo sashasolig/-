@@ -807,11 +807,11 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 				mCurrentTaskIndex++;
 				if(mCurrentTaskIndex < mTasks.size()){					
 					BaseTask nextTask = mTasks.get(mCurrentTaskIndex);
-					if(nextTask.getTaskName() == Settings.TASK_REMOVEPHOTOGRAVE){
+					if(nextTask.getTaskName() == Settings.TASK_REMOVEPHOTO){
 						mProgressDialogMessage = "Удаление фотографий на сервере";
 						mProgressDialogSyncData.setMessage(mProgressDialogMessage);
 						RemovePhotoTask removePhotoTask = new RemovePhotoTask(this, this, this.mContext);
-						removePhotoTask.execute(Settings.getRemovePhotoUrl(this.mContext));
+						removePhotoTask.execute(Settings.getRemoveGravePhotoUrl(this.mContext));
 						this.mCurrentExecutedTask = removePhotoTask;
 						isNextTaskStarted = true;
 					}
@@ -847,11 +847,11 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						this.mCurrentExecutedTask = uploadGraveTask;
 						isNextTaskStarted = true;
 					}
-					if(nextTask.getTaskName() == Settings.TASK_POSTPHOTOGRAVE){
+					if(nextTask.getTaskName() == Settings.TASK_POSTPHOTO){
 						mProgressDialogMessage = "Отправка фотографий на сервер";
 						mProgressDialogSyncData.setMessage(mProgressDialogMessage);						
 						UploadPhotoTask uploadPhotoTask = new UploadPhotoTask(this, this, this.mContext);
-						uploadPhotoTask.execute(Settings.getUploadPhotoUrl(this.mContext));
+						uploadPhotoTask.execute(Settings.getUploadGravePhotoUrl(this.mContext), Settings.getUploadPlacePhotoUrl(this.mContext));
 						this.mCurrentExecutedTask = uploadPhotoTask;
 						isNextTaskStarted = true;
 					}

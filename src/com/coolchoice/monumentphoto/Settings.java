@@ -60,14 +60,16 @@ public class Settings {
     public static final String TASK_GETGRAVE = "getGrave";
     public static final String TASK_POSTGRAVE = "postGrave";
     public static final String TASK_GETBURIAL = "getBurial";
-    public static final String TASK_POSTPHOTOGRAVE = "postPhotoGrave";
-    public static final String TASK_REMOVEPHOTOGRAVE = "removePhotoGrave";
+    public static final String TASK_POSTPHOTO = "postPhoto";
+    public static final String TASK_REMOVEPHOTO = "removePhoto";
     
         
     private static String DefaultServerAddress = "http://192.168.53.11:8000";
     //private static String DefaultServerAddress = "http://pd2.pohoronnoedelo.ru";
-    private static String RelativeUploadPhotoUrl = "/mobile/uploadphoto/";
-    private static String RelativeRemovePhotoUrl = "/mobile/removephoto/";
+    private static String RelativeUploadGravePhotoUrl = "/mobile/uploadgravephoto/";
+    private static String RelativeRemoveGravePhotoUrl = "/mobile/removegravephoto/";
+    private static String RelativeUploadPlacePhotoUrl = "/mobile/uploadplacephoto/";
+    private static String RelativeRemovePlacePhotoUrl = "/mobile/removeplacephoto/";
     private static String RelativeLoginUrl = "/login/";
     private static String RelativeGetCemeteryDataUrl = "/mobile/getcemetery/";
     private static String RelativeGetRegionDataUrl = "/mobile/getarea/";
@@ -101,14 +103,24 @@ public class Settings {
     	CurrentLocation = newLocation;
     }
     
-    public static String getUploadPhotoUrl(Context context){
+    public static String getUploadGravePhotoUrl(Context context){
     	String serverAddress = getServerAddress(context);
-    	return serverAddress + RelativeUploadPhotoUrl;
+    	return serverAddress + RelativeUploadGravePhotoUrl;
     }
     
-    public static String getRemovePhotoUrl(Context context){
+    public static String getRemoveGravePhotoUrl(Context context){
     	String serverAddress = getServerAddress(context);
-    	return serverAddress + RelativeRemovePhotoUrl;
+    	return serverAddress + RelativeRemoveGravePhotoUrl;
+    }
+    
+    public static String getUploadPlacePhotoUrl(Context context){
+        String serverAddress = getServerAddress(context);
+        return serverAddress + RelativeUploadPlacePhotoUrl;
+    }
+    
+    public static String getRemovePlacePhotoUrl(Context context){
+        String serverAddress = getServerAddress(context);
+        return serverAddress + RelativeRemovePlacePhotoUrl;
     }
     
     public static String getLoginUrl(Context context){

@@ -69,7 +69,7 @@ public class AddObjectActivity extends Activity {
 		
 	private EditText etCemetery, etRegion, etRow, etPlace, etGrave, etOldPlace, etPlaceLength, etPlaceWidth;
 	
-	private CheckBox cbOwnerLess;
+	private CheckBox cbOwnerLess, cbPlaceSizeVioleted, cbPlaceUnindentified, cbPlaceWrongFIO, cbPlaceMilitary;
 	
 	private CheckBox cbIsGraveWrongFIO, cbIsGraveMilitary;
 	

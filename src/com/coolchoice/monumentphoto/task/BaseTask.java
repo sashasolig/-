@@ -55,6 +55,7 @@ import com.coolchoice.monumentphoto.data.GPSRegion;
 import com.coolchoice.monumentphoto.data.Grave;
 import com.coolchoice.monumentphoto.data.GravePhoto;
 import com.coolchoice.monumentphoto.data.Place;
+import com.coolchoice.monumentphoto.data.PlacePhoto;
 import com.coolchoice.monumentphoto.data.Region;
 import com.coolchoice.monumentphoto.data.Row;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
@@ -64,6 +65,7 @@ import com.j256.ormlite.stmt.UpdateBuilder;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.text.TextUtils;
 import android.util.Log;
 
 public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
@@ -145,6 +147,26 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     	result.setStatus(TaskResult.Status.CANCEL_TASK);
     	this.mTaskResult = result;
     	if(callback!=null) callback.onTaskComplete(this, result);
+    }
+    
+    public Date parseDate(String strDate){
+        Date resultDate = null;
+        if(!TextUtils.isEmpty(strDate)){
+            try {
+                resultDate = new SimpleDateFormat("yyyy-MM-ddTHH:mm:ss.SSS").parse(strDate);
+            } catch (ParseException e) {
+                resultDate = null;
+            }
+        }
+        return resultDate;        
+    }
+    
+    public String serializeDate(Date date){
+        String resultStr = null;
+        if(date != null){            
+            resultStr = new SimpleDateFormat("yyyy-MM-ddTHH:mm:ss.SSS").format(date);           
+        }
+        return resultStr;        
     }
     
     protected void initGETQueryParameters(String url){
@@ -665,7 +687,28 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	}
         	if(strWidth != null && !strWidth.equalsIgnoreCase("null")) {
         		place.Width = Double.parseDouble(strWidth);
-        	}
+        	}        	
+        	String strDateWrongFIO = fields.getString("dt_wrong_fio");
+        	String strDateMilitary = fields.getString("dt_military");
+        	String strDateSizeViolated = fields.getString("dt_size_violated");
+        	String strDateUnowned = fields.getString("dt_unowned");
+        	String strDateUnindentified = fields.getString("dt_unindentified");
+        	if(strDateWrongFIO != null && !strDateWrongFIO.equalsIgnoreCase("null")) {
+                place.WrongFIODate = parseDate(strDateWrongFIO);
+            }
+        	if(strDateMilitary != null && !strDateMilitary.equalsIgnoreCase("null")) {
+                place.MilitaryDate = parseDate(strDateMilitary);
+            }
+        	if(strDateSizeViolated != null && !strDateSizeViolated.equalsIgnoreCase("null")) {
+                place.SizeViolatedDate = parseDate(strDateSizeViolated);
+            }
+        	if(strDateUnowned != null && !strDateUnowned.equalsIgnoreCase("null")) {
+                place.UnownedDate = parseDate(strDateUnowned);
+            }
+        	if(strDateUnindentified != null && !strDateUnindentified.equalsIgnoreCase("null")) {
+                place.UnindentifiedDate = parseDate(strDateUnindentified);
+            }
+        	
         	int regionServerId = fields.getInt("area");
         	String rowName = fields.getString("row");
         	if(rowName == null || rowName.equalsIgnoreCase("") ){
@@ -726,6 +769,11 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 					//update place
 					if(dbPlace.Row != null){
 						rowDAO.refresh(dbPlace.Row);
+						dbPlace.MilitaryDate = place.MilitaryDate;
+						dbPlace.WrongFIODate = place.WrongFIODate;
+						dbPlace.UnindentifiedDate = place.UnindentifiedDate;
+						dbPlace.UnownedDate = place.UnownedDate;
+						dbPlace.SizeViolatedDate = place.SizeViolatedDate;
 						if(place.Row != null){
 							dbPlace.Row.Region = null;
 							dbPlace.Row.ParentServerId = place.Row.ParentServerId;
@@ -1098,4 +1146,20 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         }
         return gravePhotoList;
 	}
+	
+	public ArrayList<PlacePhoto> parsePlacePhotoJSON(String placePhotoJSON) throws Exception { 
+        JSONTokener tokener = new JSONTokener(placePhotoJSON);
+        JSONArray jsonArray = new JSONArray(tokener);
+        ArrayList<PlacePhoto> placePhotoList = new ArrayList<PlacePhoto>();
+        for(int i = 0; i < jsonArray.length(); i++){
+            checkIsCancelTask();
+            PlacePhoto placePhoto = new PlacePhoto();
+            JSONObject jsonObj = jsonArray.getJSONObject(i);
+            placePhoto.ServerId = jsonObj.getInt("pk");
+            JSONObject fields = jsonObj.getJSONObject("fields");
+            placePhoto.ParentServerId = fields.getInt("place");
+            placePhotoList.add(placePhoto);     
+        }
+        return placePhotoList;
+    }
 }

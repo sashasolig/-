@@ -218,7 +218,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
         }
         MenuItem actionRemoveMenuItem = this.mOptionsMenu.findItem(R.id.action_remove);
         int type = getIntent().getIntExtra(EXTRA_TYPE, -1);
-        if(type == AddObjectActivity.ADD_GRAVE_WITHROW || type == AddObjectActivity.ADD_GRAVE_WITHOUTROW){
+        if(type == AddObjectActivity.ADD_GRAVE_WITHROW || type == AddObjectActivity.ADD_GRAVE_WITHOUTROW || 
+                type == AddObjectActivity.ADD_PLACE_WITHOUTROW || type == AddObjectActivity.ADD_GRAVE_WITHROW ){
         	actionRemoveMenuItem.setVisible(true);
         } else {
         	actionRemoveMenuItem.setVisible(false);
@@ -1825,14 +1826,19 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 			if(item.isChecked()){
 				File file = new File(item.getPath());
 				file.delete();
-				MonumentDB.deleteMonumentPhoto(item.getGravePhoto());
+				if(item.getGravePhoto() != null){
+				    MonumentDB.deleteGravePhoto(item.getGravePhoto());
+				}
+				if(item.getPlacePhoto() != null){
+				    MonumentDB.deletePlacePhoto(item.getPlacePhoto());
+				}				
 				deletedItems.add(item);
 			}
 		}
 		gridPhotoItems.removeAll(deletedItems);
 		((BaseAdapter)gridPhotos.getAdapter()).notifyDataSetChanged();
 		MenuItem actionRemoveMenuItem = BrowserCemeteryActivity.this.mOptionsMenu.findItem(R.id.action_remove);
-		actionRemoveMenuItem.setEnabled(mPhotoGridAdapter.isChoosePhoto());		
+		actionRemoveMenuItem.setEnabled(mPhotoGridAdapter.isChoosePhoto());	
 	}
 	
 	private void makeGravePhotoCurrent(){
@@ -2135,7 +2141,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
         	    Collections.sort(photoList, new Comparator<Photo>() {
                     @Override
                     public int compare(Photo one, Photo two) {
-                        return one.CreateDate.compareTo(two.CreateDate);
+                        return two.CreateDate.compareTo(one.CreateDate);
                     }
                 });        	    
         	    for(Photo photo : photoList){

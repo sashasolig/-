@@ -19,6 +19,7 @@ import com.coolchoice.monumentphoto.data.DeletedObjectType;
 import com.coolchoice.monumentphoto.data.Grave;
 import com.coolchoice.monumentphoto.data.GravePhoto;
 import com.coolchoice.monumentphoto.data.Place;
+import com.coolchoice.monumentphoto.data.PlacePhoto;
 import com.coolchoice.monumentphoto.data.Region;
 import com.coolchoice.monumentphoto.data.Row;
 import com.j256.ormlite.dao.Dao;
@@ -29,36 +30,29 @@ import com.j256.ormlite.stmt.UpdateBuilder;
 
 public class MonumentDB {
 	
-	public static GravePhoto saveMonumentPhoto(GravePhoto monumentPhoto){
-		DB.dao(GravePhoto.class).createOrUpdate(monumentPhoto);		
-		return monumentPhoto;		
-	}
-	
-	public static void deleteMonumentPhoto(GravePhoto monumentPhoto){
-		DB.dao(GravePhoto.class).refresh(monumentPhoto);
-		if(monumentPhoto.ServerId > 0){
+	public static void deleteGravePhoto(GravePhoto gravePhoto){
+		DB.dao(GravePhoto.class).refresh(gravePhoto);
+		if(gravePhoto.ServerId > 0){
 			DeletedObject deletedObject = new DeletedObject();
-			deletedObject.ServerId = monumentPhoto.ServerId;
-			deletedObject.ClientId = monumentPhoto.Id;
+			deletedObject.ServerId = gravePhoto.ServerId;
+			deletedObject.ClientId = gravePhoto.Id;
 			deletedObject.TypeId = DeletedObjectType.GRAVEPHOTO;
 			DB.dao(DeletedObject.class).create(deletedObject);
 		}
-		DB.dao(GravePhoto.class).delete(monumentPhoto);
-	}	
-		
-	public static List<GravePhoto> getGravePhotoForUpload(){
-		List<GravePhoto> gravePhotos = null;
-		try {
-			gravePhotos = DB.q(GravePhoto.class).orderBy("CreateDate", true).where().eq(GravePhoto.STATUS_FIELD_NAME, GravePhoto.STATUS_WAIT_SEND).query();
-			for(GravePhoto gravePhoto : gravePhotos) {
-				DB.dao(Grave.class).refresh(gravePhoto.Grave);
-			}	
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}					
-		return gravePhotos;
+		DB.dao(GravePhoto.class).delete(gravePhoto);
 	}
+	
+	public static void deletePlacePhoto(PlacePhoto placePhoto){
+        DB.dao(PlacePhoto.class).refresh(placePhoto);
+        if(placePhoto.ServerId > 0){
+            DeletedObject deletedObject = new DeletedObject();
+            deletedObject.ServerId = placePhoto.ServerId;
+            deletedObject.ClientId = placePhoto.Id;
+            deletedObject.TypeId = DeletedObjectType.PLACEPHOTO;
+            DB.dao(DeletedObject.class).create(deletedObject);
+        }
+        DB.dao(PlacePhoto.class).delete(placePhoto);
+    }
 	
 	public List<ComplexGrave.PlaceWithFIO> getPlaceWithFIO(int cemeteryId, String filterLastName){
 		try {

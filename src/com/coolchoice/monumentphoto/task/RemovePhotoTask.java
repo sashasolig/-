@@ -31,7 +31,7 @@ public class RemovePhotoTask extends BaseTask {
 		   
     public RemovePhotoTask(AsyncTaskProgressListener pl, AsyncTaskCompleteListener<TaskResult> cb, Context context) {
 		super(pl, cb, context);
-		this.mTaskName = Settings.TASK_REMOVEPHOTOGRAVE;
+		this.mTaskName = Settings.TASK_REMOVEPHOTO;
 	}
 
     @Override
@@ -42,7 +42,7 @@ public class RemovePhotoTask extends BaseTask {
     @Override
     protected TaskResult doInBackground(String... params) {
     	TaskResult result = new TaskResult();
-    	result.setTaskName(Settings.TASK_REMOVEPHOTOGRAVE);
+    	result.setTaskName(Settings.TASK_REMOVEPHOTO);
     	result.setStatus(TaskResult.Status.OK);
     	String url = null;    	           
     	url = params[0];
@@ -86,7 +86,7 @@ public class RemovePhotoTask extends BaseTask {
 		} catch (UnsupportedEncodingException e) {
 			return false;
 		}
-		return uploadFile(Settings.getRemovePhotoUrl(context), multipartEntity, context, outResponseSB);                     
+		return uploadFile(Settings.getRemoveGravePhotoUrl(context), multipartEntity, context, outResponseSB);                     
 	}
 	
 	public List<DeletedObject> getGravePhotoForRemove(){
