@@ -141,7 +141,7 @@ public class UploadPhotoTask extends BaseTask {
         FileBody fileBody = new FileBody(file);              
         multipartEntity.addPart("photo", fileBody);
         try {
-            multipartEntity.addPart("grave", new StringBody(Integer.toString(placePhoto.Place.ServerId), Charset.forName(Settings.DEFAULT_ENCODING)));
+            multipartEntity.addPart("place", new StringBody(Integer.toString(placePhoto.Place.ServerId), Charset.forName(Settings.DEFAULT_ENCODING)));
             multipartEntity.addPart("lat", new StringBody(Double.toString(placePhoto.Latitude), Charset.forName(Settings.DEFAULT_ENCODING)));
             multipartEntity.addPart("lng", new StringBody(Double.toString(placePhoto.Longitude), Charset.forName(Settings.DEFAULT_ENCODING)));
         } catch (UnsupportedEncodingException e) {

@@ -78,10 +78,10 @@ public class UploadGraveTask extends BaseTask {
             	dictPostData.put("graveId", Integer.toString(grave.ServerId));
             	dictPostData.put("graveName", grave.Name);
             	int intWrongFIO = 0, intMilitary = 0;
-            	if(grave.IsWrongFIO){
+            	if(grave.Place.isWrongFIO()){
             		intWrongFIO = 1; 
             	}
-            	if(grave.IsMilitary){
+            	if(grave.Place.isMilitary()){
             		intMilitary = 1;
             	}	            	
             	dictPostData.put("isWrongFIO", Integer.toString(intWrongFIO));

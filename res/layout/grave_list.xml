@@ -19,7 +19,7 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:drawableTop="@android:drawable/ic_menu_add"
-            android:text="Добавить место" />
+            android:text="Добавить могилу" />
 
         <Button
             android:id="@+id/btnMakePhoto"
@@ -48,14 +48,14 @@
         android:orientation="horizontal" >
 
         <CheckBox
-            android:id="@+id/cbIsOwnerLess"
+            android:id="@+id/cb_place_is_unowner"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/cb_place_is_ownerless"
+            android:text="@string/cb_place_is_unowner"
             android:textSize="@dimen/header_text_size" />
         
         <CheckBox
-            android:id="@+id/cbIsUnindentified"
+            android:id="@+id/cb_place_is_unindentified"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
@@ -63,19 +63,19 @@
             android:textSize="@dimen/header_text_size" />
 
         <CheckBox
-            android:id="@+id/cb_grave_is_wrong_fio"
+            android:id="@+id/cb_place_is_wrong_fio"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
-            android:text="@string/cb_grave_is_wrong_fio"
+            android:text="@string/cb_place_is_wrong_fio"
             android:textSize="@dimen/header_text_size" />
 
         <CheckBox
-            android:id="@+id/cb_grave_is_military"
+            android:id="@+id/cb_place_is_military"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
-            android:text="@string/cb_grave_is_military"
+            android:text="@string/cb_place_is_military"
             android:textSize="@dimen/header_text_size" />
     </LinearLayout>
 
@@ -121,7 +121,7 @@
             android:textStyle="bold" />
         
         <CheckBox
-            android:id="@+id/cbIsSizeViolated"
+            android:id="@+id/cb_place_is_size_violated"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/cb_place_is_size_violated"
@@ -147,12 +147,11 @@
     <GridView
         android:id="@+id/gvGraves"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:columnWidth="@dimen/grid_column_width"
+        android:layout_height="wrap_content"                  
         android:horizontalSpacing="@dimen/grid_column_space"
         android:verticalSpacing="@dimen/grid_column_space"
         android:numColumns="auto_fit"
-        android:padding="5dp"
+        android:padding="5dp"        
         android:stretchMode="columnWidth"
         android:fadeScrollbars="false"  >
     </GridView>

@@ -11,9 +11,9 @@
     <string name="place_search_activity">Поиск старого места по фамилии</string>
     
     
-    <string name="cb_place_is_ownerless">  Заброшенное место</string>
-    <string name="cb_grave_is_wrong_fio">  ФИО не совпадает</string>
-    <string name="cb_grave_is_military">  Воинская могила</string>
+    <string name="cb_place_is_unowner">  Заброшенное место</string>
+    <string name="cb_place_is_wrong_fio">  ФИО не совпадает</string>
+    <string name="cb_place_is_military">  Воинская могила</string>
     <string name="cb_place_is_size_violated">  Нарушения размеров</string>
     <string name="cb_place_is_unindentified">  Неопознанное</string>
     

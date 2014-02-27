@@ -255,7 +255,7 @@
                         android:textStyle="bold" />
 
                     <CheckBox
-                        android:id="@+id/cbIsSizeViolated"
+                        android:id="@+id/cb_place_is_size_violated"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/cb_place_is_size_violated"
@@ -276,23 +276,39 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
                     android:orientation="horizontal" >
 
                     <CheckBox
-                        android:id="@+id/cbIsOwnerLess"
+                        android:id="@+id/cb_place_is_unowner"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/cb_place_is_ownerless"
+                        android:text="@string/cb_place_is_unowner"
                         android:textSize="@dimen/header_text_size" />
 
                     <CheckBox
-                        android:id="@+id/cbIsUnindentified"
+                        android:id="@+id/cb_place_is_unindentified"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="5dp"
                         android:text="@string/cb_place_is_unindentified"
                         android:textSize="@dimen/header_text_size" />
-                    
+
+                    <CheckBox
+                        android:id="@+id/cb_place_is_wrong_fio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:text="@string/cb_place_is_wrong_fio"
+                        android:textSize="@dimen/header_text_size" />
+
+                    <CheckBox
+                        android:id="@+id/cb_place_is_military"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:text="@string/cb_place_is_military"
+                        android:textSize="@dimen/header_text_size" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -336,20 +352,6 @@
                         android:maxWidth="60dp"
                         android:visibility="gone" />
                 </LinearLayout>
-
-                <CheckBox
-                    android:id="@+id/cb_grave_is_wrong_fio"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/cb_grave_is_wrong_fio"
-                    android:textSize="@dimen/header_text_size" />
-
-                <CheckBox
-                    android:id="@+id/cb_grave_is_military"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/cb_grave_is_military"
-                    android:textSize="@dimen/header_text_size" />
             </LinearLayout>
 
             <LinearLayout

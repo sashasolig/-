@@ -48,31 +48,31 @@
         android:layout_marginLeft="10dp"
 	    android:layout_margin="5dp">
 	    <CheckBox	   		   
-	           android:id="@+id/cbIsOwnerLess"
+	           android:id="@+id/cb_place_is_unowner"
 	           android:layout_width="wrap_content"
 	           android:layout_height="wrap_content"
-	           android:text="@string/cb_place_is_ownerless"
+	           android:text="@string/cb_place_is_unowner"
 	           android:textSize="@dimen/header_text_size" />
 	    <CheckBox
-            android:id="@+id/cbIsUnindentified"
+            android:id="@+id/cb_place_is_unindentified"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:text="@string/cb_place_is_unindentified"
             android:textSize="@dimen/header_text_size" />	    	    
 	    <CheckBox
-	           android:id="@+id/cb_grave_is_wrong_fio"
+	           android:id="@+id/cb_place_is_wrong_fio"
 	           android:layout_width="wrap_content"
 	           android:layout_height="wrap_content"
 	           android:layout_marginLeft="10dp"
-	           android:text="@string/cb_grave_is_wrong_fio"
+	           android:text="@string/cb_place_is_wrong_fio"
 	           android:textSize="@dimen/header_text_size" />			    
 	    <CheckBox
-	           android:id="@+id/cb_grave_is_military"
+	           android:id="@+id/cb_place_is_military"
 	           android:layout_width="wrap_content"
 	           android:layout_height="wrap_content"
 	           android:layout_marginLeft="10dp"
-	           android:text="@string/cb_grave_is_military"
+	           android:text="@string/cb_place_is_military"
 	           android:textSize="@dimen/header_text_size" />
     </LinearLayout>
     

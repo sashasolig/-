@@ -144,9 +144,11 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	
 	private Menu mOptionsMenu;
 	
-	private CheckBox cbIsOwnerLessPlace = null;
+	private CheckBox cbPlaceUnowned, cbPlaceSizeVioleted, cbPlaceUnindentified, cbPlaceWrongFIO, cbPlaceMilitary;
 	
-	private CheckBox cbIsGraveWrongFIO = null, cbIsGraveMilitary = null;
+	/*private CheckBox cbIsOwnerLessPlace = null;
+	
+	private CheckBox cbIsGraveWrongFIO = null, cbIsGraveMilitary = null;*/
 	
 	private TextView tvPersons = null;
 	
@@ -1121,9 +1123,13 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		this.gridPhotos = (GridView) contentView.findViewById(R.id.gvPhotos);
 		this.etPlaceLength = (EditText) contentView.findViewById(R.id.etPlaceLength);
 		this.etPlaceWidth = (EditText) contentView.findViewById(R.id.etPlaceWidth);
-		this.cbIsGraveMilitary = (CheckBox) contentView.findViewById(R.id.cb_grave_is_military);
-		this.cbIsOwnerLessPlace = (CheckBox) contentView.findViewById(R.id.cbIsOwnerLess);
-		this.cbIsGraveWrongFIO = (CheckBox) contentView.findViewById(R.id.cb_grave_is_wrong_fio);
+		
+		this.cbPlaceMilitary = (CheckBox) contentView.findViewById(R.id.cb_place_is_military);
+		this.cbPlaceUnowned = (CheckBox) contentView.findViewById(R.id.cb_place_is_unowner);
+		this.cbPlaceWrongFIO = (CheckBox) contentView.findViewById(R.id.cb_place_is_wrong_fio);
+		this.cbPlaceSizeVioleted = (CheckBox) contentView.findViewById(R.id.cb_place_is_size_violated);
+		this.cbPlaceUnindentified = (CheckBox) contentView.findViewById(R.id.cb_place_is_unindentified);
+		
 		this.tvResponsiblePersonOfPlace = (TextView) contentView.findViewById(R.id.tvPlaceResponsiblePerson);
 		this.btnMakePlacePhoto = (Button) contentView.findViewById(R.id.btnMakePhoto);
 		this.btnMakePlacePhotoNextPlace = (Button) contentView.findViewById(R.id.btnMakePhotoNextPlace);
@@ -1175,11 +1181,16 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
             }
         });
 		
-		this.cbIsOwnerLessPlace.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+		this.cbPlaceUnowned.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Place place = DB.dao(Place.class).queryForId(getIntent().getIntExtra(EXTRA_PLACE_ID, -1));                
+                Place place = DB.dao(Place.class).queryForId(getIntent().getIntExtra(EXTRA_PLACE_ID, -1));
+                Date unownedDate = null;
+                if(isChecked){
+                    unownedDate = new Date();
+                }
+                place.UnownedDate = unownedDate;
                 place.IsOwnerLess  = isChecked;
                 place.IsChanged = 1;
                 DB.dao(Place.class).update(place);
@@ -1187,7 +1198,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
             }
         });
         
-        this.cbIsGraveMilitary.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        this.cbPlaceMilitary.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -1198,11 +1209,11 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                 }
                 place.MilitaryDate  = militaryDate;
                 place.IsChanged = 1;
-                DB.dao(Place.class).update(place);           
+                DB.dao(Place.class).update(place);          
             }
         });
         
-        this.cbIsGraveWrongFIO.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        this.cbPlaceWrongFIO.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -1215,6 +1226,37 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                 place.IsChanged = 1;
                 DB.dao(Place.class).update(place);      
                 
+            }
+        });
+        
+        this.cbPlaceSizeVioleted.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Place place = DB.dao(Place.class).queryForId(getIntent().getIntExtra(EXTRA_PLACE_ID, -1));
+                Date sizeVioletedate = null;
+                if(isChecked){
+                    sizeVioletedate = new Date();
+                }
+                place.SizeViolatedDate  = sizeVioletedate;
+                place.IsChanged = 1;
+                DB.dao(Place.class).update(place);      
+                
+            }
+        });
+        
+        this.cbPlaceUnindentified.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Place place = DB.dao(Place.class).queryForId(getIntent().getIntExtra(EXTRA_PLACE_ID, -1));
+                Date unindentifiedDate = null;
+                if(isChecked){
+                    unindentifiedDate = new Date();
+                }
+                place.UnindentifiedDate  = unindentifiedDate;
+                place.IsChanged = 1;
+                DB.dao(Place.class).update(place);
             }
         });
         
@@ -1296,9 +1338,11 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		});
 		
 		Place place = DB.dao(Place.class).queryForId(placeId);
-		this.cbIsOwnerLessPlace.setChecked(place.IsOwnerLess);
-		this.cbIsGraveMilitary.setChecked(place.isMilitary());
-		this.cbIsGraveWrongFIO.setChecked(place.isWrongFIO());
+		this.cbPlaceUnowned.setChecked(place.isUnowned());
+		this.cbPlaceMilitary.setChecked(place.isMilitary());
+		this.cbPlaceWrongFIO.setChecked(place.isWrongFIO());
+		this.cbPlaceUnindentified.setChecked(place.isUnindentified());
+		this.cbPlaceSizeVioleted.setChecked(place.isSizeViolated());
 		if(place.Width != null){
 		    this.etPlaceWidth.setText(place.Width.toString());
 		} else {
@@ -1581,6 +1625,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
             }
             ImageView ivIcon = (ImageView) convertView.findViewById(R.id.ivGrave);
             TextView tvGrave = (TextView) convertView.findViewById(R.id.tvGrave);
+            TextView tvFIO = (TextView) convertView.findViewById(R.id.tvFIO);
             TextView tvUnusedGrave = (TextView) convertView.findViewById(R.id.tvUnusedGrave);
             Grave grave = mItems.get(position);
             String value = grave.Name;
@@ -1601,6 +1646,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
             	tvUnusedGrave.setTextColor(getResources().getColor(R.color.text_view_color));
             	tvUnusedGrave.setVisibility(View.GONE);
             }
+            tvFIO.setText(Html.fromHtml(getGraveItemText(grave.Id)));
             return convertView;
         }
         
@@ -1648,9 +1694,13 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		this.btnLinkPlace.setVisibility(View.VISIBLE);
 		this.btnLinkGrave.setVisibility(View.VISIBLE);
 		
-		this.cbIsOwnerLessPlace = (CheckBox) contentView.findViewById(R.id.cbIsOwnerLess);
-		this.cbIsGraveMilitary = (CheckBox) contentView.findViewById(R.id.cb_grave_is_military);
-		this.cbIsGraveWrongFIO = (CheckBox) contentView.findViewById(R.id.cb_grave_is_wrong_fio);
+		this.cbPlaceUnowned = (CheckBox) contentView.findViewById(R.id.cb_place_is_unowner);
+		this.cbPlaceMilitary = (CheckBox) contentView.findViewById(R.id.cb_place_is_military);
+		this.cbPlaceWrongFIO = (CheckBox) contentView.findViewById(R.id.cb_place_is_wrong_fio);
+		this.cbPlaceUnindentified = (CheckBox) contentView.findViewById(R.id.cb_place_is_unindentified);
+		this.cbPlaceSizeVioleted = null;
+		
+		
 		this.tvPersons = (TextView) contentView.findViewById(R.id.tvPersons);
 		this.btnMakeGravePhoto = (Button) contentView.findViewById(R.id.btnMakePhoto);
         this.btnMakeGravePhotoNextGrave = (Button) contentView.findViewById(R.id.btnMakePhotoNextGrave);
@@ -1694,7 +1744,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 			}
 		});
         
-        this.cbIsOwnerLessPlace.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        this.cbPlaceUnowned.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 			
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -1702,6 +1752,11 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 				ComplexGrave complexGrave = new ComplexGrave();
 				complexGrave.loadByGraveId(grave.Id);
 				Place place = complexGrave.Place;
+				Date unownedDate = null;
+				if(isChecked){
+				    unownedDate = new Date();
+				}
+				place.UnownedDate = unownedDate;
 				place.IsOwnerLess = isChecked;
 				place.IsChanged = 1;
 				DB.dao(Place.class).update(place);
@@ -1709,37 +1764,75 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 			}
 		});
         
-        this.cbIsGraveMilitary.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        this.cbPlaceMilitary.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 			
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
+				ComplexGrave complexGrave = new ComplexGrave();
+                complexGrave.loadByGraveId(grave.Id);
+                Place place = complexGrave.Place;
+                Date militaryDate = null;
+                if(isChecked){
+                    militaryDate = new Date();
+                }
+                place.MilitaryDate = militaryDate;
+                place.IsChanged = 1;
+                DB.dao(Place.class).update(place);
 				grave.IsMilitary = isChecked;
 				grave.IsChanged = 1;
 				DB.dao(Grave.class).update(grave);				
 			}
 		});
         
-        this.cbIsGraveWrongFIO.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        this.cbPlaceWrongFIO.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 			
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
+				ComplexGrave complexGrave = new ComplexGrave();
+                complexGrave.loadByGraveId(grave.Id);
+                Place place = complexGrave.Place;
+                Date wrongFIODate = null;
+                if(isChecked){
+                    wrongFIODate = new Date();
+                }
+                place.WrongFIODate = wrongFIODate;
+                place.IsChanged = 1;
+                DB.dao(Place.class).update(place);
 				grave.IsWrongFIO = isChecked;
 				grave.IsChanged = 1;
-				DB.dao(Grave.class).update(grave);
-				
+				DB.dao(Grave.class).update(grave);				
 			}
 		});
+        
+        this.cbPlaceUnindentified.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
+                ComplexGrave complexGrave = new ComplexGrave();
+                complexGrave.loadByGraveId(grave.Id);
+                Place place = complexGrave.Place;
+                Date unindentifiedDate = null;
+                if(isChecked){
+                    unindentifiedDate = new Date();
+                }
+                place.UnindentifiedDate = unindentifiedDate;
+                place.IsChanged = 1;
+                DB.dao(Place.class).update(place);                            
+            }
+        });
         
         updatePhotoGrid();
         
         Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
 		ComplexGrave complexGrave = new ComplexGrave();
 		complexGrave.loadByGraveId(grave.Id);
-		this.cbIsOwnerLessPlace.setChecked(complexGrave.Place.IsOwnerLess);
-		this.cbIsGraveMilitary.setChecked(complexGrave.Grave.IsMilitary);
-		this.cbIsGraveWrongFIO.setChecked(complexGrave.Grave.IsWrongFIO);
+		this.cbPlaceUnowned.setChecked(complexGrave.Place.isUnowned());
+		this.cbPlaceMilitary.setChecked(complexGrave.Place.isMilitary());
+		this.cbPlaceWrongFIO.setChecked(complexGrave.Place.isWrongFIO());
+		this.cbPlaceUnindentified.setChecked(complexGrave.Place.isUnindentified());
 		try {
 			List<Burial> burials = DB.q(Burial.class).where().eq("Grave_id", grave.Id).query();
 			StringBuilder sb = new StringBuilder();
@@ -1765,6 +1858,31 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 			this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
 		}		
         
+	}
+	
+	private String getGraveItemText(int graveId){
+	    String result = "";
+	    try {
+            List<Burial> burials = DB.q(Burial.class).where().eq("Grave_id", graveId).query();
+            StringBuilder sb = new StringBuilder();
+            for(int i = 0; i < burials.size(); i++){
+                Burial burial = burials.get(i);
+                burial.toUpperFirstCharacterInFIO();
+                String fio = String.format("ФИО: <u>%s %s %s</u><br/>Дата захоронения: <u>%s</u><br/>Тип захоронения:<u>%s</u>", (burial.LName != null) ? burial.LName : "", 
+                        (burial.FName != null) ? burial.FName : "", (burial.MName != null ) ? burial.MName : "",
+                                 (burial.FactDate != null) ? android.text.format.DateFormat.format("dd.MM.yyyy", burial.FactDate) : "",
+                                 (burial.ContainerType != null ? burial.ContainerType.toString() : ""));
+                sb.append(fio);
+                if(i < (burials.size() - 1)){
+                    sb.append("<br/>");
+                }               
+            }
+            result = sb.toString();
+            
+        } catch (SQLException e) {
+            this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
+        }
+	    return result;	    
 	}
 	
 	private void updatePhotoGrid(){
@@ -2050,14 +2168,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                 else{
                     nextPlace.OldName = filterOldPlaceName;
                 }
-                nextPlace.IsChanged = 1;
+                nextPlace.IsChanged = 1;               
                 
-                /*QueryBuilder<Grave, Integer> graveBuilder = graveDAO.queryBuilder();
-                graveBuilder.orderBy("Name", true).where().eq("Place_id", nextPlace.Id);
-                List<Grave> findedGraves = graveDAO.query(graveBuilder.prepare());
-                if(findedGraves != null && findedGraves.size() > 0){
-                    nextGrave = findedGraves.get(0);
-                }*/
             } else {
                 if(!TextUtils.isEmpty(filterOldPlaceName)){
                     nextPlace.OldName = filterOldPlaceName;                 

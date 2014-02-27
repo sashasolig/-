@@ -117,14 +117,17 @@ public class UploadPlaceTask extends BaseTask {
             		dictPostData.put("placeWidth", Double.toString(place.Width));
             	} else {
             		dictPostData.put("placeWidth", "");
-            	}
-            	int psFoundUnowned;
-            	if(place.IsOwnerLess){
-            		psFoundUnowned = 1;
-            	} else {
-            		psFoundUnowned = 0;
-            	}
-            	dictPostData.put("psFoundUnowned", Integer.toString(psFoundUnowned));
+            	}            	
+            	String dtWrongFio = place.isWrongFIO() ? this.serializeDate(place.WrongFIODate) : "";
+            	String dtMilitary = place.isMilitary() ? this.serializeDate(place.MilitaryDate) : "";
+            	String dtSizeViolated = place.isSizeViolated() ? this.serializeDate(place.SizeViolatedDate) : "";
+            	String dtUnowned = place.isUnowned() ? this.serializeDate(place.UnownedDate) : "";
+            	String dtUnindentified = place.isUnindentified() ? this.serializeDate(place.UnindentifiedDate) : "";
+            	dictPostData.put("dtWrongFio", dtWrongFio);
+            	dictPostData.put("dtMilitary", dtMilitary);
+            	dictPostData.put("dtSizeViolated", dtSizeViolated);
+            	dictPostData.put("dtUnowned", dtUnowned);
+            	dictPostData.put("dtUnindentified", dtUnindentified);            	
             	String responseString = postData(params[0], dictPostData);
             	if(responseString != null){
             		handleResponseUploadPlaceJSON(responseString);                		

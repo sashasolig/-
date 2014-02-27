@@ -153,7 +153,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         Date resultDate = null;
         if(!TextUtils.isEmpty(strDate)){
             try {
-                resultDate = new SimpleDateFormat("yyyy-MM-ddTHH:mm:ss.SSS").parse(strDate);
+                resultDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").parse(strDate);
             } catch (ParseException e) {
                 resultDate = null;
             }
@@ -164,7 +164,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     public String serializeDate(Date date){
         String resultStr = null;
         if(date != null){            
-            resultStr = new SimpleDateFormat("yyyy-MM-ddTHH:mm:ss.SSS").format(date);           
+            resultStr = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").format(date);           
         }
         return resultStr;        
     }
@@ -652,26 +652,14 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         }
 	}
 	
-	private ArrayList<Place> parsePlaceJSON(String placeJSON, ArrayList<Integer> unownedPlaceServerIdList, ArrayList<Integer> ownedPlaceServerIdList) throws Exception {	
+	private ArrayList<Place> parsePlaceJSON(String placeJSON) throws Exception {	
 		JSONTokener tokener = new JSONTokener(placeJSON);
         JSONArray jsonArray = new JSONArray(tokener);
         ArrayList<Place> placeList = new ArrayList<Place>();
-        String modelName;
+       
         for(int i = 0; i < jsonArray.length(); i++){
         	checkIsCancelTask();        	
-        	JSONObject jsonObj = jsonArray.getJSONObject(i);
-        	modelName = jsonObj.getString("model");
-        	if(modelName.equalsIgnoreCase("burials.placestatus")){
-        		JSONObject fieldsPlaceStatus = jsonObj.getJSONObject("fields");
-        		int placeServerId = fieldsPlaceStatus.getInt("place");
-        		String status = fieldsPlaceStatus.getString("status");
-        		if((status != null) && status.equalsIgnoreCase("found-unowned")){
-        			unownedPlaceServerIdList.add(placeServerId);
-        		} else {
-        			ownedPlaceServerIdList.add(placeServerId);
-        		}
-        		continue;
-        	}
+        	JSONObject jsonObj = jsonArray.getJSONObject(i);        	
         	Place place = new Place();
         	place.ServerId = jsonObj.getInt("pk");
         	JSONObject fields = jsonObj.getJSONObject("fields");
@@ -704,6 +692,9 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
             }
         	if(strDateUnowned != null && !strDateUnowned.equalsIgnoreCase("null")) {
                 place.UnownedDate = parseDate(strDateUnowned);
+                place.IsOwnerLess = true;
+            } else {
+                place.IsOwnerLess = false;
             }
         	if(strDateUnindentified != null && !strDateUnindentified.equalsIgnoreCase("null")) {
                 place.UnindentifiedDate = parseDate(strDateUnindentified);
@@ -731,10 +722,8 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         return placeList;
 	}
 	
-	public void handleResponseGetPlaceJSON(String placeJSON, int cemeteryServerId, int regionServerId, Date syncDate) throws Exception {
-		ArrayList<Integer> unownedPlaceServerIdList = new ArrayList<Integer>();
-		ArrayList<Integer> ownedPlaceServerIdList = new ArrayList<Integer>();
-		ArrayList<Place> placeList = parsePlaceJSON(placeJSON, unownedPlaceServerIdList, ownedPlaceServerIdList);
+	public void handleResponseGetPlaceJSON(String placeJSON, int cemeteryServerId, int regionServerId, Date syncDate) throws Exception {		
+		ArrayList<Place> placeList = parsePlaceJSON(placeJSON);
 		RuntimeExceptionDao<Place, Integer> placeDAO = DB.dao(Place.class);
         for(int i = 0; i < placeList.size(); i++){
         	checkIsCancelTask();
@@ -849,19 +838,6 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 			}
         }
         
-        for(int placeServerId : unownedPlaceServerIdList){
-        	UpdateBuilder<Place, Integer> updateBuilder = placeDAO.updateBuilder();
-    		updateBuilder.updateColumnValue(Place.IsOwnerLessColumnName, true);
-    		updateBuilder.where().eq("ServerId", placeServerId);
-    		placeDAO.update(updateBuilder.prepare());
-        }
-        for(int placeServerId : ownedPlaceServerIdList){
-        	UpdateBuilder<Place, Integer> updateBuilder = placeDAO.updateBuilder();
-    		updateBuilder.updateColumnValue(Place.IsOwnerLessColumnName, false);
-    		updateBuilder.where().eq("ServerId", placeServerId);
-    		placeDAO.update(updateBuilder.prepare());
-        }
-        
         if(syncDate != null && regionServerId > 0){
         	List<Region> findedRegionList = DB.dao(Region.class).queryForEq("ServerId", regionServerId);
         	for(Region region : findedRegionList){
@@ -872,10 +848,8 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         
 	}
 	
-	public void handleResponseUploadPlaceJSON(String placeJSON) throws Exception {
-		ArrayList<Integer> unownedPlaceServerIdList = new ArrayList<Integer>();
-		ArrayList<Integer> ownedPlaceServerIdList = new ArrayList<Integer>();
-		ArrayList<Place> placeList = parsePlaceJSON(placeJSON, unownedPlaceServerIdList, ownedPlaceServerIdList);
+	public void handleResponseUploadPlaceJSON(String placeJSON) throws Exception {		
+		ArrayList<Place> placeList = parsePlaceJSON(placeJSON);
         for(int i = 0; i < placeList.size(); i++){
         	Place place = placeList.get(i);
         	RuntimeExceptionDao<Place, Integer> placeDAO = DB.dao(Place.class);

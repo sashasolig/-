@@ -243,7 +243,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             db.execSQL("alter table place add column SizeViolatedDate VARCHAR;");
             db.execSQL("alter table place add column UnindentifiedDate VARCHAR;");
             db.execSQL("alter table place add column UnownedDate VARCHAR;");
-                        
+            
             db.setTransactionSuccessful();                
         } catch (SQLException e) {
             e.printStackTrace();

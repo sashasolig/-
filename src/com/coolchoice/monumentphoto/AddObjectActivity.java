@@ -5,6 +5,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -69,9 +70,9 @@ public class AddObjectActivity extends Activity {
 		
 	private EditText etCemetery, etRegion, etRow, etPlace, etGrave, etOldPlace, etPlaceLength, etPlaceWidth;
 	
-	private CheckBox cbOwnerLess, cbPlaceSizeVioleted, cbPlaceUnindentified, cbPlaceWrongFIO, cbPlaceMilitary;
+	private CheckBox cbPlaceUnowned, cbPlaceSizeVioleted, cbPlaceUnindentified, cbPlaceWrongFIO, cbPlaceMilitary;
 	
-	private CheckBox cbIsGraveWrongFIO, cbIsGraveMilitary;
+	//private CheckBox cbIsGraveWrongFIO, cbIsGraveMilitary;
 	
 	private LinearLayout llCemetery, llRegion, llRow, llPlace, llGrave;
 	
@@ -110,9 +111,13 @@ public class AddObjectActivity extends Activity {
 		this.etPlaceLength = (EditText) findViewById(R.id.etPlaceLength);
 		this.etPlaceWidth = (EditText) findViewById(R.id.etPlaceWidth);
 		this.btnFindOldPlace = (Button) findViewById(R.id.btnFindOldPlace);
-		this.cbOwnerLess = (CheckBox) findViewById(R.id.cbIsOwnerLess);
-		this.cbIsGraveMilitary = (CheckBox) findViewById(R.id.cb_grave_is_military);
-		this.cbIsGraveWrongFIO = (CheckBox) findViewById(R.id.cb_grave_is_wrong_fio);
+		
+		this.cbPlaceUnowned = (CheckBox) findViewById(R.id.cb_place_is_unowner);
+		this.cbPlaceMilitary = (CheckBox) findViewById(R.id.cb_place_is_military);
+		this.cbPlaceWrongFIO = (CheckBox) findViewById(R.id.cb_place_is_wrong_fio);
+		this.cbPlaceSizeVioleted = (CheckBox) findViewById(R.id.cb_place_is_size_violated);
+		this.cbPlaceUnindentified = (CheckBox) findViewById(R.id.cb_place_is_unindentified);
+		
 		this.etGrave = (EditText) findViewById(R.id.etGrave);
 		this.llCemetery = (LinearLayout) findViewById(R.id.llCemetery);
 		this.llRegion = (LinearLayout) findViewById(R.id.llRegion);
@@ -369,7 +374,13 @@ public class AddObjectActivity extends Activity {
 		if(complexGrave.Place != null){
 			this.etPlace.setText(complexGrave.Place.Name);
 			this.etOldPlace.setText(complexGrave.Place.OldName);
-			this.cbOwnerLess.setChecked(complexGrave.Place.IsOwnerLess);
+			
+			this.cbPlaceUnowned.setChecked(complexGrave.Place.isUnowned());
+			this.cbPlaceMilitary.setChecked(complexGrave.Place.isMilitary());
+            this.cbPlaceWrongFIO.setChecked(complexGrave.Place.isWrongFIO());
+            this.cbPlaceUnindentified.setChecked(complexGrave.Place.isUnindentified());
+            this.cbPlaceSizeVioleted.setChecked(complexGrave.Place.isSizeViolated());
+			
 			if(complexGrave.Place.Length != null){ 
 				this.etPlaceLength.setText(Double.toString(complexGrave.Place.Length));
 			} else {
@@ -386,9 +397,7 @@ public class AddObjectActivity extends Activity {
 			this.etPlaceLength.setText(null);
 		}
 		if(complexGrave.Grave != null){
-			this.etGrave.setText(complexGrave.Grave.Name);
-			this.cbIsGraveMilitary.setChecked(complexGrave.Grave.IsMilitary);
-			this.cbIsGraveWrongFIO.setChecked(complexGrave.Grave.IsWrongFIO);
+			this.etGrave.setText(complexGrave.Grave.Name);			
 		} else {
 			this.etGrave.setText(null);
 		}
@@ -476,7 +485,11 @@ public class AddObjectActivity extends Activity {
 		default:
 			break;
 		}
-		this.cbOwnerLess.setEnabled(true);
+		this.cbPlaceUnowned.setEnabled(true);
+		this.cbPlaceMilitary.setEnabled(true);
+		this.cbPlaceWrongFIO.setEnabled(true);
+		this.cbPlaceSizeVioleted.setEnabled(true);
+		this.cbPlaceUnindentified.setEnabled(true);
 		this.etPlaceLength.setEnabled(true);
 		this.etPlaceWidth.setEnabled(true);
 	}
@@ -708,34 +721,43 @@ public class AddObjectActivity extends Activity {
 		if(!isCheck || !isCheck2){
 			return false;
 		}
+		Date wrongFIODate = null, unownedDate = null, sizeViolatedDate = null, unindentifiedDate = null, militaryDate = null;     
+        if(cbPlaceUnowned.isChecked()){
+            unownedDate = new Date();
+        }
+        if(cbPlaceWrongFIO.isChecked()){
+            wrongFIODate = new Date();
+        }
+        if(cbPlaceSizeVioleted.isChecked()){
+            sizeViolatedDate = new Date();
+        }
+        if(cbPlaceUnindentified.isChecked()){
+            unindentifiedDate = new Date();
+        }
+        if(cbPlaceMilitary.isChecked()){
+            militaryDate = new Date();
+        }
 		if(mId >= 0){
 			// update
 			Place dbPlace = DB.dao(Place.class).queryForId(mId);
-			Place newPlace = new Place();
+			String previousPlaceName = dbPlace.Name;
+			String newPlaceName = (!TextUtils.isEmpty(etPlace.getText().toString())) ? etPlace.getText().toString() : null;
+            boolean isRenamePlace = !previousPlaceName.equals(newPlaceName);
 			
-			newPlace.Region = dbPlace.Region;
-			newPlace.Row = dbPlace.Row;
-			newPlace.Name = (!TextUtils.isEmpty(etPlace.getText().toString())) ? etPlace.getText().toString() : null;
-			newPlace.OldName = (!TextUtils.isEmpty(etOldPlace.getText().toString())) ? etOldPlace.getText().toString() : null;
-			newPlace.IsOwnerLess = cbOwnerLess.isChecked();
-			newPlace.Length = placeSizes[0];
-			newPlace.Width = placeSizes[1];
-			
-			if(!dbPlace.equals(newPlace)){
-				String previousPlaceName = dbPlace.Name;
-				boolean isRenamePlace = !previousPlaceName.equals(newPlace.Name);
-				
-				dbPlace.IsChanged = 1;
-				dbPlace.Name = newPlace.Name;
-				dbPlace.OldName = newPlace.OldName;
-				dbPlace.IsOwnerLess = newPlace.IsOwnerLess;
-				dbPlace.Length = newPlace.Length;
-				dbPlace.Width = newPlace.Width;
-				DB.dao(Place.class).update(dbPlace);
-				if(isRenamePlace){
-					ComplexGrave.renamePlace(dbPlace, previousPlaceName);
-				}				
-			}			
+            dbPlace.Name = newPlaceName;
+            dbPlace.OldName = (!TextUtils.isEmpty(etOldPlace.getText().toString())) ? etOldPlace.getText().toString() : null;
+            dbPlace.IsOwnerLess = cbPlaceUnowned.isChecked();
+            dbPlace.UnownedDate = unownedDate;
+            dbPlace.SizeViolatedDate = sizeViolatedDate;
+            dbPlace.UnindentifiedDate = unindentifiedDate;
+            dbPlace.WrongFIODate = wrongFIODate;
+            dbPlace.MilitaryDate = militaryDate;
+            dbPlace.Length = placeSizes[0];
+            dbPlace.Width = placeSizes[1];
+            DB.dao(Place.class).update(dbPlace);
+            if(isRenamePlace){
+                ComplexGrave.renamePlace(dbPlace, previousPlaceName);
+            }		
 			
 		} else {
 			Place newPlace = new Place();						
@@ -743,7 +765,12 @@ public class AddObjectActivity extends Activity {
 			newPlace.Row = row;
 			newPlace.Name = (!TextUtils.isEmpty(etPlace.getText().toString())) ? etPlace.getText().toString() : null;
 			newPlace.OldName = (!TextUtils.isEmpty(etOldPlace.getText().toString())) ? etOldPlace.getText().toString() : null;
-			newPlace.IsOwnerLess = cbOwnerLess.isChecked();
+			newPlace.IsOwnerLess = cbPlaceUnowned.isChecked();
+			newPlace.UnownedDate = unownedDate;
+			newPlace.SizeViolatedDate = sizeViolatedDate;
+			newPlace.UnindentifiedDate = unindentifiedDate;
+			newPlace.WrongFIODate = wrongFIODate;
+			newPlace.MilitaryDate = militaryDate;
 			newPlace.Length = placeSizes[0];
 			newPlace.Width = placeSizes[1];			
 			newPlace.IsChanged = 1;
@@ -768,35 +795,44 @@ public class AddObjectActivity extends Activity {
 		if(!isCheck || !isCheck2){
 			return false;
 		}
+		Date wrongFIODate = null, unownedDate = null, sizeViolatedDate = null, unindentifiedDate = null, militaryDate = null;     
+        if(cbPlaceUnowned.isChecked()){
+            unownedDate = new Date();
+        }
+        if(cbPlaceWrongFIO.isChecked()){
+            wrongFIODate = new Date();
+        }
+        if(cbPlaceSizeVioleted.isChecked()){
+            sizeViolatedDate = new Date();
+        }
+        if(cbPlaceUnindentified.isChecked()){
+            unindentifiedDate = new Date();
+        }
+        if(cbPlaceMilitary.isChecked()){
+            militaryDate = new Date();
+        }
 		if(mId >= 0){
 			// update			
 			Place dbPlace = DB.dao(Place.class).queryForId(mId);
-			Place newPlace = new Place();
+			String previousPlaceName = dbPlace.Name;
+			String newPlaceName = (!TextUtils.isEmpty(etPlace.getText().toString())) ? etPlace.getText().toString() : null;
+			boolean isRenamePlace = !previousPlaceName.equals(newPlaceName);
 			
-			newPlace.Region = dbPlace.Region;
-			newPlace.Row = dbPlace.Row;
-			newPlace.Name = (!TextUtils.isEmpty(etPlace.getText().toString())) ? etPlace.getText().toString() : null;
-			newPlace.OldName = (!TextUtils.isEmpty(etOldPlace.getText().toString())) ? etOldPlace.getText().toString() : null;
-			newPlace.IsOwnerLess = cbOwnerLess.isChecked();
-			newPlace.Length = placeSizes[0];
-			newPlace.Width = placeSizes[1];
-			
-			if(!dbPlace.equals(newPlace)){
-				String previousPlaceName = dbPlace.Name;
-				boolean isRenamePlace = !previousPlaceName.equals(newPlace.Name);
-				
-				dbPlace.IsChanged = 1;
-				dbPlace.Name = newPlace.Name;
-				dbPlace.OldName = newPlace.OldName;
-				dbPlace.IsOwnerLess = newPlace.IsOwnerLess;
-				dbPlace.Length = newPlace.Length;
-				dbPlace.Width = newPlace.Width;
-				DB.dao(Place.class).update(dbPlace);
-				if(isRenamePlace){
-					ComplexGrave.renamePlace(dbPlace, previousPlaceName);
-				}				
-			}
-						
+			dbPlace.Name = newPlaceName;
+			dbPlace.OldName = (!TextUtils.isEmpty(etOldPlace.getText().toString())) ? etOldPlace.getText().toString() : null;
+			dbPlace.IsOwnerLess = cbPlaceUnowned.isChecked();
+			dbPlace.UnownedDate = unownedDate;
+            dbPlace.SizeViolatedDate = sizeViolatedDate;
+            dbPlace.UnindentifiedDate = unindentifiedDate;
+            dbPlace.WrongFIODate = wrongFIODate;
+            dbPlace.MilitaryDate = militaryDate;
+			dbPlace.Length = placeSizes[0];
+			dbPlace.Width = placeSizes[1];
+			dbPlace.IsChanged = 1;
+            DB.dao(Place.class).update(dbPlace);
+            if(isRenamePlace){
+                ComplexGrave.renamePlace(dbPlace, previousPlaceName);
+            }						
 			
 		} else {
 			Place newPlace = new Place();
@@ -804,7 +840,12 @@ public class AddObjectActivity extends Activity {
 			newPlace.Region = region;			
 			newPlace.Name = (!TextUtils.isEmpty(etPlace.getText().toString())) ? etPlace.getText().toString() : null;
 			newPlace.OldName = (!TextUtils.isEmpty(etOldPlace.getText().toString())) ? etOldPlace.getText().toString() : null;
-			newPlace.IsOwnerLess = cbOwnerLess.isChecked();
+			newPlace.IsOwnerLess = cbPlaceUnowned.isChecked();
+			newPlace.UnownedDate = unownedDate;
+			newPlace.SizeViolatedDate = sizeViolatedDate;
+			newPlace.UnindentifiedDate = unindentifiedDate;
+			newPlace.WrongFIODate = wrongFIODate;
+			newPlace.MilitaryDate = militaryDate;
 			newPlace.Length = placeSizes[0];
 			newPlace.Width = placeSizes[1];			
 			newPlace.IsChanged = 1;			
@@ -857,59 +898,64 @@ public class AddObjectActivity extends Activity {
 		if(!isCheck || !isCheck2){
 			return false;
 		}
+		Date wrongFIODate = null, unownedDate = null, sizeViolatedDate = null, unindentifiedDate = null, militaryDate = null;		
+		if(cbPlaceUnowned.isChecked()){
+		    unownedDate = new Date();
+		}
+		if(cbPlaceWrongFIO.isChecked()){
+		    wrongFIODate = new Date();
+		}
+		if(cbPlaceSizeVioleted.isChecked()){
+		    sizeViolatedDate = new Date();
+		}
+		if(cbPlaceUnindentified.isChecked()){
+		    unindentifiedDate = new Date();
+		}
+		if(cbPlaceMilitary.isChecked()){
+		    militaryDate = new Date();
+		}
 		if(mId >= 0){
 			// update
+		    String previousGraveName = dbGrave.Name;
+		    boolean isRenameGrave = !previousGraveName.equals(newGraveName);
+		    dbGrave.IsChanged = 1;
+            dbGrave.Name = newGraveName;
+            dbGrave.IsMilitary = cbPlaceMilitary.isChecked();
+            dbGrave.IsWrongFIO = cbPlaceWrongFIO.isChecked();
+            DB.dao(Grave.class).update(dbGrave);
+            if(isRenameGrave){
+                ComplexGrave.renameGrave(dbGrave, previousGraveName);
+            }
 			
-			Grave newGrave = new Grave();
-			newGrave.Place = dbGrave.Place;
-			newGrave.Name = newGraveName;
-			newGrave.IsMilitary = cbIsGraveMilitary.isChecked();
-			newGrave.IsWrongFIO = cbIsGraveWrongFIO.isChecked();
-			if(!dbGrave.equals(newGrave)){
-				String previousGraveName = dbGrave.Name;
-				boolean isRenameGrave = !previousGraveName.equals(newGrave.Name);
-				
-				dbGrave.IsChanged = 1;
-				dbGrave.Name = newGrave.Name;
-				dbGrave.IsMilitary = newGrave.IsMilitary;
-				dbGrave.IsWrongFIO = newGrave.IsWrongFIO;
-				DB.dao(Grave.class).update(dbGrave);
-				if(isRenameGrave){
-					ComplexGrave.renameGrave(dbGrave, previousGraveName);
-				}
-			}
-			
-			Place newPlace = dbPlace.createClone();
-			newPlace.IsOwnerLess = this.cbOwnerLess.isChecked();
-			newPlace.Length = placeSizes[0];
-			newPlace.Width = placeSizes[1];			
-			if(!dbPlace.equals(newPlace)){
-				dbPlace.IsChanged = 1;
-				dbPlace.IsOwnerLess = newPlace.IsOwnerLess;
-				dbPlace.Length = newPlace.Length;
-				dbPlace.Width = newPlace.Width;
-				DB.dao(Place.class).createOrUpdate(dbPlace);
-			}			
+			dbPlace.IsOwnerLess = this.cbPlaceUnowned.isChecked();
+			dbPlace.UnownedDate = unownedDate;
+			dbPlace.SizeViolatedDate = sizeViolatedDate;
+			dbPlace.UnindentifiedDate = unindentifiedDate;
+			dbPlace.WrongFIODate = wrongFIODate;
+			dbPlace.MilitaryDate = militaryDate;
+			dbPlace.Length = placeSizes[0];
+			dbPlace.Width = placeSizes[1];
+			dbPlace.IsChanged = 1;
+			DB.dao(Place.class).createOrUpdate(dbPlace);						
 					
 		} else {			
 			
-			Place newPlace = dbPlace.createClone();
-			newPlace.IsOwnerLess = this.cbOwnerLess.isChecked();
-			newPlace.Length = placeSizes[0];
-			newPlace.Width = placeSizes[1];			
-			if(!dbPlace.equals(newPlace)){
-				dbPlace.IsChanged = 1;
-				dbPlace.IsOwnerLess = newPlace.IsOwnerLess;
-				dbPlace.Length = newPlace.Length;
-				dbPlace.Width = newPlace.Width;
-				DB.dao(Place.class).createOrUpdate(dbPlace);
-			}	
+		    dbPlace.IsOwnerLess = this.cbPlaceUnowned.isChecked();
+            dbPlace.UnownedDate = unownedDate;
+            dbPlace.SizeViolatedDate = sizeViolatedDate;
+            dbPlace.UnindentifiedDate = unindentifiedDate;
+            dbPlace.WrongFIODate = wrongFIODate;
+            dbPlace.MilitaryDate = militaryDate;
+            dbPlace.Length = placeSizes[0];
+            dbPlace.Width = placeSizes[1];
+            dbPlace.IsChanged = 1;
+            DB.dao(Place.class).createOrUpdate(dbPlace);
 			
 			Grave newGrave = new Grave();
 			newGrave.Place = dbPlace;
 			newGrave.Name = newGraveName;
-			newGrave.IsMilitary = cbIsGraveMilitary.isChecked();
-			newGrave.IsWrongFIO = cbIsGraveWrongFIO.isChecked();
+			newGrave.IsMilitary = cbPlaceMilitary.isChecked();
+			newGrave.IsWrongFIO = cbPlaceWrongFIO.isChecked();
 			newGrave.IsChanged = 1;
 			DB.dao(Grave.class).create(newGrave);
 			this.mId = newGrave.Id;
