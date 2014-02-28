@@ -1233,6 +1233,44 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
             }
         });
 		
+		
+        
+		
+		
+		this.mGVGrave.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
+				Grave grave = (Grave) mGVGrave.getAdapter().getItem(pos);
+				if((mType & AddObjectActivity.MASK_ROW) == AddObjectActivity.MASK_ROW){
+					mType = AddObjectActivity.ADD_GRAVE_WITHROW;
+				} else {
+					mType = AddObjectActivity.ADD_GRAVE_WITHOUTROW;
+				}
+				mGraveId = grave.Id;
+				setNewIdInExtras(EXTRA_TYPE, mType);
+				setNewIdInExtras(EXTRA_GRAVE_ID, mGraveId);
+				updateContent(mType, mGraveId);			
+			}
+		});
+		
+		Place place = DB.dao(Place.class).queryForId(placeId);
+		this.cbPlaceUnowned.setChecked(place.isUnowned());
+		this.cbPlaceMilitary.setChecked(place.isMilitary());
+		this.cbPlaceWrongFIO.setChecked(place.isWrongFIO());
+		this.cbPlaceUnindentified.setChecked(place.isUnindentified());
+		this.cbPlaceSizeVioleted.setChecked(place.isSizeViolated());
+		if(place.Width != null){
+		    this.etPlaceWidth.setText(place.Width.toString());
+		} else {
+		    this.etPlaceWidth.setText("");
+		}
+		if(place.Length != null){
+            this.etPlaceLength.setText(place.Length.toString());
+        } else {
+            this.etPlaceLength.setText("");
+        }
+		
 		this.cbPlaceUnowned.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             
             @Override
@@ -1369,42 +1407,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                 DB.dao(Place.class).update(place);
             }
         });
-        
 		
-		
-		this.mGVGrave.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
-				Grave grave = (Grave) mGVGrave.getAdapter().getItem(pos);
-				if((mType & AddObjectActivity.MASK_ROW) == AddObjectActivity.MASK_ROW){
-					mType = AddObjectActivity.ADD_GRAVE_WITHROW;
-				} else {
-					mType = AddObjectActivity.ADD_GRAVE_WITHOUTROW;
-				}
-				mGraveId = grave.Id;
-				setNewIdInExtras(EXTRA_TYPE, mType);
-				setNewIdInExtras(EXTRA_GRAVE_ID, mGraveId);
-				updateContent(mType, mGraveId);			
-			}
-		});
-		
-		Place place = DB.dao(Place.class).queryForId(placeId);
-		this.cbPlaceUnowned.setChecked(place.isUnowned());
-		this.cbPlaceMilitary.setChecked(place.isMilitary());
-		this.cbPlaceWrongFIO.setChecked(place.isWrongFIO());
-		this.cbPlaceUnindentified.setChecked(place.isUnindentified());
-		this.cbPlaceSizeVioleted.setChecked(place.isSizeViolated());
-		if(place.Width != null){
-		    this.etPlaceWidth.setText(place.Width.toString());
-		} else {
-		    this.etPlaceWidth.setText("");
-		}
-		if(place.Length != null){
-            this.etPlaceLength.setText(place.Length.toString());
-        } else {
-            this.etPlaceLength.setText("");
-        }
 		updatePhotoGrid();
 		
 	}
@@ -1833,86 +1836,6 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 			}
 		});
         
-        this.cbPlaceUnowned.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-			
-			@Override
-			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
-				ComplexGrave complexGrave = new ComplexGrave();
-				complexGrave.loadByGraveId(grave.Id);
-				Place place = complexGrave.Place;
-				Date unownedDate = null;
-				if(isChecked){
-				    unownedDate = new Date();
-				}
-				place.UnownedDate = unownedDate;
-				place.IsOwnerLess = isChecked;
-				place.IsChanged = 1;
-				DB.dao(Place.class).update(place);
-				
-			}
-		});
-        
-        this.cbPlaceMilitary.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-			
-			@Override
-			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
-				ComplexGrave complexGrave = new ComplexGrave();
-                complexGrave.loadByGraveId(grave.Id);
-                Place place = complexGrave.Place;
-                Date militaryDate = null;
-                if(isChecked){
-                    militaryDate = new Date();
-                }
-                place.MilitaryDate = militaryDate;
-                place.IsChanged = 1;
-                DB.dao(Place.class).update(place);
-				grave.IsMilitary = isChecked;
-				grave.IsChanged = 1;
-				DB.dao(Grave.class).update(grave);				
-			}
-		});
-        
-        this.cbPlaceWrongFIO.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-			
-			@Override
-			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
-				ComplexGrave complexGrave = new ComplexGrave();
-                complexGrave.loadByGraveId(grave.Id);
-                Place place = complexGrave.Place;
-                Date wrongFIODate = null;
-                if(isChecked){
-                    wrongFIODate = new Date();
-                }
-                place.WrongFIODate = wrongFIODate;
-                place.IsChanged = 1;
-                DB.dao(Place.class).update(place);
-				grave.IsWrongFIO = isChecked;
-				grave.IsChanged = 1;
-				DB.dao(Grave.class).update(grave);				
-			}
-		});
-        
-        this.cbPlaceUnindentified.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
-                ComplexGrave complexGrave = new ComplexGrave();
-                complexGrave.loadByGraveId(grave.Id);
-                Place place = complexGrave.Place;
-                Date unindentifiedDate = null;
-                if(isChecked){
-                    unindentifiedDate = new Date();
-                }
-                place.UnindentifiedDate = unindentifiedDate;
-                place.IsChanged = 1;
-                DB.dao(Place.class).update(place);                            
-            }
-        });
-        
         updatePhotoGrid();
         
         Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
@@ -1945,7 +1868,87 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 			}
 		} catch (SQLException e) {
 			this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
-		}		
+		}
+		
+		this.cbPlaceUnowned.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
+                ComplexGrave complexGrave = new ComplexGrave();
+                complexGrave.loadByGraveId(grave.Id);
+                Place place = complexGrave.Place;
+                Date unownedDate = null;
+                if(isChecked){
+                    unownedDate = new Date();
+                }
+                place.UnownedDate = unownedDate;
+                place.IsOwnerLess = isChecked;
+                place.IsChanged = 1;
+                DB.dao(Place.class).update(place);
+                
+            }
+        });
+        
+        this.cbPlaceMilitary.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
+                ComplexGrave complexGrave = new ComplexGrave();
+                complexGrave.loadByGraveId(grave.Id);
+                Place place = complexGrave.Place;
+                Date militaryDate = null;
+                if(isChecked){
+                    militaryDate = new Date();
+                }
+                place.MilitaryDate = militaryDate;
+                place.IsChanged = 1;
+                DB.dao(Place.class).update(place);
+                grave.IsMilitary = isChecked;
+                grave.IsChanged = 1;
+                DB.dao(Grave.class).update(grave);              
+            }
+        });
+        
+        this.cbPlaceWrongFIO.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
+                ComplexGrave complexGrave = new ComplexGrave();
+                complexGrave.loadByGraveId(grave.Id);
+                Place place = complexGrave.Place;
+                Date wrongFIODate = null;
+                if(isChecked){
+                    wrongFIODate = new Date();
+                }
+                place.WrongFIODate = wrongFIODate;
+                place.IsChanged = 1;
+                DB.dao(Place.class).update(place);
+                grave.IsWrongFIO = isChecked;
+                grave.IsChanged = 1;
+                DB.dao(Grave.class).update(grave);              
+            }
+        });
+        
+        this.cbPlaceUnindentified.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
+                ComplexGrave complexGrave = new ComplexGrave();
+                complexGrave.loadByGraveId(grave.Id);
+                Place place = complexGrave.Place;
+                Date unindentifiedDate = null;
+                if(isChecked){
+                    unindentifiedDate = new Date();
+                }
+                place.UnindentifiedDate = unindentifiedDate;
+                place.IsChanged = 1;
+                DB.dao(Place.class).update(place);                            
+            }
+        });
         
 	}
 	
