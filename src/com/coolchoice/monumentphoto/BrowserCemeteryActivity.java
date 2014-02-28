@@ -102,12 +102,17 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	public static final String EXTRA_GRAVE_ID = "GraveId";
 	public static final String EXTRA_TYPE = "extra_type";
 	
+	public static final String EXTRA_NEXT_PLACE_ID = "NextPlaceId";
+	public static final String EXTRA_PREV_PLACE_ID = "PrevPlaceId";
+	public static final String EXTRA_NEXT_PLACE_NAME = "NextPlaceName";
+	public static final String EXTRA_PREV_PLACE_NAME = "PrevPlaceName";
+	
 	public static final int ADD_OBJECT_REQUEST_CODE = 1;
 	public static final int EDIT_OBJECT_REQUEST_CODE = 2;
 	
 	private static int mPrevType = -1; 
 		
-	private Button btnLinkCemetery, btnLinkRegion, btnLinkRow, btnLinkPlace, btnLinkGrave, btnLinkHome;
+	private Button btnLinkCemetery, btnLinkRegion, btnLinkRow, btnLinkPlace, btnLinkGrave, btnLinkHome, btnLinkNextPlace, btnLinkPrevPlace;
 	
 	private LinearLayout mainView;
 	
@@ -251,6 +256,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		this.btnLinkRegion = (Button) findViewById(R.id.btnLinkRegion);
 		this.btnLinkRow = (Button) findViewById(R.id.btnLinkRow);
 		this.btnLinkPlace = (Button) findViewById(R.id.btnLinkPlace);
+		this.btnLinkNextPlace = (Button) findViewById(R.id.btnLinkNextPlace);
+		this.btnLinkPrevPlace = (Button) findViewById(R.id.btnLinkPrevPlace);
 		this.btnLinkGrave = (Button) findViewById(R.id.btnLinkGrave);	
 		this.btnLinkHome = (Button) findViewById(R.id.btnLinkRoot);
 		this.btnLinkHome.setOnClickListener(new View.OnClickListener() {
@@ -864,6 +871,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		this.btnLinkRow.setBackgroundDrawable(getResources().getDrawable(R.drawable.button));
 		this.btnLinkPlace.setBackgroundDrawable(getResources().getDrawable(R.drawable.button));
 		this.btnLinkGrave.setBackgroundDrawable(getResources().getDrawable(R.drawable.button));
+		this.btnLinkPrevPlace.setVisibility(View.GONE);
+		this.btnLinkNextPlace.setVisibility(View.GONE);
 		switch(type){
 			case AddObjectActivity.ADD_CEMETERY:
 				complexGrave.loadByCemeteryId(id);
@@ -1093,7 +1102,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
-				Place place = (Place) mGVPlace.getAdapter().getItem(pos);
+				Place place = (Place) mGVPlace.getAdapter().getItem(pos);				
 				if(place.Row != null){
 					mType = AddObjectActivity.ADD_PLACE_WITHROW;
 				} else {
@@ -1101,7 +1110,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 				}
 				mPlaceId = place.Id;
 				setNewIdInExtras(EXTRA_TYPE, mType);
-				setNewIdInExtras(EXTRA_PLACE_ID, mPlaceId);
+				setNewIdInExtras(EXTRA_PLACE_ID, mPlaceId);				
 				updateContent(mType, mPlaceId);				
 			}
 		});		
@@ -1117,7 +1126,50 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 			this.btnLinkRow.setVisibility(View.GONE);
 		}
 		this.btnLinkPlace.setVisibility(View.VISIBLE);
-		this.btnLinkGrave.setVisibility(View.GONE);		
+		this.btnLinkGrave.setVisibility(View.GONE);
+		
+		this.btnLinkPrevPlace.setVisibility(View.VISIBLE);
+		
+		this.btnLinkNextPlace.setVisibility(View.VISIBLE);
+		this.btnLinkNextPlace.setText("Следующее>>");
+		ArrayList<Place> prevAndNextPlaces =  this.getPrevAndNextPlaceInRow(placeId);
+		Place prevPlace = prevAndNextPlaces.get(0);
+		Place nextPlace = prevAndNextPlaces.get(1);
+		if(prevPlace != null){
+		    this.btnLinkPrevPlace.setText(Html.fromHtml(String.format("<< Предыдущее<br/><u> № %s</u>", prevPlace.Name)));
+		    this.btnLinkPrevPlace.setTag(prevPlace.Id);
+		    this.btnLinkPrevPlace.setEnabled(true);
+		} else {
+		    this.btnLinkPrevPlace.setText("<< Предыдущее");
+		    this.btnLinkPrevPlace.setTag(null);
+            this.btnLinkPrevPlace.setEnabled(false);
+		}
+		if(nextPlace != null){
+		    this.btnLinkNextPlace.setText(Html.fromHtml(String.format("Следующее >><br/><u> № %s</u>", nextPlace.Name)));
+		    this.btnLinkNextPlace.setTag(nextPlace.Id);
+		    this.btnLinkNextPlace.setEnabled(true);
+		} else {
+		    this.btnLinkNextPlace.setText("Следующее >>");
+		    this.btnLinkNextPlace.setTag(null);
+            this.btnLinkNextPlace.setEnabled(false);		    
+		}
+		
+		View.OnClickListener btnLinkPrevAndNextPlaceListener = new View.OnClickListener() {            
+            @Override
+            public void onClick(View v) {                
+                if(v.getTag() != null){
+                    int placeId = (Integer) v.getTag();
+                    mType = getIntent().getExtras().getInt(EXTRA_TYPE);
+                    mPlaceId = placeId;
+                    setNewIdInExtras(EXTRA_PLACE_ID, placeId);             
+                    updateContent(mType, mPlaceId);     
+                    
+                }                
+            }
+        };
+		this.btnLinkNextPlace.setOnClickListener(btnLinkPrevAndNextPlaceListener);
+		this.btnLinkPrevPlace.setOnClickListener(btnLinkPrevAndNextPlaceListener);
+		
 		Button btnAddGrave = (Button) contentView.findViewById(R.id.btnAddGrave);
 		this.mGVGrave = (GridView) contentView.findViewById(R.id.gvGraves);
 		this.gridPhotos = (GridView) contentView.findViewById(R.id.gvPhotos);
@@ -1371,8 +1423,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	public void setNewIdInExtras(String extraName, int id){
 		getIntent().removeExtra(extraName);
 		getIntent().putExtra(extraName, id);
-	}	
-	
+	}
 	
 	private List<Region> getRegions(int cemeteryId){
 		RuntimeExceptionDao<Region, Integer> regionDAO = DB.dao(Region.class);
@@ -1429,6 +1480,44 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		}
 		return placeList;
 	}
+	
+	private ArrayList<Place> getPrevAndNextPlaceInRow(int currentPlaceId){
+	    ArrayList<Place> resultList = new ArrayList<Place>();
+	    Place nextPlace = null;
+	    Place prevPlace = null;	    
+        RuntimeExceptionDao<Place, Integer> placeDAO = DB.dao(Place.class);
+        Place currentPlace = placeDAO.queryForId(currentPlaceId);
+        QueryBuilder<Place, Integer> placePrevBuilder = placeDAO.queryBuilder();
+        QueryBuilder<Place, Integer> placeNextBuilder = placeDAO.queryBuilder();
+        List<Place> placeList = null;
+        
+        try {
+            //where().eq("Region_id", regionId)
+            if(currentPlace.Row != null){
+                placePrevBuilder.limit(1).orderByRaw(BaseDTO.ORDER_BY_DESC_COLUMN_NAME).where().eq("Row_id", currentPlace.Row.Id).and().raw(String.format("CAST (Name As INTEGER) < CAST ('%s' As INTEGER)", currentPlace.Name));
+            } else {
+                placePrevBuilder.limit(1).orderByRaw(BaseDTO.ORDER_BY_DESC_COLUMN_NAME).where().eq("Region_id", currentPlace.Region.Id).and().raw(String.format("CAST (Name As INTEGER) < CAST ('%s' As INTEGER)", currentPlace.Name));
+            }
+            placeList = placeDAO.query(placePrevBuilder.prepare()); 
+            if(placeList.size() > 0){
+                prevPlace = placeList.get(0);
+            }
+            if(currentPlace.Row != null) {
+                placeNextBuilder.limit(1).orderByRaw(BaseDTO.ORDER_BY_COLUMN_NAME).where().eq("Row_id", currentPlace.Row.Id).and().raw(String.format("CAST (Name As INTEGER) > CAST ('%s' As INTEGER)", currentPlace.Name));
+            } else {
+                placeNextBuilder.limit(1).orderByRaw(BaseDTO.ORDER_BY_COLUMN_NAME).where().eq("Region_id", currentPlace.Region.Id).and().raw(String.format("CAST (Name As INTEGER) > CAST ('%s' As INTEGER)", currentPlace.Name));
+            }           
+            placeList = placeDAO.query(placeNextBuilder.prepare());
+            if(placeList.size() > 0){
+                nextPlace = placeList.get(0);
+            }            
+        } catch (SQLException e) {
+            this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
+        }
+        resultList.add(prevPlace);
+        resultList.add(nextPlace);
+        return resultList;
+    }
 	
 	private List<Grave> getGraves(int placeId){
 		RuntimeExceptionDao<Grave, Integer> graveDAO = DB.dao(Grave.class);

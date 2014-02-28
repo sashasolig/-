@@ -69,6 +69,20 @@
         	android:textSize="@dimen/link_text_size"
         	android:drawableRight="@drawable/link"
         	android:layout_marginLeft="10dp"/>
+        <Button
+            android:id="@+id/btnLinkPrevPlace"
+        	android:layout_width="wrap_content"
+        	android:layout_height="fill_parent"
+        	android:text=""
+        	android:textSize="@dimen/link_text_size"        	
+        	android:layout_marginLeft="20dp"/>
+        <Button
+            android:id="@+id/btnLinkNextPlace"
+        	android:layout_width="wrap_content"
+        	android:layout_height="fill_parent"
+        	android:text=""
+        	android:textSize="@dimen/link_text_size"        	
+        	android:layout_marginLeft="10dp"/>
     </LinearLayout>
     </HorizontalScrollView>
     
