@@ -49,6 +49,9 @@ public class Place extends BaseDTO {
 	@ForeignCollectionField
     public Collection<PlacePhoto> Photos;
 	
+	@DatabaseField(foreign = true, foreignAutoRefresh = false, index = true)
+	public ResponsibleUser ResponsibleUser;
+		
 	public boolean isSizeViolated(){
         return this.SizeViolatedDate != null ? true : false;
     }

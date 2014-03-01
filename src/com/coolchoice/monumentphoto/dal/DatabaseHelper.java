@@ -27,6 +27,7 @@ import com.coolchoice.monumentphoto.data.GravePhoto;
 import com.coolchoice.monumentphoto.data.Place;
 import com.coolchoice.monumentphoto.data.PlacePhoto;
 import com.coolchoice.monumentphoto.data.Region;
+import com.coolchoice.monumentphoto.data.ResponsibleUser;
 import com.coolchoice.monumentphoto.data.Row;
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
@@ -51,6 +52,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         this.context = context;
         
+        entityClassesArray.add(ResponsibleUser.class);
         entityClassesArray.add(Cemetery.class);
         entityClassesArray.add(Region.class);
         entityClassesArray.add(Row.class);
@@ -64,6 +66,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         entityClassesArray.add(GPSRow.class);
         entityClassesArray.add(GPSPlace.class);
         entityClassesArray.add(GPSGrave.class);
+        
         
         entityClassesArray.add(DeletedObject.class);
                 
@@ -236,14 +239,15 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     
     private void migrateDBFromVer7ToLast(SQLiteDatabase db, ConnectionSource connectionSource){
         db.beginTransaction();
-        try {               
+        try {
             TableUtils.createTable(connectionSource, PlacePhoto.class);
+            TableUtils.createTable(connectionSource, ResponsibleUser.class);
             db.execSQL("alter table place add column MilitaryDate VARCHAR;");
             db.execSQL("alter table place add column WrongFIODate VARCHAR;");
             db.execSQL("alter table place add column SizeViolatedDate VARCHAR;");
             db.execSQL("alter table place add column UnindentifiedDate VARCHAR;");
             db.execSQL("alter table place add column UnownedDate VARCHAR;");
-            
+            db.execSQL("alter table place add column ResponsibleUser_id INTEGER;");            
             db.setTransactionSuccessful();                
         } catch (SQLException e) {
             e.printStackTrace();

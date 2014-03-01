@@ -1270,6 +1270,43 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
         } else {
             this.etPlaceLength.setText("");
         }
+		if(place.ResponsibleUser != null){
+			DB.dao(ResponsibleUser.class).refresh(place.ResponsibleUser);
+			String fio = String.format("%s %s %s", 
+				place.ResponsibleUser.LastName != null ? place.ResponsibleUser.LastName : "",
+				place.ResponsibleUser.FirstName != null ? place.ResponsibleUser.FirstName : "",
+				place.ResponsibleUser.MiddleName != null ? place.ResponsibleUser.MiddleName : "");
+			String phone = place.ResponsibleUser.Phones != null ? place.ResponsibleUser.Phones : "";
+			StringBuilder sbAddress = new StringBuilder();
+			if(place.ResponsibleUser.City != null){
+				sbAddress.append(place.ResponsibleUser.City);
+				sbAddress.append(", ");
+			}
+			if(place.ResponsibleUser.Street != null){
+				sbAddress.append(place.ResponsibleUser.Street);
+				sbAddress.append(", ");
+			}
+			
+			if(place.ResponsibleUser.House != null){
+				sbAddress.append(String.format("д.", place.ResponsibleUser.House));
+				sbAddress.append(", ");
+			}
+			if(place.ResponsibleUser.Block != null){
+				sbAddress.append(String.format("к.", place.ResponsibleUser.Block));
+				sbAddress.append(", ");
+			}
+			if(place.ResponsibleUser.Building != null){
+				sbAddress.append(String.format("стр.", place.ResponsibleUser.Building));
+				sbAddress.append(", ");
+			}
+			if(place.ResponsibleUser.Flat != null){
+				sbAddress.append(String.format("кв.", place.ResponsibleUser.Flat));				
+			}
+			String address = String.format("%s %s %s", fio, phone, sbAddress.toString());
+			tvResponsiblePersonOfPlace.setText(address);					
+		} else {
+			tvResponsiblePersonOfPlace.setText("");
+		}
 		
 		this.cbPlaceUnowned.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             

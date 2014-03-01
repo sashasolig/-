@@ -57,6 +57,7 @@ import com.coolchoice.monumentphoto.data.GravePhoto;
 import com.coolchoice.monumentphoto.data.Place;
 import com.coolchoice.monumentphoto.data.PlacePhoto;
 import com.coolchoice.monumentphoto.data.Region;
+import com.coolchoice.monumentphoto.data.ResponsibleUser;
 import com.coolchoice.monumentphoto.data.Row;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
 import com.j256.ormlite.stmt.DeleteBuilder;
@@ -378,39 +379,26 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 		JSONTokener tokener = new JSONTokener(cemeteryJSON);
         JSONArray jsonArray = new JSONArray(tokener);
         ArrayList<Cemetery> cemeteryList = new ArrayList<Cemetery>();
-        HashMap<Integer, List<GPSCemetery>> hashMapGPS = new HashMap<Integer, List<GPSCemetery>>();
         for(int i = 0; i < jsonArray.length(); i++){  
         	checkIsCancelTask();        	
         	JSONObject jsonObj = jsonArray.getJSONObject(i);
-        	JSONObject fields = jsonObj.getJSONObject("fields");
-        	String modelName = jsonObj.getString("model");
-        	if(modelName.equalsIgnoreCase("burials.cemetery")){
-        		Cemetery cemetery = new Cemetery();
-            	cemetery.ServerId = jsonObj.getInt("pk");            	
-            	cemetery.Name = fields.getString("name");
-            	cemeteryList.add(cemetery);
-        	}
-        	if(modelName.equalsIgnoreCase("burials.cemeterycoordinates")){
-        		GPSCemetery gps = new GPSCemetery();
-            	gps.ServerId = jsonObj.getInt("pk");            	
-            	gps.OrdinalNumber = fields.getInt("angle_number");
-            	gps.Latitude = fields.getDouble("lat");
-            	gps.Longitude = fields.getDouble("lng");
-            	int cemeteryServerId = fields.getInt("cemetery");
-            	if(hashMapGPS.containsKey(cemeteryServerId)){
-            		hashMapGPS.get(cemeteryServerId).add(gps);
-            	} else {
-            		List<GPSCemetery> listGPS = new ArrayList<GPSCemetery>();
-            		listGPS.add(gps);
-            		hashMapGPS.put(cemeteryServerId, listGPS);
-            	}
-        	}
-        }
-        for(Cemetery cem : cemeteryList){
-        	if(hashMapGPS.containsKey(cem.ServerId)){
-        		cem.GPSCemeteryList = hashMapGPS.get(cem.ServerId);
-        	}
-        }
+        	JSONArray jsonGPSArray = jsonObj.getJSONArray("coordinates");
+        	Cemetery cemetery = new Cemetery();
+            cemetery.ServerId = jsonObj.getInt("pk");            	
+            cemetery.Name = jsonObj.getString("name");
+            cemetery.GPSCemeteryList = new ArrayList<GPSCemetery>();            
+            for(int j = 0; j < jsonGPSArray.length(); j++){
+            	JSONObject jsonGPS = jsonGPSArray.getJSONObject(j);
+            	GPSCemetery gps = new GPSCemetery();
+            	gps.ServerId = jsonGPS.getInt("pk");            	
+            	gps.OrdinalNumber = jsonGPS.getInt("angle_number");
+            	gps.Latitude = jsonGPS.getDouble("lat");
+            	gps.Longitude = jsonGPS.getDouble("lng");
+            	gps.Cemetery = cemetery;
+            	cemetery.GPSCemeteryList.add(gps);
+            }
+            cemeteryList.add(cemetery);
+        }        
         return cemeteryList;
 	}
 	
@@ -418,20 +406,17 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         StringBuilder sbJSON = new StringBuilder();
         String delimeter = ", "; 
         sbJSON.append("[");
-        String template = "{\"pk\": %s, \"model\": \"burials.cemeterycoordinates\", \"fields\": {\"lat\": %s, \"lng\": %s, \"angle_number\": %s, \"cemetery\": %s}}";        
+        String template = "{\"pk\": %s, \"lat\": %s, \"lng\": %s, \"angle_number\": %s}";
         for(GPSCemetery gps : cemetery.GPSCemeteryList){
-            String idString, cemeteryString, latString, lngString, angleNumberString;
-            idString = cemeteryString = latString = lngString = angleNumberString = "null";
+            String idString, latString, lngString, angleNumberString;
+            idString = latString = lngString = angleNumberString = "null";
             if(gps.ServerId > 0){
                 idString = Integer.toString(gps.ServerId);
-            }
-            if(cemetery.ServerId > 0){
-                cemeteryString = Integer.toString(cemetery.ServerId);
-            }
+            }            
             angleNumberString = Integer.toString(gps.OrdinalNumber);
             latString = Double.toString(gps.Latitude);
             lngString = Double.toString(gps.Longitude);                        
-            sbJSON.append(String.format(template, idString, latString, lngString, angleNumberString, cemeteryString));
+            sbJSON.append(String.format(template, idString, latString, lngString, angleNumberString));
             sbJSON.append(delimeter);
         }
         if(cemetery.GPSCemeteryList.size() > 0){
@@ -504,43 +489,31 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 	private ArrayList<Region> parseRegionJSON(String regionJSON) throws Exception {	
 		JSONTokener tokener = new JSONTokener(regionJSON);
         JSONArray jsonArray = new JSONArray(tokener);
-        ArrayList<Region> regionList = new ArrayList<Region>();
-        HashMap<Integer, List<GPSRegion>> hashMapGPS = new HashMap<Integer, List<GPSRegion>>();
+        ArrayList<Region> regionList = new ArrayList<Region>();        
         for(int i = 0; i < jsonArray.length(); i++){
         	checkIsCancelTask();        	
         	JSONObject jsonObj = jsonArray.getJSONObject(i);
-        	JSONObject fields = jsonObj.getJSONObject("fields");
-        	String modelName = jsonObj.getString("model");
-        	if(modelName.equalsIgnoreCase("burials.area")){
-        		Region region = new Region();
-        		region.ServerId = jsonObj.getInt("pk");
-        		region.Name = fields.getString("name");
-            	region.ParentServerId = fields.getInt("cemetery");
-            	region.Cemetery = new Cemetery();
-            	region.Cemetery.ServerId = region.ParentServerId;
-            	regionList.add(region);
-        	}
-        	if(modelName.equalsIgnoreCase("burials.areacoordinates")){
-        		GPSRegion gps = new GPSRegion();
-            	gps.ServerId = jsonObj.getInt("pk");            	
-            	gps.OrdinalNumber = fields.getInt("angle_number");
-            	gps.Latitude = fields.getDouble("lat");
-            	gps.Longitude = fields.getDouble("lng");
-            	int regionServerId = fields.getInt("area");
-            	if(hashMapGPS.containsKey(regionServerId)){
-            		hashMapGPS.get(regionServerId).add(gps);
-            	} else {
-            		List<GPSRegion> listGPS = new ArrayList<GPSRegion>();
-            		listGPS.add(gps);
-            		hashMapGPS.put(regionServerId, listGPS);
-            	}
-        	}
-        }
-        for(Region reg : regionList){
-        	if(hashMapGPS.containsKey(reg.ServerId)){
-        		reg.GPSRegionList = hashMapGPS.get(reg.ServerId);
-        	}
-        }
+        	JSONArray jsonGPSArray = jsonObj.getJSONArray("coordinates");
+        	JSONObject jsonCemetery = jsonObj.getJSONObject("cemetery");        		
+            Region region = new Region();
+        	region.ServerId = jsonObj.getInt("pk");
+        	region.Name = jsonObj.getString("name");
+            region.ParentServerId = jsonCemetery.getInt("pk");
+            region.Cemetery = new Cemetery();
+           	region.Cemetery.ServerId = region.ParentServerId;
+           	region.GPSRegionList = new ArrayList<GPSRegion>();           	
+           	for(int j = 0; j < jsonGPSArray.length(); j++){
+           		JSONObject jsonGPS = jsonGPSArray.getJSONObject(j);
+           		GPSRegion gps = new GPSRegion();
+            	gps.ServerId = jsonGPS.getInt("pk");            	
+            	gps.OrdinalNumber = jsonGPS.getInt("angle_number");
+            	gps.Latitude = jsonGPS.getDouble("lat");
+            	gps.Longitude = jsonGPS.getDouble("lng");
+            	gps.Region = region;
+            	region.GPSRegionList.add(gps);            	
+           	}
+           	regionList.add(region);        	
+        }        
         return regionList;
 	}
 	
@@ -548,20 +521,17 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         StringBuilder sbJSON = new StringBuilder();
         String delimeter = ", "; 
         sbJSON.append("[");
-        String template = "{\"pk\": %s, \"model\": \"burials.areacoordinates\", \"fields\": {\"lat\": %s, \"lng\": %s, \"angle_number\": %s, \"area\": %s}}";        
+        String template = "{\"pk\": %s, \"lat\": %s, \"lng\": %s, \"angle_number\": %s}";        
         for(GPSRegion gps : region.GPSRegionList){
-            String idString, regionString, latString, lngString, angleNumberString;
-            idString = regionString = latString = lngString = angleNumberString = "null";
+            String idString, latString, lngString, angleNumberString;
+            idString = latString = lngString = angleNumberString = "null";
             if(gps.ServerId > 0){
                 idString = Integer.toString(gps.ServerId);
-            }
-            if(region.ServerId > 0){
-                regionString = Integer.toString(region.ServerId);
-            }
+            }            
             angleNumberString = Integer.toString(gps.OrdinalNumber);
             latString = Double.toString(gps.Latitude);
             lngString = Double.toString(gps.Longitude);                        
-            sbJSON.append(String.format(template, idString, latString, lngString, angleNumberString, regionString));
+            sbJSON.append(String.format(template, idString, latString, lngString, angleNumberString));
             sbJSON.append(delimeter);
         }
         if(region.GPSRegionList.size() > 0){
@@ -655,32 +625,61 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 	private ArrayList<Place> parsePlaceJSON(String placeJSON) throws Exception {	
 		JSONTokener tokener = new JSONTokener(placeJSON);
         JSONArray jsonArray = new JSONArray(tokener);
-        ArrayList<Place> placeList = new ArrayList<Place>();
-       
+        ArrayList<Place> placeList = new ArrayList<Place>();       
         for(int i = 0; i < jsonArray.length(); i++){
         	checkIsCancelTask();        	
-        	JSONObject jsonObj = jsonArray.getJSONObject(i);        	
+        	JSONObject jsonObj = jsonArray.getJSONObject(i);
+        	JSONObject jsonArea = jsonObj.getJSONObject("area");
+        	JSONObject jsonResponsibleUser = null;
+        	if(!jsonObj.isNull("responsible")){
+        		jsonResponsibleUser = jsonObj.getJSONObject("responsible");
+        	}        	
+        	JSONObject jsonAddress = null;
+        	JSONObject jsonCountry = null;
+        	JSONObject jsonRegion = null;
+        	JSONObject jsonCity = null;
+        	JSONObject jsonStreet = null;
+        	if(jsonResponsibleUser != null){
+        		if(!jsonResponsibleUser.isNull("address")){
+        			jsonAddress = jsonResponsibleUser.getJSONObject("address");
+        			if(jsonAddress != null){
+        				if(!jsonAddress.isNull("country")){
+        					jsonCountry = jsonAddress.getJSONObject("country");
+        				}
+        				if(!jsonAddress.isNull("region")){
+        					jsonRegion = jsonAddress.getJSONObject("region");
+        				}
+        				if(!jsonAddress.isNull("city")){
+        					jsonCity = jsonAddress.getJSONObject("city");
+        				}
+        				if(!jsonAddress.isNull("street")){
+        					jsonStreet = jsonAddress.getJSONObject("street");
+        				}
+
+        			}
+            	} 
+        	}        	
         	Place place = new Place();
         	place.ServerId = jsonObj.getInt("pk");
-        	JSONObject fields = jsonObj.getJSONObject("fields");
-        	place.Name = fields.getString("place");
-        	place.OldName = fields.getString("oldplace");
+        	place.Name = jsonObj.getString("place");
+        	place.OldName = jsonObj.getString("oldplace");
+        	String rowName = jsonObj.getString("row");
         	if((place.OldName != null) && (place.OldName.equalsIgnoreCase("null"))){
         		place.OldName = null;
         	}
-        	String strLength = fields.getString("place_length");
-        	String strWidth = fields.getString("place_width");
+        	String strLength = jsonObj.getString("place_length");
+        	String strWidth = jsonObj.getString("place_width");
         	if(strLength != null && !strLength.equalsIgnoreCase("null")) {
         		place.Length = Double.parseDouble(strLength);
         	}
         	if(strWidth != null && !strWidth.equalsIgnoreCase("null")) {
         		place.Width = Double.parseDouble(strWidth);
         	}        	
-        	String strDateWrongFIO = fields.getString("dt_wrong_fio");
-        	String strDateMilitary = fields.getString("dt_military");
-        	String strDateSizeViolated = fields.getString("dt_size_violated");
-        	String strDateUnowned = fields.getString("dt_unowned");
-        	String strDateUnindentified = fields.getString("dt_unindentified");
+        	String strDateWrongFIO = jsonObj.getString("dt_wrong_fio");
+        	String strDateMilitary = jsonObj.getString("dt_military");
+        	String strDateSizeViolated = jsonObj.getString("dt_size_violated");
+        	String strDateUnowned = jsonObj.getString("dt_unowned");
+        	String strDateUnindentified = jsonObj.getString("dt_unindentified");
         	if(strDateWrongFIO != null && !strDateWrongFIO.equalsIgnoreCase("null")) {
                 place.WrongFIODate = parseDate(strDateWrongFIO);
             }
@@ -698,10 +697,8 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
             }
         	if(strDateUnindentified != null && !strDateUnindentified.equalsIgnoreCase("null")) {
                 place.UnindentifiedDate = parseDate(strDateUnindentified);
-            }
-        	
-        	int regionServerId = fields.getInt("area");
-        	String rowName = fields.getString("row");
+            }        	
+        	int regionServerId = jsonArea.getInt("pk");        	
         	if(rowName == null || rowName.equalsIgnoreCase("") ){
         		place.ParentServerId = regionServerId;
         		place.Region = new Region();
@@ -716,10 +713,56 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         		place.Row = row;
         		place.Region = null;
         	}
-        	place.IsOwnerLess = false;
+        	if(jsonResponsibleUser != null){
+	        	ResponsibleUser user = new ResponsibleUser();
+	        	user.FirstName = jsonResponsibleUser.getString("first_name");
+	        	user.LastName = jsonResponsibleUser.getString("last_name");
+	        	user.MiddleName = jsonResponsibleUser.getString("middle_name");
+	        	user.Phones= jsonResponsibleUser.getString("phones");
+	        	user.LoginPhone = jsonResponsibleUser.getString("login_phone");
+	        	if(jsonAddress != null){
+		        	user.House = jsonAddress.getString("house");
+		        	user.Block = jsonAddress.getString("block");
+		        	user.Building = jsonAddress.getString("building");
+		        	user.Flat = jsonAddress.getString("flat");
+		        	if(jsonCountry != null){
+		        		user.Country = jsonCountry.getString("name");
+		        	}
+		        	if(jsonRegion != null){
+		        		user.Region = jsonRegion.getString("name");
+		        	}
+		        	if(jsonCity != null){
+		        		user.City = jsonCity.getString("name");
+		        	}
+		        	if(jsonStreet != null){
+		        		user.Street = jsonStreet.getString("name");
+		        	}
+	        	}
+	        	user.FirstName = getStringOrNull(user.FirstName);
+	        	user.LastName = getStringOrNull(user.FirstName);
+	        	user.MiddleName = getStringOrNull(user.FirstName);
+	        	user.Phones = getStringOrNull(user.FirstName);
+	        	user.LoginPhone = getStringOrNull(user.FirstName);
+	        	user.House = getStringOrNull(user.FirstName);
+	        	user.Block = getStringOrNull(user.FirstName);
+	        	user.Building = getStringOrNull(user.FirstName);
+	        	user.Flat = getStringOrNull(user.FirstName);
+	        	user.Country = getStringOrNull(user.FirstName);
+	        	user.Region = getStringOrNull(user.FirstName);
+	        	user.City = getStringOrNull(user.FirstName);
+	        	user.Street = getStringOrNull(user.FirstName);        	
+	        	place.ResponsibleUser = user;
+        	}
         	placeList.add(place);    	
         }
         return placeList;
+	}
+	
+	private String getStringOrNull(String value){
+		if(!TextUtils.isEmpty(value) && !value.equalsIgnoreCase("null")) {
+			return value;
+		}
+		return null;
 	}
 	
 	public void handleResponseGetPlaceJSON(String placeJSON, int cemeteryServerId, int regionServerId, Date syncDate) throws Exception {		
@@ -727,7 +770,8 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 		RuntimeExceptionDao<Place, Integer> placeDAO = DB.dao(Place.class);
         for(int i = 0; i < placeList.size(); i++){
         	checkIsCancelTask();
-        	Place place = placeList.get(i);        	
+        	Place place = placeList.get(i);
+        	ResponsibleUser responsibleUser = place.ResponsibleUser;
         	RuntimeExceptionDao<Region, Integer> regionDAO = DB.dao(Region.class);
         	RuntimeExceptionDao<Row, Integer> rowDAO = DB.dao(Row.class);
         	if(place.Row != null){
@@ -756,6 +800,19 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 			if(!isChangePlaceOnClient){
 				if(dbPlace != null){
 					//update place
+					if(dbPlace.ResponsibleUser == null){
+						dbPlace.ResponsibleUser = responsibleUser;
+					} else {
+						if(responsibleUser == null){
+							dbPlace.ResponsibleUser = null;
+						} else {
+							responsibleUser.Id = dbPlace.ResponsibleUser.Id;
+							dbPlace.ResponsibleUser = responsibleUser;
+						}
+					}
+					if(dbPlace.ResponsibleUser != null){
+						DB.dao(ResponsibleUser.class).createOrUpdate(dbPlace.ResponsibleUser);
+					}
 					if(dbPlace.Row != null){
 						rowDAO.refresh(dbPlace.Row);
 						dbPlace.MilitaryDate = place.MilitaryDate;
@@ -804,6 +861,9 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 					}
 				} else{
 					//insert place
+					if(place.ResponsibleUser != null){
+						DB.dao(ResponsibleUser.class).createOrUpdate(place.ResponsibleUser);
+					}
 					if(place.Row != null){
 						//дубликаты рядов создавать не нужно
 						Row dbRow = null;
@@ -821,8 +881,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 							if(findedRow.size() > 0){
 								dbRow = findedRow.get(0);
 							}							
-						}
-						
+						}						
 						if(dbRow == null){
 							rowDAO.create(place.Row);
 							placeDAO.create(place);
@@ -919,14 +978,14 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	checkIsCancelTask();
         	Grave grave = new Grave();
         	JSONObject jsonObj = jsonArray.getJSONObject(i);
+        	JSONObject jsonPlace = jsonObj.getJSONObject("place");
         	grave.ServerId = jsonObj.getInt("pk");
-        	JSONObject fields = jsonObj.getJSONObject("fields");
-        	grave.Name = fields.getString("grave_number");
+        	grave.Name = jsonObj.getString("grave_number");
         	grave.Place = new Place();	                	
-        	grave.Place.ServerId = fields.getInt("place");
-        	grave.ParentServerId = fields.getInt("place");
-        	String isMilitary =  fields.getString("is_military");
-        	String isWrongFIO =  fields.getString("is_wrong_fio");
+        	grave.Place.ServerId = jsonPlace.getInt("pk");
+        	grave.ParentServerId = jsonPlace.getInt("pk");
+        	String isMilitary =  jsonObj.getString("is_military");
+        	String isWrongFIO =  jsonObj.getString("is_wrong_fio");
         	if(isMilitary != null && isMilitary.equalsIgnoreCase("true")){
         		grave.IsMilitary = true;
         	} else {
@@ -1021,80 +1080,61 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         }
 	}
 	
-	private ArrayList<Burial> parseBurialJSON(String burialJSON, ArrayList<Burial> persons) throws Exception {	
+	private ArrayList<Burial> parseBurialJSON(String burialJSON) throws Exception {	
 		JSONTokener tokener = new JSONTokener(burialJSON);
         JSONArray jsonArray = new JSONArray(tokener);
         ArrayList<Burial> burialList = new ArrayList<Burial>();
-        String modelName;
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
         for(int i = 0; i < jsonArray.length(); i++){
         	checkIsCancelTask();
         	Burial burial = new Burial();
         	JSONObject jsonObj = jsonArray.getJSONObject(i);
-        	modelName = jsonObj.getString("model");
-        	if(modelName.equalsIgnoreCase("persons.baseperson")){
-        		burial.DeadManId = jsonObj.getInt("pk");
-        		JSONObject fieldsPlaceStatus = jsonObj.getJSONObject("fields");
-        		burial.FName = fieldsPlaceStatus.getString("first_name");
-        		burial.LName = fieldsPlaceStatus.getString("last_name");
-        		burial.MName = fieldsPlaceStatus.getString("middle_name");
-        		persons.add(burial);
-        		continue;
+        	burial.ServerId = jsonObj.getInt("pk");        	
+        	JSONObject jsonGrave = jsonObj.getJSONObject("grave");
+        	JSONObject jsonDeadman = null;
+        	if(!jsonObj.isNull("deadman")){
+        		jsonDeadman = jsonObj.getJSONObject("deadman");
         	}
-        	burial.ServerId = jsonObj.getInt("pk");
-        	JSONObject fields = jsonObj.getJSONObject("fields");
-        	burial.ParentServerId = fields.getInt("grave");
-        	String containerString = fields.getString("burial_container");
+        	burial.ParentServerId = jsonGrave.getInt("pk");
+        	String containerString = jsonObj.getString("burial_container");
         	try{
         	    burial.ContainerType = Burial.ContainerTypeEnum.getEnum(containerString);
         	} catch(Exception exc){
         	    burial.ContainerType = null;
-        	}
+        	}        	
+        	String factDateString = jsonObj.getString("fact_date");
+        	factDateString = getStringOrNull(factDateString);
         	try {
-        		burial.DeadManId = fields.getInt("deadman");
-        	} catch(Exception exc){
-        		burial.DeadManId = BaseDTO.INT_NULL_VALUE;
-        	}
-        	String factDateString = fields.getString("fact_date");
-        	try {
-                burial.FactDate = dateFormat.parse(factDateString);
+        		if(factDateString != null){
+        			burial.FactDate = dateFormat.parse(factDateString);
+        		}
             } catch (ParseException e) {
-                e.printStackTrace();
-            }        	
+                burial.FactDate = null;
+            }
+        	if(jsonDeadman != null){
+        		burial.FName = jsonDeadman.getString("first_name");
+        		burial.LName = jsonDeadman.getString("last_name");
+        		burial.MName = jsonDeadman.getString("middle_name");
+        		burial.FName = getStringOrNull(burial.FName);
+        		burial.LName = getStringOrNull(burial.LName);
+        		burial.MName = getStringOrNull(burial.MName);
+        	}
         	burialList.add(burial);    	
         }
         return burialList;
 	}
 	
 	public void handleResponseGetBurialJSON(String burialJSON, int cemeteryServerId, int regionServerId, Date syncDate) throws Exception {
-		ArrayList<Burial> persons = new ArrayList<Burial>();
-		ArrayList<Burial> burialList = parseBurialJSON(burialJSON, persons);                
+		ArrayList<Burial> burialList = parseBurialJSON(burialJSON);                
         for(int i = 0; i < burialList.size(); i++){
         	checkIsCancelTask();
         	Burial burial = burialList.get(i);
         	RuntimeExceptionDao<Burial, Integer> burialDAO = DB.dao(Burial.class);
         	DeleteBuilder<Burial, Integer> deleteBuilder = burialDAO.deleteBuilder();
         	deleteBuilder.where().eq("ParentServerId", burial.ParentServerId).and().isNotNull("Grave_id");
-        	burialDAO.delete(deleteBuilder.prepare());
-        	
+        	burialDAO.delete(deleteBuilder.prepare());        	
 			burialDAO.create(burial);			
-        }
-        for(int i = 0; i < persons.size(); i++){
-        	checkIsCancelTask();
-        	Burial person = persons.get(i);
-        	RuntimeExceptionDao<Burial, Integer> burialDAO = DB.dao(Burial.class);
-        	QueryBuilder<Burial, Integer> builder = burialDAO.queryBuilder();
-        	builder.where().eq("DeadManId", person.DeadManId);
-        	List<Burial> findedBurials = burialDAO.query(builder.prepare());
-        	for(int j = 0; j < findedBurials.size(); j++){
-        		Burial burial = findedBurials.get(j);
-        		burial.FName = person.FName;
-        		burial.LName = person.LName;
-        		burial.MName = person.MName;
-        		burial.toLowerCaseFIO();
-        		burialDAO.update(burial);
-        	}
-        }
+        }        
         
         if(syncDate != null && regionServerId > 0){
         	List<Region> findedRegionList = DB.dao(Region.class).queryForEq("ServerId", regionServerId);
@@ -1113,9 +1153,9 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	checkIsCancelTask();
         	GravePhoto gravePhoto = new GravePhoto();
         	JSONObject jsonObj = jsonArray.getJSONObject(i);
+        	JSONObject jsonGrave = jsonObj.getJSONObject("grave");
         	gravePhoto.ServerId = jsonObj.getInt("pk");
-        	JSONObject fields = jsonObj.getJSONObject("fields");
-        	gravePhoto.ParentServerId = fields.getInt("grave");
+        	gravePhoto.ParentServerId = jsonGrave.getInt("pk");
         	gravePhotoList.add(gravePhoto);    	
         }
         return gravePhotoList;
@@ -1129,10 +1169,10 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
             checkIsCancelTask();
             PlacePhoto placePhoto = new PlacePhoto();
             JSONObject jsonObj = jsonArray.getJSONObject(i);
-            placePhoto.ServerId = jsonObj.getInt("pk");
-            JSONObject fields = jsonObj.getJSONObject("fields");
-            placePhoto.ParentServerId = fields.getInt("place");
-            placePhotoList.add(placePhoto);     
+            JSONObject jsonPlace = jsonObj.getJSONObject("place");
+            placePhoto.ServerId = jsonObj.getInt("pk");            
+            placePhoto.ParentServerId = jsonPlace.getInt("place");
+            placePhotoList.add(placePhoto);
         }
         return placePhotoList;
     }
