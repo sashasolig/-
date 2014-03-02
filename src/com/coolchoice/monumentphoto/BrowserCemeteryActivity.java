@@ -1992,12 +1992,12 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	private String getGraveItemText(int graveId){
 	    String result = "";
 	    try {
-            List<Burial> burials = DB.q(Burial.class).where().eq("Grave_id", graveId).query();
+            List<Burial> burials = DB.q(Burial.class).where().eq("Grave_id", graveId).query();            
             StringBuilder sb = new StringBuilder();
             for(int i = 0; i < burials.size(); i++){
                 Burial burial = burials.get(i);
                 burial.toUpperFirstCharacterInFIO();
-                String fio = String.format("ФИО: <u>%s %s %s</u><br/>Дата захоронения: <u>%s</u><br/>Тип захоронения:<u>%s</u>", (burial.LName != null) ? burial.LName : "", 
+                String fio = String.format("ФИО: <u>%s %s %s</u>, <u>%s</u>, <u>%s</u>", (burial.LName != null) ? burial.LName : "", 
                         (burial.FName != null) ? burial.FName : "", (burial.MName != null ) ? burial.MName : "",
                                  (burial.FactDate != null) ? android.text.format.DateFormat.format("dd.MM.yyyy", burial.FactDate) : "",
                                  (burial.ContainerType != null ? burial.ContainerType.toString() : ""));
