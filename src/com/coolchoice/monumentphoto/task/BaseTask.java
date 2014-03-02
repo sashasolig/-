@@ -739,18 +739,18 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 		        	}
 	        	}
 	        	user.FirstName = getStringOrNull(user.FirstName);
-	        	user.LastName = getStringOrNull(user.FirstName);
-	        	user.MiddleName = getStringOrNull(user.FirstName);
-	        	user.Phones = getStringOrNull(user.FirstName);
-	        	user.LoginPhone = getStringOrNull(user.FirstName);
-	        	user.House = getStringOrNull(user.FirstName);
-	        	user.Block = getStringOrNull(user.FirstName);
-	        	user.Building = getStringOrNull(user.FirstName);
-	        	user.Flat = getStringOrNull(user.FirstName);
-	        	user.Country = getStringOrNull(user.FirstName);
-	        	user.Region = getStringOrNull(user.FirstName);
-	        	user.City = getStringOrNull(user.FirstName);
-	        	user.Street = getStringOrNull(user.FirstName);        	
+	        	user.LastName = getStringOrNull(user.LastName);
+	        	user.MiddleName = getStringOrNull(user.MiddleName);
+	        	user.Phones = getStringOrNull(user.Phones);
+	        	user.LoginPhone = getStringOrNull(user.LoginPhone);
+	        	user.House = getStringOrNull(user.House);
+	        	user.Block = getStringOrNull(user.Block);
+	        	user.Building = getStringOrNull(user.Building);
+	        	user.Flat = getStringOrNull(user.Flat);
+	        	user.Country = getStringOrNull(user.Country);
+	        	user.Region = getStringOrNull(user.Region);
+	        	user.City = getStringOrNull(user.City);
+	        	user.Street = getStringOrNull(user.Street);     	
 	        	place.ResponsibleUser = user;
         	}
         	placeList.add(place);    	

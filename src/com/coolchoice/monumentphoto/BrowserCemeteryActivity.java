@@ -1288,19 +1288,19 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 			}
 			
 			if(place.ResponsibleUser.House != null){
-				sbAddress.append(String.format("д.", place.ResponsibleUser.House));
+				sbAddress.append(String.format("д. %s", place.ResponsibleUser.House));
 				sbAddress.append(", ");
 			}
 			if(place.ResponsibleUser.Block != null){
-				sbAddress.append(String.format("к.", place.ResponsibleUser.Block));
+				sbAddress.append(String.format("к. %s", place.ResponsibleUser.Block));
 				sbAddress.append(", ");
 			}
 			if(place.ResponsibleUser.Building != null){
-				sbAddress.append(String.format("стр.", place.ResponsibleUser.Building));
+				sbAddress.append(String.format("стр. %s", place.ResponsibleUser.Building));
 				sbAddress.append(", ");
 			}
 			if(place.ResponsibleUser.Flat != null){
-				sbAddress.append(String.format("кв.", place.ResponsibleUser.Flat));				
+				sbAddress.append(String.format("кв. %s", place.ResponsibleUser.Flat));				
 			}
 			String address = String.format("%s %s %s", fio, phone, sbAddress.toString());
 			tvResponsiblePersonOfPlace.setText(address);					

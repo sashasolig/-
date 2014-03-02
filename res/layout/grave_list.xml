@@ -89,7 +89,7 @@
 
         <TextView
             android:id="@+id/tvPlaceWidth"
-            android:layout_width="80dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:text="Ширина:"
@@ -106,7 +106,7 @@
 
         <TextView
             android:id="@+id/tvPlaceLength"
-            android:layout_width="80dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Длина:"
             android:textSize="@dimen/header_text_size" />
@@ -132,13 +132,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
-            android:text="Ответственный:"
+            android:text="Ответств.:"
             android:textSize="@dimen/header_text_size" />
         
         <TextView
             android:id="@+id/tvPlaceResponsiblePerson"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:singleLine="false"
+            android:layout_marginBottom="5dp"
             android:text="ФИО. Телефон. Адрес."
             android:textSize="@dimen/header_text_size" />
         
