@@ -1118,6 +1118,15 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         		burial.FName = getStringOrNull(burial.FName);
         		burial.LName = getStringOrNull(burial.LName);
         		burial.MName = getStringOrNull(burial.MName);
+        		if(burial.LName != null){
+        			burial.LName = burial.LName.toLowerCase();
+        		}
+        		if(burial.FName != null){
+        			burial.FName = burial.FName.toLowerCase();
+        		}
+        		if(burial.MName != null){
+        			burial.MName = burial.MName.toLowerCase();
+        		}
         	}
         	burialList.add(burial);    	
         }
@@ -1171,7 +1180,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
             JSONObject jsonObj = jsonArray.getJSONObject(i);
             JSONObject jsonPlace = jsonObj.getJSONObject("place");
             placePhoto.ServerId = jsonObj.getInt("pk");            
-            placePhoto.ParentServerId = jsonPlace.getInt("place");
+            placePhoto.ParentServerId = jsonPlace.getInt("pk");
             placePhotoList.add(placePhoto);
         }
         return placePhotoList;

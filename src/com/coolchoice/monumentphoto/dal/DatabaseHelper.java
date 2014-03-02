@@ -240,14 +240,14 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     private void migrateDBFromVer7ToLast(SQLiteDatabase db, ConnectionSource connectionSource){
         db.beginTransaction();
         try {
-            TableUtils.createTable(connectionSource, PlacePhoto.class);
-            TableUtils.createTable(connectionSource, ResponsibleUser.class);
-            db.execSQL("alter table place add column MilitaryDate VARCHAR;");
+        	db.execSQL("alter table place add column MilitaryDate VARCHAR;");
             db.execSQL("alter table place add column WrongFIODate VARCHAR;");
             db.execSQL("alter table place add column SizeViolatedDate VARCHAR;");
             db.execSQL("alter table place add column UnindentifiedDate VARCHAR;");
             db.execSQL("alter table place add column UnownedDate VARCHAR;");
-            db.execSQL("alter table place add column ResponsibleUser_id INTEGER;");            
+            db.execSQL("alter table place add column ResponsibleUser_id INTEGER;");
+            TableUtils.createTable(connectionSource, PlacePhoto.class);
+            TableUtils.createTable(connectionSource, ResponsibleUser.class);                        
             db.setTransactionSuccessful();                
         } catch (SQLException e) {
             e.printStackTrace();

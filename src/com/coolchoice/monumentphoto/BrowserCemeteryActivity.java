@@ -1221,7 +1221,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
             
             @Override
             public void onClick(View v) {
-                mMakePhotoType = PHOTOTYPE.PLACEPHOTO_CURRENT;
+                mMakePhotoType = PHOTOTYPE.PLACEPHOTO_NEXTPLACE;
                 if(isMayMakePhoto()){
                     if(Settings.IsOldPlaceNameOption(BrowserCemeteryActivity.this)){
                         enterOldPlaceName();
