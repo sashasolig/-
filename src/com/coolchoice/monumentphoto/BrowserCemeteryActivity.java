@@ -226,7 +226,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
         MenuItem actionRemoveMenuItem = this.mOptionsMenu.findItem(R.id.action_remove);
         int type = getIntent().getIntExtra(EXTRA_TYPE, -1);
         if(type == AddObjectActivity.ADD_GRAVE_WITHROW || type == AddObjectActivity.ADD_GRAVE_WITHOUTROW || 
-                type == AddObjectActivity.ADD_PLACE_WITHOUTROW || type == AddObjectActivity.ADD_GRAVE_WITHROW ){
+                type == AddObjectActivity.ADD_PLACE_WITHOUTROW || type == AddObjectActivity.ADD_PLACE_WITHROW ){
         	actionRemoveMenuItem.setVisible(true);
         } else {
         	actionRemoveMenuItem.setVisible(false);
