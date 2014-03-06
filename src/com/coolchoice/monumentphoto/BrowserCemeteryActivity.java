@@ -1237,7 +1237,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
         
 		
 		
-		this.mGVGrave.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+		/*this.mGVGrave.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
@@ -1252,7 +1252,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 				setNewIdInExtras(EXTRA_GRAVE_ID, mGraveId);
 				updateContent(mType, mGraveId);			
 			}
-		});
+		});*/
 		
 		Place place = DB.dao(Place.class).queryForId(placeId);
 		this.cbPlaceUnowned.setChecked(place.isUnowned());
@@ -1766,7 +1766,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
             } else {
             	unusedGrave = false;
             }
-            if(unusedGrave){
+            /*if(unusedGrave){
             	tvGrave.setTextColor(getResources().getColor(R.color.unused_grave_color));
             	tvUnusedGrave.setTextColor(getResources().getColor(R.color.unused_grave_color));
             	tvUnusedGrave.setVisibility(View.VISIBLE);
@@ -1774,7 +1774,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
             	tvGrave.setTextColor(getResources().getColor(R.color.text_view_color));
             	tvUnusedGrave.setTextColor(getResources().getColor(R.color.text_view_color));
             	tvUnusedGrave.setVisibility(View.GONE);
-            }
+            }*/
             tvFIO.setText(Html.fromHtml(getGraveItemText(grave.Id)));
             return convertView;
         }

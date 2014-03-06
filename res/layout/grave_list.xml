@@ -19,7 +19,8 @@
             android:layout_margin="2dp"
             android:layout_weight="1"
             android:drawableTop="@android:drawable/ic_menu_add"
-            android:text="Добавить могилу" />
+            android:text="Добавить могилу"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/btnMakePhoto"
