@@ -66,27 +66,36 @@ public class Settings {
         
     //private static String DefaultServerAddress = "http://192.168.53.11:8000";
     private static String DefaultServerAddress = "http://pd2.pohoronnoedelo.ru";
-    private static String RelativeUploadGravePhotoUrl = "/mobile/uploadgravephoto/";
-    private static String RelativeRemoveGravePhotoUrl = "/mobile/removegravephoto/";
-    private static String RelativeUploadPlacePhotoUrl = "/mobile/uploadplacephoto/";
-    private static String RelativeRemovePlacePhotoUrl = "/mobile/removeplacephoto/";
-    private static String RelativeLoginUrl = "/login/";
-    private static String RelativeGetCemeteryDataUrl = "/mobile/getcemetery/";
-    private static String RelativeGetRegionDataUrl = "/mobile/getarea/";
-    private static String RelativeGetPlaceDataUrl = "/mobile/getplace/";
-    private static String RelativeGetGraveDataUrl = "/mobile/getgrave/";
-    private static String RelativeGetBurialDataUrl = "/mobile/getburial/";
+    private static String RelativeUploadGravePhotoUrl = "/api/mobile/gravephoto/upload/";
+    private static String RelativeRemoveGravePhotoUrl = "/api/mobile/gravephoto/delete/";
+    private static String RelativeUploadPlacePhotoUrl = "/api/mobile/placephoto/upload/";
+    private static String RelativeRemovePlacePhotoUrl = "/api/mobile/placephoto/delete/";
+    private static String RelativeLoginUrl = "/api/auth/signin";
+    private static String RelativeGetCemeteryDataUrl = "/api/mobile/cemetery/";
+    private static String RelativeGetRegionDataUrl = "/api/mobile/area/";
+    private static String RelativeGetPlaceDataUrl = "/api/mobile/place/";
+    private static String RelativeGetGraveDataUrl = "/api/mobile/grave/";
+    private static String RelativeGetBurialDataUrl = "/api/mobile/burial/";
     
-    private static String RelativeUploadCemeteryDataUrl = "/mobile/uploadcemetery/";
-    private static String RelativeUploadRegionDataUrl = "/mobile/uploadarea/";
-    private static String RelativeUploadPlaceDataUrl = "/mobile/uploadplace/";
-    private static String RelativeUploadGraveDataUrl = "/mobile/uploadgrave/";
+    private static String RelativeUploadCemeteryDataUrl = "/api/mobile/cemetery/upload/";
+    private static String RelativeUploadRegionDataUrl = "/api/mobile/area/upload/";
+    private static String RelativeUploadPlaceDataUrl = "/api/mobile/place/upload/";
+    private static String RelativeUploadGraveDataUrl = "/api/mobile/grave/upload/";
     
     private static final String StorageDirPhoto = "MonumentPhoto";
     private static Location CurrentLocation;
     
     private static String pdSession;
+    private static String token;
     
+    public static String getToken() {
+        return token;
+    }
+
+    public static void setToken(String token) {
+        Settings.token = token;
+    }
+
     public static void setPDSession(String session){
     	pdSession = session;
     }

@@ -15,5 +15,17 @@ public class SettingsData {
 	public boolean IsOldPlaceName;
 	
 	public int GPSInterval;
+	
+	public String LName;
+	
+	public String MName;
+	
+	public String FName;
+	
+	public String Email;
+	
+	public String Token;
+	
+	public String Session;
 
 }

@@ -576,7 +576,8 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 			loginTaskResult = result;
 			if(!result.isError() && result.getStatus() == TaskResult.Status.LOGIN_SUCCESSED){
 				LoginTask loginTask = (LoginTask) finishedTask;
-				Settings.setPDSession(loginTask.getPDSession());
+				Settings.setPDSession(loginTask.getSettingsData().Session);
+				Settings.setToken(loginTask.getSettingsData().Token);
 				isAuthenticated = true;
 			} else {
 				isAuthenticated = false;
@@ -747,7 +748,8 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 				if(mCurrentTaskIndex < mTasks.size()){
 					if(mCurrentTaskIndex == 0){
 						LoginTask loginTask = (LoginTask) finishedTask;
-						Settings.setPDSession(loginTask.getPDSession());
+						Settings.setPDSession(loginTask.getSettingsData().Session);
+						Settings.setToken(loginTask.getSettingsData().Token);
 					}
 					BaseTask nextTask = mTasks.get(mCurrentTaskIndex);
 					if(nextTask.getTaskName() == Settings.TASK_GETCEMETERY){

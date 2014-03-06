@@ -72,6 +72,13 @@ import android.util.Log;
 public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 	
 	public final static String HEADER_REFERER = "REFERER";
+	public final static String HEADER_CONTENT_TYPE = "Content-Type";	
+	public final static String HEADER_CONTENT_TYPE_JSON = "application/json; charset=UTF-8";
+	
+	public final static String HEADER_AUTHORIZATION = "Authorization";
+	public final static String HEADER_AUTHORIZATION_FORMAT_VALUE = "Token %s";
+	
+	
 	
     AsyncTaskProgressListener progressListener;
     AsyncTaskCompleteListener<TaskResult> callback;
@@ -231,6 +238,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     	httpParams.setParameter("http.protocol.handle-redirects", false);
     	httpPost.setParams(httpParams);    	
     	httpPost.addHeader(LoginTask.HEADER_COOKIE, String.format(LoginTask.KEY_PDSESSION + "=%s", Settings.getPDSession()));
+    	httpPost.addHeader(HEADER_AUTHORIZATION, String.format(HEADER_AUTHORIZATION_FORMAT_VALUE, Settings.getToken()));
     	httpPost.addHeader(HEADER_REFERER, url);
 		try {
         	httpPost.setEntity(multipartEntity);
@@ -270,10 +278,11 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     		client = WebHttpsClient.wrapClient(client);
     	}
     	httpGet.addHeader(LoginTask.HEADER_COOKIE, String.format(LoginTask.KEY_PDSESSION + "=%s", Settings.getPDSession()));
+    	httpGet.addHeader(HEADER_AUTHORIZATION, String.format(HEADER_AUTHORIZATION_FORMAT_VALUE, Settings.getToken()));
         HttpResponse response = client.execute(httpGet);
-        if(response.getStatusLine().getStatusCode() == 302){
+        /*if(response.getStatusLine().getStatusCode() == 302){
         	throw new AuthorizationException();
-        }
+        }*/
         Header dateHeader = response.getFirstHeader("Date");
         if(dateHeader != null){
         	try {
@@ -325,6 +334,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     	httpParams.setParameter("http.protocol.handle-redirects", false);
     	httpPost.setParams(httpParams);    	
     	httpPost.addHeader(LoginTask.HEADER_COOKIE, String.format(LoginTask.KEY_PDSESSION + "=%s", Settings.getPDSession()));
+    	httpPost.addHeader(HEADER_AUTHORIZATION, String.format(HEADER_AUTHORIZATION_FORMAT_VALUE, Settings.getToken()));
     	httpPost.addHeader(HEADER_REFERER, url);
 		try {
         	httpPost.setEntity(multipartEntity);
