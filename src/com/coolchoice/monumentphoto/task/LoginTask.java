@@ -92,8 +92,9 @@ public class LoginTask extends BaseTask {
             String userDataJSON = String.format("{\"username\": \"%s\", \"password\": \"%s\"}", this.userName, this.password); 
             HttpEntity entity = new StringEntity(userDataJSON, Settings.DEFAULT_ENCODING);             			
 			httpPost.setEntity(entity);
-			response = client.execute(httpPost);        	
-			if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK){
+			response = client.execute(httpPost);
+			int responseStatusCode = response.getStatusLine().getStatusCode();
+			if(responseStatusCode == HttpStatus.SC_OK || responseStatusCode == HttpStatus.SC_BAD_REQUEST){
 			    BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), Settings.DEFAULT_ENCODING));
 		        StringBuilder sb = new StringBuilder();
 		        for (String line = null; (line = reader.readLine()) != null;) {
