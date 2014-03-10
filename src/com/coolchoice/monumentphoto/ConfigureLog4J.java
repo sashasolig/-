@@ -10,7 +10,7 @@ import de.mindpipe.android.logging.log4j.LogConfigurator;
 public class ConfigureLog4J {
     public static void configure() {
         final LogConfigurator logConfigurator = new LogConfigurator();                
-        logConfigurator.setFileName(Environment.getExternalStorageDirectory() + File.separator + "monument_photo.log");
+        logConfigurator.setFileName(Environment.getExternalStorageDirectory() + File.separator + Settings.getStorageDirPhoto() + File.separator + "MobileKeeper.log");
         logConfigurator.setRootLevel(Level.DEBUG);
         logConfigurator.setLevel("org.apache", Level.ERROR);
         logConfigurator.setMaxFileSize(5 * 1024 * 1024);

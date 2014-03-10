@@ -1,5 +1,6 @@
 package com.coolchoice.monumentphoto.dal;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -12,8 +13,11 @@ import java.util.UUID;
 import android.content.Context;
 import android.content.pm.FeatureInfo;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Environment;
 import android.util.Log;
 
+import com.coolchoice.monumentphoto.ConfigureLog4J;
+import com.coolchoice.monumentphoto.Settings;
 import com.coolchoice.monumentphoto.data.Burial;
 import com.coolchoice.monumentphoto.data.Cemetery;
 import com.coolchoice.monumentphoto.data.DeletedObject;
@@ -42,7 +46,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     ///public static final String DATABASE_NAME = "/mnt/sdcard/monument.db";
     public static final String DATABASE_NAME = "monument.db";
     
-    public static final int DATABASE_VERSION = 8;
+    public static final int DATABASE_VERSION = 9;
     
     private Context context;
 
@@ -124,9 +128,11 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	    	case 7:
                 migrateDBFromVer7ToLast(db, connectionSource);
                 break;
+	    	case 8:	    	
+                migrateDBFromVer8ToLast(db, connectionSource);
+                break;
 	    	
-    	}
-    	
+    	}    	
     	
     }
     	
@@ -254,6 +260,38 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         } finally {
             db.endTransaction();
         }
+        migrateDBFromVer8ToLast(db, connectionSource);
+    }
+    
+    private void migrateDBFromVer8ToLast(SQLiteDatabase db, ConnectionSource connectionSource){
+        File file = new File(Environment.getExternalStorageDirectory() + File.separator + "MonumentPhoto" + File.separator);
+        File newFile = new File(Environment.getExternalStorageDirectory() + File.separator + Settings.getStorageDirPhoto() + File.separator);
+        if(file.exists()){
+            if(newFile.exists()){
+                deleteFolder(newFile);
+            }
+            boolean success = file.renameTo(newFile);
+            ConfigureLog4J.configure();
+            if(success){
+                db.beginTransaction();
+                try {
+                    db.execSQL("update placephoto set UriString = replace(UriString , '/MonumentPhoto/','/MobileKeeper/');");
+                    db.execSQL("update gravephoto set UriString = replace(UriString , '/MonumentPhoto/','/MobileKeeper/');");                                  
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+            }
+        }
+    }
+    
+    private void deleteFolder(File fileOrDirectory) {
+        if (fileOrDirectory.isDirectory()){
+            for (File child : fileOrDirectory.listFiles()){
+                deleteFolder(child);
+            }
+        }
+        fileOrDirectory.delete();
     }
     
     public void delete(){
