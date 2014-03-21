@@ -2088,33 +2088,29 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		actionRemoveMenuItem.setEnabled(mPhotoGridAdapter.isChoosePhoto());	
 	}
 	
+	private void startIntentForMakePhoto(ComplexGrave complexGrave){
+	    mUri = generateFileUri(complexGrave);
+        if (mUri == null) {
+            Toast.makeText(BrowserCemeteryActivity.this, "Невозможно сделать фото", Toast.LENGTH_LONG).show();
+            return;
+        }
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);        
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, mUri);
+        startActivityForResult(intent, REQUEST_CODE_PHOTO_INTENT);
+	}
+	
 	private void makeGravePhotoCurrent(){
 		Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
 		ComplexGrave complexGrave = new ComplexGrave();
 		complexGrave.loadByGraveId(grave.Id);					
-		mUri = generateFileUri(complexGrave);
-		if (mUri == null) {
-			Toast.makeText(BrowserCemeteryActivity.this, "Невозможно сделать фото",	Toast.LENGTH_LONG).show();
-			return;
-		}
-
-		Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-		intent.putExtra(MediaStore.EXTRA_OUTPUT, mUri);
-		startActivityForResult(intent, REQUEST_CODE_PHOTO_INTENT);
+		startIntentForMakePhoto(complexGrave);
 	}
 	
 	private void makePlacePhotoCurrent(){
         Place place = DB.dao(Place.class).queryForId(getIntent().getIntExtra(EXTRA_PLACE_ID, -1));
         ComplexGrave complexGrave = new ComplexGrave();
         complexGrave.loadByPlaceId(place.Id);      
-        mUri = generateFileUri(complexGrave);
-        if (mUri == null) {
-            Toast.makeText(BrowserCemeteryActivity.this, "Невозможно сделать фото", Toast.LENGTH_LONG).show();
-            return;
-        }
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, mUri);        
-        startActivityForResult(intent, REQUEST_CODE_PHOTO_INTENT);
+        startIntentForMakePhoto(complexGrave);
     }
 	
 	private void makeGravePhotoNextGrave(){
@@ -2144,17 +2140,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		complexGrave.loadByGraveId(nextGrave.Id);
 		mGraveId = nextGrave.Id;
 		setNewIdInExtras(EXTRA_GRAVE_ID, nextGrave.Id);
-		
-		
-		mUri = generateFileUri(complexGrave);
-		if (mUri == null) {
-			Toast.makeText(BrowserCemeteryActivity.this, "Невозможно сделать фото",	Toast.LENGTH_LONG).show();
-			return;
-		}
-
-		Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-		intent.putExtra(MediaStore.EXTRA_OUTPUT, mUri);
-		startActivityForResult(intent, REQUEST_CODE_PHOTO_INTENT);
+		startIntentForMakePhoto(complexGrave);
 	}
 	
 	private void makeGravePhotoNextPlace(String filterOldPlaceName){
@@ -2195,17 +2181,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		mGraveId = nextGrave.Id;
 		setNewIdInExtras(EXTRA_PLACE_ID, nextPlace.Id);
 		setNewIdInExtras(EXTRA_GRAVE_ID, nextGrave.Id);
-		
-		
-		mUri = generateFileUri(complexGrave);
-		if (mUri == null) {
-			Toast.makeText(BrowserCemeteryActivity.this, "Невозможно сделать фото",	Toast.LENGTH_LONG).show();
-			return;
-		}
-
-		Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-		intent.putExtra(MediaStore.EXTRA_OUTPUT, mUri);
-		startActivityForResult(intent, REQUEST_CODE_PHOTO_INTENT);
+		startIntentForMakePhoto(complexGrave);
 	}
 	
 	private void makePlacePhotoNextPlace(String filterOldPlaceName){
@@ -2221,16 +2197,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
         complexGrave.loadByPlaceId(nextPlace.Id);
         mPlaceId = nextPlace.Id;       
         setNewIdInExtras(EXTRA_PLACE_ID, nextPlace.Id);        
-        
-        mUri = generateFileUri(complexGrave);
-        if (mUri == null) {
-            Toast.makeText(BrowserCemeteryActivity.this, "Невозможно сделать фото", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, mUri);
-        startActivityForResult(intent, REQUEST_CODE_PHOTO_INTENT);
+        startIntentForMakePhoto(complexGrave);
     }
 	
 	private Place getPlaceForMakePhotoInNextPlace(String filterOldPlaceName, ComplexGrave complexGrave){
