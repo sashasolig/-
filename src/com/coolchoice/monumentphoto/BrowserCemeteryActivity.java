@@ -2271,8 +2271,11 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                     nextPlace.OldName = filterOldPlaceName;                 
                 }
             }
+            if(nextPlace.Row != null){
+            	nextPlace.Region = null;
+            }
         } catch(SQLException e){
-            this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
+            this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);            
         }        
 	    return nextPlace;	    
 	}
