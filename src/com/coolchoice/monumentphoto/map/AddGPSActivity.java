@@ -279,11 +279,12 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
     	Resources res = getResources();
         this.mOverlay = new DragAndDropOverlay(mMapController);        
         for(GPS  gps : mGPSList){
+        	BitmapDrawable marker = writeOnDrawable(R.drawable.map_point, gps.OrdinalNumber);
+        	offsetY = marker.getBitmap().getHeight()/2;
 	        DragAndDropItem overlayItem = new DragAndDropItem(new GeoPoint(gps.Latitude, gps.Longitude), res.getDrawable(R.drawable.map_point));
 	        overlayItem.setOffsetX(offsetX);
 	        overlayItem.setOffsetY(offsetY);
-	        overlayItem.setDragable(false);
-	        BitmapDrawable marker = writeOnDrawable(R.drawable.map_point, gps.OrdinalNumber);
+	        overlayItem.setDragable(false);	        
 	        overlayItem.setDrawable(marker);
 	        
 	        
