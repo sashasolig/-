@@ -2,6 +2,7 @@ package com.coolchoice.monumentphoto.map;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import com.coolchoice.monumentphoto.data.*;
 import com.coolchoice.monumentphoto.map.PointBalloonItem.OnRemoveOverlayItem;
 
@@ -24,15 +25,22 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SlidingDrawer;
 import android.widget.TextView;
@@ -42,6 +50,7 @@ import com.coolchoice.monumentphoto.AddObjectActivity;
 import com.coolchoice.monumentphoto.R;
 import com.coolchoice.monumentphoto.Settings;
 
+import ru.yandex.yandexmapkit.map.MapLayer;
 import ru.yandex.yandexmapkit.*;
 import ru.yandex.yandexmapkit.overlay.OverlayItem;
 import ru.yandex.yandexmapkit.overlay.balloon.BalloonItem;
@@ -65,6 +74,7 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
     private ImageButton mAddGPSButton;
     private SlidingDrawer mSlidingDrawer;
     private ImageView mSligingImageView;
+    private LinearLayout mLayersLayout;
     
     private static List<GPS> mGPSList = null;
     private static WaitGPSHandler mWaitGPSHandler;
@@ -80,6 +90,7 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
     public static final String SLIDING_DRAWER_KEY = "sliding_drawer_key";
     public static final String GPS_LIST_KEY = "gps_list_key";
     public static boolean mIsSlidingDrawerOpen = false;
+	private static int mIndexSelectedMapLayer = 0;
     
     private void initializeOffsetForDrag(){
     	Resources res = getResources();
@@ -113,7 +124,8 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
         mSligingImageView = (ImageView) findViewById(R.id.handle);
         mGPSListView = (ListView) findViewById(R.id.lvGPS);
         mMapView = (MapView) findViewById(R.id.map);
-        mMapView.showZoomButtons(false);
+        mLayersLayout = (LinearLayout) findViewById(R.id.llLayers);
+        mMapView.showZoomButtons(true);
         mAddGPSButton = (ImageButton) findViewById(R.id.btnAddLocation);
         mMapController = mMapView.getMapController();
         mOverlayManager = mMapController.getOverlayManager();
@@ -172,6 +184,45 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
 		if(mIsSlidingDrawerOpen){
 			mSlidingDrawer.open();
 		}
+		showLayerButtons();
+    }
+    
+    private void showLayerButtons(){
+    	List<MapLayer> mapLayers = mMapController.getListMapLayer();
+    	int index = 0;
+        for(MapLayer mapLayer : mapLayers)
+        {
+        	final MapLayer finalMapLayer = mapLayer;        	          
+            Button btn = new Button(this);
+            btn.setTag(index);
+            btn.setText(mapLayer.name);
+            btn.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+            btn.setGravity(Gravity.CENTER);            
+            btn.setOnTouchListener(new OnTouchListener() {
+				@Override
+				public boolean onTouch(View view, MotionEvent event) {
+					setPressedForChilds(mLayersLayout, false);
+					mMapController.setCurrentMapLayer(finalMapLayer);
+                    view.setPressed(true);                    
+                    mIndexSelectedMapLayer = (Integer) view.getTag();
+					return true;
+				}
+            });
+            mLayersLayout.addView(btn);
+            if(index == mIndexSelectedMapLayer){
+            	setPressedForChilds(mLayersLayout, false);
+        		mMapController.setCurrentMapLayer(finalMapLayer);
+        		btn.setPressed(true);
+        	}  
+            index++;
+        }
+    }
+    
+    private void setPressedForChilds(LinearLayout ll, boolean pressed){
+    	int size = ll.getChildCount();
+    	for(int i = 0; i < size; i++){
+    		ll.getChildAt(i).setPressed(pressed);
+    	}
     }
     
     @Override
