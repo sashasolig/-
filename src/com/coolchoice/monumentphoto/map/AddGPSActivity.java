@@ -19,6 +19,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -28,6 +29,7 @@ import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -215,6 +217,7 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
     protected void onSaveInstanceState(Bundle outState){
     	outState.putBoolean(SLIDING_DRAWER_KEY, mSlidingDrawer.isOpened());
     	mIsSlidingDrawerOpen = mSlidingDrawer.isOpened();
+    	syncGPSCoordinatesWithOveralayItems();
     }
     
     private void setMapCenterToLastPoint(){
@@ -288,7 +291,7 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
     	showObject();
     }
     
-    public void removeGPS(int position, OverlayItem removedOverlayItem){
+    public void removeGPS(int position, CustomDragAndDropItem removedOverlayItem){
     	if(position < 0){
     		position = getPositionByOverlayItem(removedOverlayItem);    	    
     	}
@@ -296,12 +299,11 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
 		showObject();
     }
     
-    private int getPositionByOverlayItem(OverlayItem overlayItem){
-    	int position = -1;
-    	GeoPoint geoPoint = overlayItem.getGeoPoint();
+    private int getPositionByOverlayItem(CustomDragAndDropItem overlayItem){
+    	int position = -1;    	
 		for(int i = 0; i < this.mGPSList.size(); i++){
 			GPS gps = this.mGPSList.get(i);
-			if(geoPoint.getLat() == gps.Latitude && geoPoint.getLon() == gps.Longitude){
+			if(gps == overlayItem.getGps()){
 				position = i;
 				break;
 			}
@@ -310,17 +312,18 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
     }
 
     public void showObject(){
-    	DragAndDropOverlay prevOverlay = this.mOverlay;
+    	syncGPSCoordinatesWithOveralayItems();
+    	DragAndDropOverlay prevOverlay = this.mOverlay;    	
     	Resources res = getResources();
-        this.mOverlay = new DragAndDropOverlay(mMapController);        
+        this.mOverlay = new DragAndDropOverlay(mMapController);      
         for(GPS  gps : mGPSList){
         	BitmapDrawable marker = writeOnDrawable(R.drawable.map_point, gps.OrdinalNumber);
         	offsetY = marker.getBitmap().getHeight()/2;
-	        DragAndDropItem overlayItem = new DragAndDropItem(new GeoPoint(gps.Latitude, gps.Longitude), res.getDrawable(R.drawable.map_point));
+	        CustomDragAndDropItem overlayItem = new CustomDragAndDropItem(new GeoPoint(gps.Latitude, gps.Longitude), res.getDrawable(R.drawable.map_point), gps);
 	        overlayItem.setOffsetX(offsetX);
 	        overlayItem.setOffsetY(offsetY);
-	        overlayItem.setDragable(false);	        
-	        overlayItem.setDrawable(marker);
+	        overlayItem.setDragable(true);	        
+	        overlayItem.setDrawable(marker);	        
 	        
 	        
 	        PointBalloonItem balloonItem = new PointBalloonItem(this, overlayItem.getGeoPoint());
@@ -329,7 +332,7 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
 	        balloonItem.setVisible(true);
 	        balloonItem.setOnRemoveOverlayItem(this);
 	        overlayItem.setBalloonItem(balloonItem);	          
-	        this.mOverlay.addOverlayItem(overlayItem);
+	        this.mOverlay.addOverlayItem(overlayItem);	        
         }
         if(prevOverlay != null){
         	mOverlayManager.removeOverlay(prevOverlay);
@@ -337,6 +340,16 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
         mOverlayManager.addOverlay(mOverlay);
         mMapController.notifyRepaint();
 
+    }
+    
+    private void syncGPSCoordinatesWithOveralayItems(){
+    	if(this.mOverlay != null){
+    		for(Object obj : mOverlay.getOverlayItems()){
+    			CustomDragAndDropItem overlayItem = (CustomDragAndDropItem) obj;
+    			overlayItem.syncGPSWithGeoPoint();
+    		}    		
+    		
+    	}
     }
     
     public BitmapDrawable writeOnDrawable(int drawableId, int index){
@@ -371,7 +384,8 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
 				this.mGPSListView.setVisibility(View.VISIBLE);
 			}
 			break;
-		case R.id.action_map_save:			
+		case R.id.action_map_save:
+			syncGPSCoordinatesWithOveralayItems();
 			Intent resultData = new Intent();
 			resultData.putExtra(GPS_LIST_KEY, AddObjectActivity.GPSListToString(mGPSList));
 			setResult(Activity.RESULT_OK, resultData);
@@ -393,7 +407,8 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
 
     @Override
     public void onBalloonShow(BalloonItem balloonItem) {
-    	OverlayItem overlayItem = balloonItem.getOverlayItem();
+    	CustomDragAndDropItem overlayItem = (CustomDragAndDropItem) balloonItem.getOverlayItem();
+    	overlayItem.syncGPSWithGeoPoint();
     	int position = getPositionByOverlayItem(overlayItem);
     	((GPSListAdapter)this.mGPSListView.getAdapter()).setSelect(position);    	  	   	
     }
@@ -415,9 +430,8 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
     
     @Override
 	public void onRemoveOverlayItem(PointBalloonItem balloonItem) {
-    	OverlayItem overlayItem = balloonItem.getOverlayItem();
-    	GeoPoint geoPoint = overlayItem.getGeoPoint();
-    	removeGPS(-1, balloonItem);    			
+    	CustomDragAndDropItem overlayItem = (CustomDragAndDropItem) balloonItem.getOverlayItem();
+    	removeGPS(-1, overlayItem);    			
 	}
     
     
