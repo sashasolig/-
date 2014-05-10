@@ -1,11 +1,19 @@
 package com.coolchoice.monumentphoto.map;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import com.coolchoice.monumentphoto.data.*;
-import com.coolchoice.monumentphoto.map.PointBalloonItem.OnRemoveOverlayItem;
-
+import ru.yandex.yandexmapkit.MapController;
+import ru.yandex.yandexmapkit.MapView;
+import ru.yandex.yandexmapkit.OverlayManager;
+import ru.yandex.yandexmapkit.map.MapLayer;
+import ru.yandex.yandexmapkit.overlay.OverlayItem;
+import ru.yandex.yandexmapkit.overlay.balloon.BalloonItem;
+import ru.yandex.yandexmapkit.overlay.balloon.OnBalloonListener;
+import ru.yandex.yandexmapkit.overlay.drag.DragAndDropItem;
+import ru.yandex.yandexmapkit.overlay.drag.DragAndDropOverlay;
+import ru.yandex.yandexmapkit.overlay.location.MyLocationItem;
+import ru.yandex.yandexmapkit.overlay.location.OnMyLocationListener;
+import ru.yandex.yandexmapkit.utils.GeoPoint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -20,7 +28,6 @@ import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -33,7 +40,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
@@ -49,17 +55,8 @@ import android.widget.Toast;
 import com.coolchoice.monumentphoto.AddObjectActivity;
 import com.coolchoice.monumentphoto.R;
 import com.coolchoice.monumentphoto.Settings;
-
-import ru.yandex.yandexmapkit.map.MapLayer;
-import ru.yandex.yandexmapkit.*;
-import ru.yandex.yandexmapkit.overlay.OverlayItem;
-import ru.yandex.yandexmapkit.overlay.balloon.BalloonItem;
-import ru.yandex.yandexmapkit.overlay.balloon.OnBalloonListener;
-import ru.yandex.yandexmapkit.overlay.drag.DragAndDropItem;
-import ru.yandex.yandexmapkit.overlay.drag.DragAndDropOverlay;
-import ru.yandex.yandexmapkit.overlay.location.MyLocationItem;
-import ru.yandex.yandexmapkit.overlay.location.OnMyLocationListener;
-import ru.yandex.yandexmapkit.utils.GeoPoint;
+import com.coolchoice.monumentphoto.data.GPS;
+import com.coolchoice.monumentphoto.map.PointBalloonItem.OnRemoveOverlayItem;
 
 
 
@@ -200,29 +197,18 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
             btn.setGravity(Gravity.CENTER);            
             btn.setOnTouchListener(new OnTouchListener() {
 				@Override
-				public boolean onTouch(View view, MotionEvent event) {
-					setPressedForChilds(mLayersLayout, false);
-					mMapController.setCurrentMapLayer(finalMapLayer);
-                    view.setPressed(true);                    
+				public boolean onTouch(View view, MotionEvent event) {					
+					mMapController.setCurrentMapLayer(finalMapLayer);                                        
                     mIndexSelectedMapLayer = (Integer) view.getTag();
 					return true;
 				}
             });
             mLayersLayout.addView(btn);
-            if(index == mIndexSelectedMapLayer){
-            	setPressedForChilds(mLayersLayout, false);
-        		mMapController.setCurrentMapLayer(finalMapLayer);
-        		btn.setPressed(true);
+            if(index == mIndexSelectedMapLayer){            	
+        		mMapController.setCurrentMapLayer(finalMapLayer);        		
         	}  
             index++;
         }
-    }
-    
-    private void setPressedForChilds(LinearLayout ll, boolean pressed){
-    	int size = ll.getChildCount();
-    	for(int i = 0; i < size; i++){
-    		ll.getChildAt(i).setPressed(pressed);
-    	}
     }
     
     @Override
@@ -230,8 +216,6 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
     	outState.putBoolean(SLIDING_DRAWER_KEY, mSlidingDrawer.isOpened());
     	mIsSlidingDrawerOpen = mSlidingDrawer.isOpened();
     }
-    
-    
     
     private void setMapCenterToLastPoint(){
         List<OverlayItem> list = mOverlay.getOverlayItems();
@@ -280,7 +264,7 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
                     } else {
                         Toast.makeText(AddGPSActivity.this, "Полученная GPS координата уже была добавлена", Toast.LENGTH_LONG ).show();
                     }                       
-                }                                   
+                }                
             }           
             
         });        
@@ -573,7 +557,8 @@ public class AddGPSActivity extends Activity implements OnBalloonListener, OnMyL
 			        dialog.dismiss();
 			    }
 			});
-			mProgressDialogWaitGPS.show();
+			mProgressDialogWaitGPS.setOwnerActivity(AddGPSActivity.this);
+			mProgressDialogWaitGPS.show();			
 		}
 		
 				
