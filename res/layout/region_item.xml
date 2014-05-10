@@ -2,9 +2,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/border_item"
     android:orientation="horizontal"
-    android:padding="5dp"
-    android:background="@drawable/border_item" >
+    android:padding="5dp" >
 
     <ImageView
         android:id="@+id/ivRegion"
@@ -12,14 +12,29 @@
         android:layout_height="wrap_content"
         android:src="@drawable/region" />
 
-    <TextView
-        android:id="@+id/tvRegion"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="5dp"
-        android:text="17 участок"
-        android:singleLine="false"
-        android:textStyle="bold"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/tvRegion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:singleLine="false"
+            android:text="17 участок"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/tvRegionSquare"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:singleLine="false"
+            android:text="Площадь"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textStyle="bold" />
+    </LinearLayout>
 
 </LinearLayout>

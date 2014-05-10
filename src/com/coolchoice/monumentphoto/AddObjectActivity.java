@@ -78,8 +78,7 @@ public class AddObjectActivity extends Activity {
 	
 	private TextView tvCemeterySquare, tvRegionSquare;
 	private Double mCemeterySquare = null, mRegionSquare = null;
-	private DecimalFormat mSquareDecimalFormat = new DecimalFormat("##0.00");
-	
+		
 	//private CheckBox cbIsGraveWrongFIO, cbIsGraveMilitary;
 	
 	private LinearLayout llCemetery, llRegion, llRow, llPlace, llGrave;
@@ -445,12 +444,12 @@ public class AddObjectActivity extends Activity {
 	
 	private void updateSquareInUI(){
 		if(mCemeterySquare != null){
-			this.tvCemeterySquare.setText(String.format(getString(R.string.square), mSquareDecimalFormat.format(mCemeterySquare)));
+			this.tvCemeterySquare.setText(String.format(getString(R.string.square), Double.toString(mCemeterySquare)));
 		} else{
 			this.tvCemeterySquare.setText(String.format(getString(R.string.square), ""));
 		}
 		if(mRegionSquare != null){
-			this.tvRegionSquare.setText(String.format(getString(R.string.square), mSquareDecimalFormat.format(mRegionSquare)));
+			this.tvRegionSquare.setText(String.format(getString(R.string.square), Double.toString(mRegionSquare)));
 		} else {
 			this.tvRegionSquare.setText(String.format(getString(R.string.square), ""));
 		}

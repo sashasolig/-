@@ -1587,8 +1587,14 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
             }
             ImageView ivIcon = (ImageView) convertView.findViewById(R.id.ivRegion);
             TextView tvRegion = (TextView) convertView.findViewById(R.id.tvRegion);
-            String value = mItems.get(position).Name;
-            tvRegion.setText(value);
+            TextView tvRegionSquare = (TextView) convertView.findViewById(R.id.tvRegionSquare);
+            Region region = mItems.get(position);
+            tvRegion.setText(region.Name);
+            if(region.Square != null){
+            	tvRegionSquare.setText(String.format("%s м2", Double.toString(region.Square)));
+            } else {
+            	tvRegionSquare.setText(null);
+            }
             return convertView;
         }
         

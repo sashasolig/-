@@ -257,6 +257,7 @@ public class CemeteryListActivity extends Activity implements SyncTaskHandler.Sy
             }
             TextView tvIndex = (TextView) convertView.findViewById(R.id.tvIndex);
             TextView tvCemetery = (TextView) convertView.findViewById(R.id.tvCemetery);
+            TextView tvCemeterySquare = (TextView) convertView.findViewById(R.id.tvCemeterySquare);
             Button btnGetDataByCemetery = (Button) convertView.findViewById(R.id.btnGetDataByCemetery);
             Cemetery cemetery = mItems.get(position); 
             btnGetDataByCemetery.setTag(cemetery.ServerId);
@@ -264,7 +265,12 @@ public class CemeteryListActivity extends Activity implements SyncTaskHandler.Sy
             	btnGetDataByCemetery.setVisibility(View.VISIBLE);
             } else {
             	btnGetDataByCemetery.setVisibility(View.GONE);
-            }            	
+            }
+            if(cemetery.Square != null){
+            	tvCemeterySquare.setText(String.format(getString(R.string.square), Double.toString(cemetery.Square)));
+            } else {
+            	tvCemeterySquare.setText(null);
+            }
             String value = cemetery.Name;
             tvCemetery.setText(value);
             tvIndex.setText(Integer.toString(position + 1));

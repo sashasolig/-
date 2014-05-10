@@ -1,16 +1,11 @@
 package com.coolchoice.monumentphoto.util;
 
-import java.text.DecimalFormat;
 import java.util.List;
-
 import android.location.Location;
-
 import com.coolchoice.monumentphoto.data.GPS;
 
 public class FindingSquare {
-	
-	private static DecimalFormat mSquareDecimalFormat = new DecimalFormat("##0.00");
-	
+		
 	static class Point{	
 		public double x;
 		public double y;
@@ -56,7 +51,7 @@ public class FindingSquare {
 			
 		}
 		square = Math.abs(square);
-		square = Double.valueOf(mSquareDecimalFormat.format(square));
+		square = Math.round(square*100.0)/100.0;
 		return square;
 	}
 
