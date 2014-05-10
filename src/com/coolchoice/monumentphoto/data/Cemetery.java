@@ -18,5 +18,8 @@ public class Cemetery extends BaseDTO {
 	
 	@DatabaseField
 	public byte IsGPSChanged;
+	
+	@DatabaseField
+	public Double Square;
 
 }

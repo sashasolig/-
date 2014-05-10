@@ -27,5 +27,8 @@ public class Region extends BaseDTO {
 	
 	@DatabaseField
 	public byte IsGPSChanged;
+	
+	@DatabaseField
+	public Double Square;
 
 }

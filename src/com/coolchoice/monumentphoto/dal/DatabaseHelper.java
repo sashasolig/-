@@ -46,7 +46,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     public static final String DATABASE_NAME = "/mnt/sdcard/monument.db";
     //public static final String DATABASE_NAME = "monument.db";
     
-    public static final int DATABASE_VERSION = 9;
+    public static final int DATABASE_VERSION = 10;
     
     private Context context;
 
@@ -130,6 +130,9 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
                 break;
 	    	case 8:	    	
                 migrateDBFromVer8ToLast(db, connectionSource);
+                break;
+	    	case 9:	    	
+                migrateDBFromVer9ToLast(db, connectionSource);
                 break;
 	    	
     	}    	
@@ -282,6 +285,18 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
                     db.endTransaction();
                 }
             }
+        }
+        migrateDBFromVer9ToLast(db, connectionSource);
+    }
+    
+    private void migrateDBFromVer9ToLast(SQLiteDatabase db, ConnectionSource connectionSource){
+    	db.beginTransaction();
+        try {
+        	db.execSQL("alter table cemetery add column Square DOUBLE PRECISION;");
+        	db.execSQL("alter table region add column Square DOUBLE PRECISION;");
+        	db.setTransactionSuccessful();               
+        } finally {
+            db.endTransaction();
         }
     }
     
