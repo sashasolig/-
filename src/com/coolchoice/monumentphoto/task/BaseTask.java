@@ -396,6 +396,12 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	Cemetery cemetery = new Cemetery();
             cemetery.ServerId = jsonObj.getInt("pk");            	
             cemetery.Name = jsonObj.getString("name");
+            if(jsonObj.has("square")){
+            	String squareString = jsonObj.getString("square");
+            	if(!TextUtils.isEmpty(squareString) && !squareString.equalsIgnoreCase("null")){
+            		cemetery.Square = Double.valueOf(squareString);
+            	}
+            }
             cemetery.GPSCemeteryList = new ArrayList<GPSCemetery>();            
             for(int j = 0; j < jsonGPSArray.length(); j++){
             	JSONObject jsonGPS = jsonGPSArray.getJSONObject(j);
@@ -511,6 +517,12 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
             region.ParentServerId = jsonCemetery.getInt("pk");
             region.Cemetery = new Cemetery();
            	region.Cemetery.ServerId = region.ParentServerId;
+           	if(jsonObj.has("square")){
+            	String squareString = jsonObj.getString("square");
+            	if(!TextUtils.isEmpty(squareString) && !squareString.equalsIgnoreCase("null")){
+            		region.Square = Double.valueOf(squareString);
+            	}
+            }
            	region.GPSRegionList = new ArrayList<GPSRegion>();           	
            	for(int j = 0; j < jsonGPSArray.length(); j++){
            		JSONObject jsonGPS = jsonGPSArray.getJSONObject(j);

@@ -80,6 +80,7 @@ public class UploadCemeteryTask extends BaseTask {
             	Dictionary<String, String> dictPostData = new Hashtable<String, String>();
             	dictPostData.put("cemeteryId", Integer.toString(cem.ServerId));
             	dictPostData.put("cemeteryName", cem.Name);
+            	dictPostData.put("square", cem.Square != null ? Double.toString(cem.Square) : "");
             	dictPostData.put("gps", gpsJSON);
             	String responseString = postData(params[0], dictPostData);
             	if(responseString != null){

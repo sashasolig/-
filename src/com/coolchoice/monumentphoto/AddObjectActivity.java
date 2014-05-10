@@ -5,10 +5,14 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+
+import ru.yandex.yandexmapkit.utils.Utils;
 
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.data.BaseDTO;
@@ -24,27 +28,25 @@ import com.coolchoice.monumentphoto.data.Grave;
 import com.coolchoice.monumentphoto.data.Place;
 import com.coolchoice.monumentphoto.data.Region;
 import com.coolchoice.monumentphoto.data.Row;
-
 import com.coolchoice.monumentphoto.map.AddGPSActivity;
 import com.coolchoice.monumentphoto.task.BaseTask;
+import com.coolchoice.monumentphoto.util.FindingSquare;
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.stmt.QueryBuilder;
-
 
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.TextureView;
 import android.view.View;
-
 import android.view.ViewGroup;
-
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class AddObjectActivity extends Activity {
@@ -67,10 +69,16 @@ public class AddObjectActivity extends Activity {
 	public static final int ADD_PLACE_WITHOUTROW = MASK_CEMETERY | MASK_REGION | MASK_PLACE;
 	public static final int ADD_GRAVE_WITHROW = MASK_CEMETERY | MASK_REGION | MASK_ROW | MASK_PLACE | MASK_GRAVE;
 	public static final int ADD_GRAVE_WITHOUTROW = MASK_CEMETERY | MASK_REGION | MASK_PLACE | MASK_GRAVE;
+	public static final String CEMETERY_SQUARE_KEY = "CEMETERY_SQUARE_KEY";
+	public static final String REGION_SQUARE_KEY = "REGION_SQUARE_KEY";
 		
 	private EditText etCemetery, etRegion, etRow, etPlace, etGrave, etOldPlace, etPlaceLength, etPlaceWidth;
 	
 	private CheckBox cbPlaceUnowned, cbPlaceSizeVioleted, cbPlaceUnindentified, cbPlaceWrongFIO, cbPlaceMilitary;
+	
+	private TextView tvCemeterySquare, tvRegionSquare;
+	private Double mCemeterySquare = null, mRegionSquare = null;
+	private DecimalFormat mSquareDecimalFormat = new DecimalFormat("##0.00");
 	
 	//private CheckBox cbIsGraveWrongFIO, cbIsGraveMilitary;
 	
@@ -98,6 +106,14 @@ public class AddObjectActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		if(savedInstanceState != null){
+			if(savedInstanceState.containsKey(CEMETERY_SQUARE_KEY)){
+				this.mCemeterySquare = savedInstanceState.getDouble(CEMETERY_SQUARE_KEY);
+			}
+			if(savedInstanceState.containsKey(REGION_SQUARE_KEY)){
+				this.mRegionSquare = savedInstanceState.getDouble(REGION_SQUARE_KEY);
+			}
+		}
 		setContentView(R.layout.add_object_activity);
 		this.mType = getIntent().getExtras().getInt(EXTRA_TYPE);
 		this.mId = getIntent().getExtras().getInt(EXTRA_ID, -1);
@@ -130,6 +146,9 @@ public class AddObjectActivity extends Activity {
 		this.llOldPlace = (LinearLayout) findViewById(R.id.llOldPlace);
 		this.btnNewToOldPlace = (Button) findViewById(R.id.btnNewToOldPlace);				
 		this.btnAddGPS = (Button) findViewById(R.id.btnAddGPS);
+		
+		this.tvCemeterySquare = (TextView) findViewById(R.id.tvCemeterySquare);
+		this.tvRegionSquare = (TextView) findViewById(R.id.tvRegionSquare);
 		
 		updateAccessibilityUI(this.mType);
 		this.btnCancel.setOnClickListener(new View.OnClickListener() {
@@ -208,6 +227,16 @@ public class AddObjectActivity extends Activity {
 			}
 		});
 		
+	}
+	
+	protected void onSaveInstanceState (Bundle outState){
+		super.onSaveInstanceState(outState);
+		if(mCemeterySquare != null){
+			outState.putDouble(CEMETERY_SQUARE_KEY, this.mCemeterySquare);
+		}
+		if(mRegionSquare != null){
+			outState.putDouble(REGION_SQUARE_KEY, this.mRegionSquare);
+		}
 	}
 	
 	@Override
@@ -358,13 +387,19 @@ public class AddObjectActivity extends Activity {
 		
 		if(complexGrave.Cemetery != null){
 			this.etCemetery.setText(complexGrave.Cemetery.Name);
+			if(mCemeterySquare == null){
+				mCemeterySquare = complexGrave.Cemetery.Square;
+			}			
 		} else {
-			this.etCemetery.setText(null);
+			this.etCemetery.setText(null);			
 		}
 		if(complexGrave.Region != null){
 			this.etRegion.setText(complexGrave.Region.Name);
+			if(mRegionSquare == null){
+				mRegionSquare = complexGrave.Region.Square;
+			}			
 		} else {
-			this.etRegion.setText(null);
+			this.etRegion.setText(null);			
 		}
 		if(complexGrave.Row != null){
 			this.etRow.setText(complexGrave.Row.Name);
@@ -405,7 +440,47 @@ public class AddObjectActivity extends Activity {
 		if(complexGrave.Cemetery != null){
 			this.btnFindOldPlace.setTag(complexGrave.Cemetery.Id);
 		}
-		
+		updateSquareInUI();
+	}
+	
+	private void updateSquareInUI(){
+		if(mCemeterySquare != null){
+			this.tvCemeterySquare.setText(String.format(getString(R.string.square), mSquareDecimalFormat.format(mCemeterySquare)));
+		} else{
+			this.tvCemeterySquare.setText(String.format(getString(R.string.square), ""));
+		}
+		if(mRegionSquare != null){
+			this.tvRegionSquare.setText(String.format(getString(R.string.square), mSquareDecimalFormat.format(mRegionSquare)));
+		} else {
+			this.tvRegionSquare.setText(String.format(getString(R.string.square), ""));
+		}
+	}
+	
+	private void calculateSquare(){
+		Double square = null;
+		if((this.mType == AddObjectActivity.ADD_CEMETERY) || (this.mType == AddObjectActivity.ADD_REGION)){			
+			if(mIsStoreGPS){
+				if(!TextUtils.isEmpty(mGPSListString)){
+					List<GPS> gpsList = parseGPSListString(mGPSListString);
+					if(gpsList.size() >= 3) {						
+						Comparator<GPS> comparator = new Comparator<GPS>() {
+						    public int compare(GPS gps1, GPS gps2) {
+						        return gps2.OrdinalNumber - gps1.OrdinalNumber; 
+						    }
+						};
+						Collections.sort(gpsList, comparator);
+						square = FindingSquare.getSquare(gpsList);
+					}
+				}
+			}
+			if(this.mType == AddObjectActivity.ADD_CEMETERY){
+				mCemeterySquare = square;
+			}
+			if(this.mType == AddObjectActivity.ADD_REGION){
+				mRegionSquare = square;
+			}
+		}
+		updateSquareInUI();
 	}
 	
 	public void setNewIdInExtras(String extraName, int id){
@@ -539,8 +614,9 @@ public class AddObjectActivity extends Activity {
 			Cemetery cemetery = DB.dao(Cemetery.class).queryForId(mId);
 			String oldCemeteryName = cemetery.Name;
 			String newCemeteryName = etCemetery.getText().toString();
-			if(oldCemeteryName != newCemeteryName) {
+			if(oldCemeteryName != newCemeteryName || cemetery.Square != mCemeterySquare) {
 				cemetery.Name = newCemeteryName;
+				cemetery.Square = mCemeterySquare;
 				cemetery.IsChanged = 1;
 				DB.dao(Cemetery.class).update(cemetery);
 				ComplexGrave.renameCemetery(cemetery, oldCemeteryName);				
@@ -549,6 +625,7 @@ public class AddObjectActivity extends Activity {
 			//create
 			Cemetery cemetery = new Cemetery();
 			cemetery.Name = etCemetery.getText().toString();
+			cemetery.Square = mCemeterySquare;
 			cemetery.IsChanged = 1;
 			DB.dao(Cemetery.class).create(cemetery);
 			this.mId = cemetery.Id;
@@ -591,8 +668,9 @@ public class AddObjectActivity extends Activity {
 			Region region = DB.dao(Region.class).queryForId(mId);
 			String oldRegionName = region.Name;
 			String newRegionName = etRegion.getText().toString();
-			if(oldRegionName != newRegionName){
+			if(oldRegionName != newRegionName || region.Square != mRegionSquare){
 				region.Name = newRegionName;
+				region.Square = mRegionSquare;
 				region.IsChanged = 1;
 				DB.dao(Region.class).update(region);
 				ComplexGrave.renameRegion(region, oldRegionName);
@@ -602,6 +680,7 @@ public class AddObjectActivity extends Activity {
 			Region region = new Region();
 			region.Cemetery = cemetery;
 			region.Name = etRegion.getText().toString();
+			region.Square = mRegionSquare;
 			region.IsChanged = 1;
 			DB.dao(Region.class).create(region);
 			this.mId = region.Id;
@@ -1195,6 +1274,7 @@ public class AddObjectActivity extends Activity {
 	        case ADD_GPS_ACTIVITY_REQUEST_CODE:
 	            mGPSListString = data.getStringExtra(AddGPSActivity.GPS_LIST_KEY);
 	            mIsStoreGPS = true;
+	            calculateSquare();
 	            break;	
 	        case PlaceSearchActivity.PLACE_SEARCH_REQUESTCODE:
 	        	String oldPlaceName = data.getStringExtra(PlaceSearchActivity.EXTRA_PLACE_OLDNAME);

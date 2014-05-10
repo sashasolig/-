@@ -85,6 +85,7 @@ public class UploadRegionTask extends BaseTask {
             	dictPostData.put("cemeteryId", Integer.toString(region.Cemetery.ServerId));
             	dictPostData.put("areaId", Integer.toString(region.ServerId));
             	dictPostData.put("areaName", region.Name);
+            	dictPostData.put("square", region.Square != null ? Double.toString(region.Square) : "");
             	dictPostData.put("gps", gpsJSON);
             	String responseString = postData(params[0], dictPostData);
             	if(responseString != null){
