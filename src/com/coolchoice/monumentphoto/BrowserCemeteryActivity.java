@@ -2426,7 +2426,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                         gravePhoto.Status = GravePhoto.STATUS_FORMATE;
                     }
                     DB.dao(GravePhoto.class).create(gravePhoto);
-                    saveExifInfo(mUri.getPath(), complexGrave, gravePhoto);
+                    //saveExifInfo(mUri.getPath(), complexGrave, gravePhoto);
                                                     
                     gridPhotoItems.clear();
                     mType = getIntent().getIntExtra(EXTRA_TYPE, -1);                
@@ -2452,7 +2452,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                         placePhoto.Status = GravePhoto.STATUS_FORMATE;
                     }
                     DB.dao(PlacePhoto.class).create(placePhoto);
-                    saveExifInfo(mUri.getPath(), complexGrave, placePhoto);
+                    //saveExifInfo(mUri.getPath(), complexGrave, placePhoto);
                                                     
                     gridPhotoItems.clear();
                     mType = getIntent().getIntExtra(EXTRA_TYPE, -1);                
