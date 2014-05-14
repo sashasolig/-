@@ -1124,6 +1124,7 @@ public class AddObjectActivity extends Activity {
 				saveGPSCemetery(cemetery, gpsList);
 				cemetery.IsChanged = 1;
 				cemetery.IsGPSChanged = 1;
+				cemetery.Square = this.mCemeterySquare;
 				DB.dao(Cemetery.class).update(cemetery);
 				break;
 			case AddObjectActivity.ADD_REGION:
@@ -1131,6 +1132,7 @@ public class AddObjectActivity extends Activity {
 				saveGPSRegion(region, gpsList);
 				region.IsChanged = 1;
 				region.IsGPSChanged = 1;
+				region.Square = mRegionSquare;
 				DB.dao(Region.class).update(region);
 				break;		
 			case AddObjectActivity.ADD_ROW:
@@ -1274,6 +1276,9 @@ public class AddObjectActivity extends Activity {
 	            mGPSListString = data.getStringExtra(AddGPSActivity.GPS_LIST_KEY);
 	            mIsStoreGPS = true;
 	            calculateSquare();
+	            if(this.mId > 0){
+	            	saveGPSToDB(mGPSListString);
+	            }
 	            break;	
 	        case PlaceSearchActivity.PLACE_SEARCH_REQUESTCODE:
 	        	String oldPlaceName = data.getStringExtra(PlaceSearchActivity.EXTRA_PLACE_OLDNAME);
@@ -1288,7 +1293,7 @@ public class AddObjectActivity extends Activity {
 	
 	@Override
 	public void onBackPressed() {
-	    if(mIsStoreGPS){
+	    if(mIsStoreGPS && mId > 0){
 	        saveGPSToDB(mGPSListString);
 	    }
 	    super.onBackPressed();
