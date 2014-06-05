@@ -4,20 +4,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
-import com.coolchoice.monumentphoto.SyncTaskHandler.OperationType;
-import com.coolchoice.monumentphoto.SyncTaskHandler.SyncCompleteListener;
-import com.coolchoice.monumentphoto.dal.DB;
-import com.coolchoice.monumentphoto.dal.MonumentDB;
-import com.coolchoice.monumentphoto.data.BaseDTO;
-import com.coolchoice.monumentphoto.data.Cemetery;
-import com.coolchoice.monumentphoto.data.SettingsData;
-import com.coolchoice.monumentphoto.task.BaseTask;
-import com.coolchoice.monumentphoto.task.TaskResult;
-import com.j256.ormlite.dao.RuntimeExceptionDao;
-import com.j256.ormlite.stmt.QueryBuilder;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -37,10 +23,19 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import com.coolchoice.monumentphoto.SyncTaskHandler.OperationType;
+import com.coolchoice.monumentphoto.SyncTaskHandler.SyncCompleteListener;
+import com.coolchoice.monumentphoto.dal.DB;
+import com.coolchoice.monumentphoto.dal.MonumentDB;
+import com.coolchoice.monumentphoto.data.BaseDTO;
+import com.coolchoice.monumentphoto.data.Cemetery;
+import com.coolchoice.monumentphoto.data.SettingsData;
+import com.coolchoice.monumentphoto.task.TaskResult;
+import com.j256.ormlite.dao.RuntimeExceptionDao;
+import com.j256.ormlite.stmt.QueryBuilder;
 
 public class CemeteryListActivity extends Activity implements SyncTaskHandler.SyncCompleteListener {
 	

@@ -1,5 +1,8 @@
 package com.coolchoice.monumentphoto;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.acra.ACRA;
 import org.acra.ReportField;
 import org.acra.ReportingInteractionMode;
@@ -33,13 +36,28 @@ public class MonumentPhotoApplication extends Application {
         ACRA.getConfig().setApplicationLogFile(applicationLogFilePath);
     	Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler());    	
         super.onCreate();
-        DB.setContext(getApplicationContext());
+        DB.setContext(getApplicationContext());        
+        createNoMediaFile();      
     }
 
     @Override
     public void onTerminate() {
     	DB.release();
         super.onTerminate();
+    }
+    
+    private void createNoMediaFile(){
+        File rootDirPhoto = Settings.getRootDirPhoto();
+        if(rootDirPhoto != null && rootDirPhoto.exists()){
+            File noMediaFile = new File(rootDirPhoto, ".momedia");
+            if(noMediaFile != null && !noMediaFile.exists()){
+                try {
+                    noMediaFile.createNewFile();
+                } catch (IOException e) {
+                    //do nothing
+                }
+            }
+        } 
     }
 }
 

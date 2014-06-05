@@ -92,6 +92,10 @@ public class Settings {
         return Environment.getExternalStorageDirectory() + File.separator + Settings.getStorageDirPhoto() + File.separator + "MobileKeeper.log";
     }
     
+    public static String getLogFilePath1(){
+        return Environment.getExternalStorageDirectory() + File.separator + Settings.getStorageDirPhoto() + File.separator + "MobileKeeper.log";
+    }
+    
     public static String getToken() {
         return token;
     }
