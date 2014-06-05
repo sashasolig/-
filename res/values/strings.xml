@@ -32,4 +32,12 @@
     <string name="serverStatusLoginFailed">Логин или пароль неверны.</string>
     <string name="serverStatusLoginSuccess">Авторизация прошла успешно</string>
     <string name="serverAutorisationProggress">Идет процесс авторизации. Подождите...</string>
+    
+    
+    <string name="crash_toast_text">Пожалуйста, отправьте сообщение об ошибке разработчику</string>
+	<string name="crash_dialog_title">Приложение остановлено</string>
+	<string name="crash_dialog_text">Произошла непредвиденная ошибка. Пожалуйста, сообщите об этом разработчикам, нажав кнопку OK.</string>
+	<string name="crash_dialog_comment_prompt">Вы также можете оставить свой комментарий</string>
+	<string name="crash_dialog_ok_toast">Спасибо!</string>
+    
 </resources>

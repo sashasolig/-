@@ -1,46 +1,20 @@
 package com.coolchoice.monumentphoto;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.SystemClock;
-import android.view.Display;
 import android.view.View;
-import android.view.WindowManager;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.coolchoice.monumentphoto.SyncTaskHandler.OperationType;
-import com.coolchoice.monumentphoto.dal.DB;
-import com.coolchoice.monumentphoto.dal.MonumentDB;
-import com.coolchoice.monumentphoto.data.GravePhoto;
 import com.coolchoice.monumentphoto.data.SettingsData;
-
-import com.coolchoice.monumentphoto.task.*;
+import com.coolchoice.monumentphoto.task.TaskResult;
 
 public class SettingsActivity extends Activity implements SyncTaskHandler.SyncCompleteListener {
 
@@ -85,7 +59,7 @@ public class SettingsActivity extends Activity implements SyncTaskHandler.SyncCo
 		this.btnCheck.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
-			public void onClick(View v) {
+			public void onClick(View v) {			    
 				saveSettingsData();
 				mSyncTaskHandler.startCheckLogin();				
 			}

@@ -88,6 +88,10 @@ public class Settings {
     private static String pdSession;
     private static String token;
     
+    public static String getLogFilePath(){
+        return Environment.getExternalStorageDirectory() + File.separator + Settings.getStorageDirPhoto() + File.separator + "MobileKeeper.log";
+    }
+    
     public static String getToken() {
         return token;
     }
