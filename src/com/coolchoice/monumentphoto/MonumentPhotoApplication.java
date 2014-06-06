@@ -13,7 +13,7 @@ import android.app.Application;
 import com.coolchoice.monumentphoto.dal.DB;
 
 
-@ReportsCrashes(formKey = "", mailTo = "health.developer.by@gmail.com", 
+@ReportsCrashes(formKey = "", mailTo = "pdmobile.developer.by@gmail.com", 
 mode = ReportingInteractionMode.DIALOG,
 resToastText = R.string.crash_toast_text,
 resDialogText = R.string.crash_dialog_text,
@@ -30,10 +30,7 @@ public class MonumentPhotoApplication extends Application {
     @Override
     public void onCreate() {
         ConfigureLog4J.configure();
-        ACRA.init(this);
-        String applicationLogFilePath = Settings.getLogFilePath();
-        ACRA.getErrorReporter().checkReportsOnApplicationStart();        
-        ACRA.getConfig().setApplicationLogFile(applicationLogFilePath);
+        initAcra();        
     	Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler());    	
         super.onCreate();
         DB.setContext(getApplicationContext());        
@@ -58,6 +55,13 @@ public class MonumentPhotoApplication extends Application {
                 }
             }
         } 
+    }
+    
+    private void initAcra(){
+        ACRA.init(this);
+        String applicationLogFilePath = Settings.getLogFilePath();
+        ACRA.getErrorReporter().checkReportsOnApplicationStart();        
+        ACRA.getConfig().setApplicationLogFile(applicationLogFilePath);
     }
 }
 
