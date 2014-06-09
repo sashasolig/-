@@ -24,7 +24,8 @@ resDialogOkToast = R.string.crash_dialog_ok_toast,
 customReportContent = { ReportField.USER_COMMENT, ReportField.APP_VERSION_CODE, ReportField.APP_VERSION_NAME, ReportField.DEVICE_ID, ReportField.DEVICE_FEATURES,
     ReportField.ANDROID_VERSION, ReportField.PHONE_MODEL, ReportField.CUSTOM_DATA, ReportField.STACK_TRACE, ReportField.LOGCAT, 
     ReportField.APPLICATION_LOG, ReportField.SHARED_PREFERENCES},
-    applicationLogFileLines = 1000 )
+    applicationLogFileLines = 1000,
+    additionalSharedPreferences={Settings.PREFS_NAME})
 public class MonumentPhotoApplication extends Application {
 
     @Override
@@ -60,7 +61,7 @@ public class MonumentPhotoApplication extends Application {
     private void initAcra(){
         ACRA.init(this);
         String applicationLogFilePath = Settings.getLogFilePath();
-        ACRA.getErrorReporter().checkReportsOnApplicationStart();        
+        ACRA.getErrorReporter().checkReportsOnApplicationStart();
         ACRA.getConfig().setApplicationLogFile(applicationLogFilePath);
     }
 }
