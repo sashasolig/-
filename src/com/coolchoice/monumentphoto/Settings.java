@@ -27,9 +27,12 @@ public class Settings {
 		void onCloseCheckGPS(boolean isTurnGPS);
 		
 	}
+	
+	public static final int THUMBNAIL_SIZE = 160;
     
     final static String TYPE_PHOTO = "image/jpg";
-        
+    
+    public static final String JPG_EXTENSION = "jpg";
     public final static int httpTimeOut = 100000; 
     
     public static final String DEFAULT_ENCODING ="utf-8";
@@ -49,6 +52,7 @@ public class Settings {
     public static final int STATUS_SERVER_LOGIN_SUCCESS = 3;
     
     public static final String UNEXPECTED_ERROR_MESSAGE = "unexpected error:";
+    public static final String SMALL_PHOTO_SUFFIX = "_small";
     
     public static final String TASK_LOGIN = "login";
     public static final String TASK_GETCEMETERY = "getCemetery";
@@ -56,6 +60,7 @@ public class Settings {
     public static final String TASK_GETREGION = "getRegion";
     public static final String TASK_POSTREGION = "postRegion";
     public static final String TASK_GETPLACE = "getPlace";
+    public static final String TASK_GETPLACEPHOTO = "getPlacePhoto";
     public static final String TASK_POSTPLACE = "postPlace";
     public static final String TASK_GETGRAVE = "getGrave";
     public static final String TASK_POSTGRAVE = "postGrave";
@@ -64,8 +69,8 @@ public class Settings {
     public static final String TASK_REMOVEPHOTO = "removePhoto";
     
     //private static String DefaultServerAddress = "http://k.pohoronnoedelo.ru:8000";
-    //private static String DefaultServerAddress = "http://192.168.53.11:8000";
-    private static String DefaultServerAddress = "http://pd2.pohoronnoedelo.ru";
+    private static String DefaultServerAddress = "http://192.168.53.11:8000";
+    //private static String DefaultServerAddress = "http://pd2.pohoronnoedelo.ru";
     private static String RelativeUploadGravePhotoUrl = "/mobile/gravephoto/upload/";
     private static String RelativeRemoveGravePhotoUrl = "/mobile/gravephoto/delete/";
     private static String RelativeUploadPlacePhotoUrl = "/mobile/placephoto/upload/";
@@ -76,6 +81,8 @@ public class Settings {
     private static String RelativeGetPlaceDataUrl = "/mobile/place/";
     private static String RelativeGetGraveDataUrl = "/mobile/grave/";
     private static String RelativeGetBurialDataUrl = "/mobile/burial/";
+    private static String RelativeGetPlacePhotoItemsDataUrl = "/mobile/placephoto/";
+    private static String RelativeGetPlacePhotoDataUrl = "/media/";
     
     private static String RelativeUploadCemeteryDataUrl = "/mobile/cemetery/upload/";
     private static String RelativeUploadRegionDataUrl = "/mobile/area/upload/";
@@ -158,6 +165,11 @@ public class Settings {
     public static String getPlaceUrl(Context context){
     	String serverAddress = getServerAddress(context);
     	return serverAddress + RelativeGetPlaceDataUrl;
+    }
+    
+    public static String getPlacePhotoItemsUrl(Context context){
+        String serverAddress = getServerAddress(context);
+        return serverAddress + RelativeGetPlacePhotoItemsDataUrl;
     }
     
     public static String getGraveUrl(Context context){

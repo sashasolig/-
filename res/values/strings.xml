@@ -34,6 +34,12 @@
     <string name="serverAutorisationProggress">Идет процесс авторизации. Подождите...</string>
     
     
+    <string name="photo_not_found">Фото удалено</string>
+    <string name="photo_downloading">Идет загрузка</string>
+    <string name="photo_download_error">Ошибка загрузки</string>
+    <string name="photo_create_thumbnail_error">Ошибка создания миниатюры</string>
+    
+    
     <string name="crash_toast_text">Пожалуйста, отправьте сообщение об ошибке разработчику</string>
 	<string name="crash_dialog_title">Приложение остановлено</string>
 	<string name="crash_dialog_text">Произошла непредвиденная ошибка. Пожалуйста, сообщите об этом разработчикам, нажав кнопку OK.</string>

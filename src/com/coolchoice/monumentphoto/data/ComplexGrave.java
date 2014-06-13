@@ -3,8 +3,6 @@ package com.coolchoice.monumentphoto.data;
 import java.io.File;
 
 import android.net.Uri;
-import android.os.Environment;
-import android.util.TimeFormatException;
 
 import com.coolchoice.monumentphoto.Settings;
 import com.coolchoice.monumentphoto.dal.DB;
@@ -117,7 +115,7 @@ public class ComplexGrave {
 		}
 	}
 	
-	public Uri generateFileUri(File rootDir) {
+	public Uri generateFileUri(File rootDir, String fileName) {
 		File dir = new File(rootDir, this.Cemetery.Name);
 		if(!dir.exists()){
 			if(!dir.mkdirs()){
@@ -152,8 +150,14 @@ public class ComplexGrave {
     			}
     		}
 		}
-		String timeValue = String.valueOf(System.currentTimeMillis());
-		File newFile = new File(dir.getPath() + File.separator + timeValue	+ ".jpg");
+		File newFile = null;
+		if(fileName != null){
+		    newFile = new File(dir.getPath() + File.separator + fileName);
+		} else {
+		    String timeValue = String.valueOf(System.currentTimeMillis());
+	        newFile = new File(dir.getPath() + File.separator + timeValue  + Settings.JPG_EXTENSION);
+		}
+		
 		return Uri.fromFile(newFile);
 	}
 	
@@ -196,6 +200,11 @@ public class ComplexGrave {
 		}
 		return dir;
 	}
+	
+	public Uri generateFileUri(String fileName) {
+        File rootDir = Settings.getRootDirPhoto();
+        return this.generateFileUri(rootDir, fileName);               
+    }	
 	
 	public static boolean renameCemetery(Cemetery cemetery, String oldCemeteryName){
 		MonumentDB monumentDB = new MonumentDB();

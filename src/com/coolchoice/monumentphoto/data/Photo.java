@@ -1,4 +1,5 @@
 package com.coolchoice.monumentphoto.data;
+import com.coolchoice.monumentphoto.Settings;
 import com.j256.ormlite.field.DatabaseField;
 import java.util.Date;
 
@@ -24,6 +25,21 @@ public class Photo extends BaseDTO
     
     @DatabaseField
     public int Status;
+    
+    @DatabaseField
+    public String FileName;
+    
+    @DatabaseField
+    public String ServerFileName;
+    
+    @DatabaseField
+    public String ThumbnailUriString;
+    
+    public static String generateThumbnailUriString(String imageUriString){
+        String thumbnailUriString = null;
+        thumbnailUriString = imageUriString.substring(0, imageUriString.lastIndexOf(".") - 1) + Settings.SMALL_PHOTO_SUFFIX + "." + Settings.JPG_EXTENSION;
+        return thumbnailUriString;
+    }
     
 }
 

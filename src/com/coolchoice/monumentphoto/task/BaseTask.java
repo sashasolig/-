@@ -42,6 +42,7 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
@@ -279,10 +280,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     	}
     	httpGet.addHeader(LoginTask.HEADER_COOKIE, String.format(LoginTask.KEY_PDSESSION + "=%s", Settings.getPDSession()));
     	httpGet.addHeader(HEADER_AUTHORIZATION, String.format(HEADER_AUTHORIZATION_FORMAT_VALUE, Settings.getToken()));
-        HttpResponse response = client.execute(httpGet);
-        /*if(response.getStatusLine().getStatusCode() == 302){
-        	throw new AuthorizationException();
-        }*/
+        HttpResponse response = client.execute(httpGet);        
         Header dateHeader = response.getFirstHeader("Date");
         if(dateHeader != null){
         	try {
@@ -450,7 +448,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	checkIsCancelTask();
         	Cemetery cemetery = cemeteryList.get(i);        	
 			QueryBuilder<Cemetery, Integer> builder = dao.queryBuilder();
-			builder.where().eq("ServerId", cemetery.ServerId); 
+			builder.where().eq(BaseDTO.COLUMN_SERVER_ID, cemetery.ServerId); 
 			List<Cemetery> findedCemeteries = dao.query(builder.prepare());
 			Cemetery findedCemetery = null;
 			if(findedCemeteries.size() > 0){
@@ -463,7 +461,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 				}
 			} else {
 				builder = dao.queryBuilder();
-				builder.where().eq("Name", cemetery.Name);
+				builder.where().eq(BaseDTO.COLUMN_NAME, cemetery.Name);
 				findedCemeteries = dao.query(builder.prepare());
 				if(findedCemeteries.size() > 0){
 					findedCemetery = findedCemeteries.get(0);
@@ -493,7 +491,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	Cemetery cemetery = cemeteryList.get(i);
         	RuntimeExceptionDao<Cemetery, Integer> dao = DB.dao(Cemetery.class);
 			QueryBuilder<Cemetery, Integer> builder = dao.queryBuilder();
-			builder.where().eq("Name", cemetery.Name);
+			builder.where().eq(BaseDTO.COLUMN_NAME, cemetery.Name);
 			List<Cemetery> findedCemeteries = dao.query(builder.prepare());
 			if(findedCemeteries.size() > 0){
 				cemetery.Id = findedCemeteries.get(0).Id;
@@ -572,17 +570,17 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	Region region = regionList.get(i);
         	region.Cemetery = null;        	
         	QueryBuilder<Region, Integer> builder = dao.queryBuilder();
-			builder.where().eq("ServerId", region.ServerId); 
+			builder.where().eq(BaseDTO.COLUMN_SERVER_ID, region.ServerId); 
 			List<Region> findedRegions = dao.query(builder.prepare());
 			if(findedRegions.size() == 0){
 				RuntimeExceptionDao<Cemetery, Integer> cemeteryDao = DB.dao(Cemetery.class);
 	        	QueryBuilder<Cemetery, Integer> cemeteryBuilder = cemeteryDao.queryBuilder();
-	        	cemeteryBuilder.where().eq("ServerId", region.ParentServerId);
+	        	cemeteryBuilder.where().eq(BaseDTO.COLUMN_SERVER_ID, region.ParentServerId);
 	        	List<Cemetery> findedCemetery = cemeteryDao.query(cemeteryBuilder.prepare());
 	        	if(findedCemetery.size() == 1){
 	        		Cemetery parentCemetery = findedCemetery.get(0);
 	        		builder = dao.queryBuilder();
-	        		builder.where().eq("Cemetery_id", parentCemetery.Id).and().eq("Name", region.Name);
+	        		builder.where().eq("Cemetery_id", parentCemetery.Id).and().eq(BaseDTO.COLUMN_NAME, region.Name);
 	        		findedRegions = dao.query(builder.prepare());
 	        	}
 			}
@@ -613,7 +611,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 			
         }
         if(syncDate != null && cemeteryServerId > 0){
-        	List<Cemetery> findedCemeteryList = DB.dao(Cemetery.class).queryForEq("ServerId", cemeteryServerId);
+        	List<Cemetery> findedCemeteryList = DB.dao(Cemetery.class).queryForEq(BaseDTO.COLUMN_SERVER_ID, cemeteryServerId);
         	for(Cemetery cem : findedCemeteryList){
         		cem.RegionSyncDate = syncDate;
         		DB.dao(Cemetery.class).update(cem);
@@ -628,13 +626,13 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	region.Cemetery = null;
         	RuntimeExceptionDao<Cemetery, Integer> cemeteryDAO = DB.dao(Cemetery.class);
         	QueryBuilder<Cemetery, Integer> cemeteryBuilder = cemeteryDAO.queryBuilder();
-			cemeteryBuilder.where().eq("ServerId", region.ParentServerId);
+			cemeteryBuilder.where().eq(BaseDTO.COLUMN_SERVER_ID, region.ParentServerId);
 			List<Cemetery> findedCemetery = cemeteryDAO.query(cemeteryBuilder.prepare());
 			if(findedCemetery.size() > 0){
 				region.Cemetery = findedCemetery.get(0);
 				RuntimeExceptionDao<Region, Integer> dao = DB.dao(Region.class);
 	        	QueryBuilder<Region, Integer> builder = dao.queryBuilder();
-				builder.where().eq("Cemetery_id", region.Cemetery.Id).and().eq("Name", region.Name);
+				builder.where().eq("Cemetery_id", region.Cemetery.Id).and().eq(BaseDTO.COLUMN_NAME, region.Name);
 				List<Region> findedRegions = dao.query(builder.prepare());
 				if(findedRegions.size() > 0){
 					region.Id = findedRegions.get(0).Id;
@@ -802,7 +800,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         		place.Region = null;	                		
         	}	                	
         	QueryBuilder<Place, Integer> builder = placeDAO.queryBuilder();
-			builder.where().eq("ServerId", place.ServerId);
+			builder.where().eq(BaseDTO.COLUMN_SERVER_ID, place.ServerId);
 			List<Place> findedPlace = placeDAO.query(builder.prepare());
 			Place dbPlace = null;
 			boolean isChangePlaceOnClient = false;
@@ -920,7 +918,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         }
         
         if(syncDate != null && regionServerId > 0){
-        	List<Region> findedRegionList = DB.dao(Region.class).queryForEq("ServerId", regionServerId);
+        	List<Region> findedRegionList = DB.dao(Region.class).queryForEq(BaseDTO.COLUMN_SERVER_ID, regionServerId);
         	for(Region region : findedRegionList){
         		region.PlaceSyncDate = syncDate;
         		DB.dao(Region.class).update(region);
@@ -952,7 +950,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         		placeName = place.Name;
         	}
         	QueryBuilder<Region, Integer> regionBuilder = regionDAO.queryBuilder();
-			regionBuilder.where().eq("ServerId", regionServerId);
+			regionBuilder.where().eq(BaseDTO.COLUMN_SERVER_ID, regionServerId);
 			List<Region> findedRegions = regionDAO.query(regionBuilder.prepare());
 			if(findedRegions.size() > 0){
 				dbRegion = findedRegions.get(0);
@@ -960,7 +958,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	
 			if(place.Row != null){
 				QueryBuilder<Row, Integer> rowBuilder = rowDAO.queryBuilder();
-				rowBuilder.where().eq("Region_id", dbRegion.Id).and().eq("Name", rowName);
+				rowBuilder.where().eq("Region_id", dbRegion.Id).and().eq(BaseDTO.COLUMN_NAME, rowName);
 				List<Row> findedRows = rowDAO.query(rowBuilder.prepare());
 				if(findedRows.size() > 0){
 					dbRow = findedRows.get(0);
@@ -969,7 +967,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 				}
 				
 				QueryBuilder<Place, Integer> placeBuilder = placeDAO.queryBuilder();
-				placeBuilder.where().eq("Row_id", dbRow.Id).and().eq("Name", placeName);
+				placeBuilder.where().eq("Row_id", dbRow.Id).and().eq(BaseDTO.COLUMN_NAME, placeName);
 				List<Place> findedPlace = placeDAO.query(placeBuilder.prepare());
 				if(findedPlace.size() > 0 ){
 					dbPlace = findedPlace.get(0);
@@ -979,7 +977,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 				
 			} else {
 				QueryBuilder<Place, Integer> placeBuilder = placeDAO.queryBuilder();
-				placeBuilder.where().eq("Region_id", dbRegion.Id).and().eq("Name", placeName);
+				placeBuilder.where().eq("Region_id", dbRegion.Id).and().eq(BaseDTO.COLUMN_NAME, placeName);
 				List<Place> findedPlaces = placeDAO.query(placeBuilder.prepare());
 				if(findedPlaces.size() > 0){
 					dbPlace = findedPlaces.get(0);
@@ -1031,18 +1029,18 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	grave.Place = null;
         	RuntimeExceptionDao<Grave, Integer> graveDAO = DB.dao(Grave.class);
         	QueryBuilder<Grave, Integer> builder = graveDAO.queryBuilder();
-			builder.where().eq("ServerId", grave.ServerId); 
+			builder.where().eq(BaseDTO.COLUMN_SERVER_ID, grave.ServerId); 
 			List<Grave> findedGraves = graveDAO.query(builder.prepare());
 			if(findedGraves.size() == 0){
 				//ищем по имени
 				RuntimeExceptionDao<Place, Integer> placeDAO = DB.dao(Place.class);
 				QueryBuilder<Place, Integer> placeBuilder = placeDAO.queryBuilder();
-				placeBuilder.where().eq("ServerId", grave.ParentServerId);
+				placeBuilder.where().eq(BaseDTO.COLUMN_SERVER_ID, grave.ParentServerId);
 				List<Place> findedPlaces = placeDAO.query(placeBuilder.prepare());
 				if(findedPlaces.size() == 1){
 					Place parentPlace = findedPlaces.get(0);
 					builder = graveDAO.queryBuilder();
-					builder.where().eq("Place_id", parentPlace.Id).and().eq("Name", grave.Name);
+					builder.where().eq("Place_id", parentPlace.Id).and().eq(BaseDTO.COLUMN_NAME, grave.Name);
 					findedGraves = graveDAO.query(builder.prepare());
 				}
 				
@@ -1066,7 +1064,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 			
         }
         if(syncDate != null && regionServerId > 0){
-        	List<Region> findedRegionList = DB.dao(Region.class).queryForEq("ServerId", regionServerId);
+        	List<Region> findedRegionList = DB.dao(Region.class).queryForEq(BaseDTO.COLUMN_SERVER_ID, regionServerId);
         	for(Region region : findedRegionList){
         		region.GraveSyncDate = syncDate;
         		DB.dao(Region.class).update(region);
@@ -1083,14 +1081,14 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	RuntimeExceptionDao<Place, Integer> placeDAO = DB.dao(Place.class);
         	RuntimeExceptionDao<Grave, Integer> graveDAO = DB.dao(Grave.class);
         	QueryBuilder<Place, Integer> placeBuilder = placeDAO.queryBuilder();
-			placeBuilder.where().eq("ServerId", grave.ParentServerId);
+			placeBuilder.where().eq(BaseDTO.COLUMN_SERVER_ID, grave.ParentServerId);
 			List<Place> findedPlace = placeDAO.query(placeBuilder.prepare());
 			if(findedPlace.size() > 0){
 				dbPlace = findedPlace.get(0);
 			}
 			
         	QueryBuilder<Grave, Integer> graveBuilder = graveDAO.queryBuilder();
-			graveBuilder.where().eq("Place_id", dbPlace.Id).and().eq("Name", grave.Name);
+			graveBuilder.where().eq("Place_id", dbPlace.Id).and().eq(BaseDTO.COLUMN_NAME, grave.Name);
 			List<Grave> findedGrave = graveDAO.query(graveBuilder.prepare());
 			if(findedGrave.size() > 0){
 				dbGrave = findedGrave.get(0);
@@ -1162,13 +1160,13 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	Burial burial = burialList.get(i);
         	RuntimeExceptionDao<Burial, Integer> burialDAO = DB.dao(Burial.class);
         	DeleteBuilder<Burial, Integer> deleteBuilder = burialDAO.deleteBuilder();
-        	deleteBuilder.where().eq("ParentServerId", burial.ParentServerId).and().isNotNull("Grave_id");
+        	deleteBuilder.where().eq(BaseDTO.COLUMN_PARENT_SERVER_ID, burial.ParentServerId).and().isNotNull("Grave_id");
         	burialDAO.delete(deleteBuilder.prepare());        	
 			burialDAO.create(burial);			
         }        
         
         if(syncDate != null && regionServerId > 0){
-        	List<Region> findedRegionList = DB.dao(Region.class).queryForEq("ServerId", regionServerId);
+        	List<Region> findedRegionList = DB.dao(Region.class).queryForEq(BaseDTO.COLUMN_SERVER_ID, regionServerId);
         	for(Region region : findedRegionList){
         		region.BurialSyncDate = syncDate;
         		DB.dao(Region.class).update(region);
@@ -1187,6 +1185,23 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	JSONObject jsonGrave = jsonObj.getJSONObject("grave");
         	gravePhoto.ServerId = jsonObj.getInt("pk");
         	gravePhoto.ParentServerId = jsonGrave.getInt("pk");
+        	gravePhoto.FileName = jsonObj.getString("original_name");
+        	gravePhoto.ServerFileName = jsonObj.getString("bfile");
+        	String dateOfCreationString = jsonObj.getString("date_of_creation");
+            try{
+                gravePhoto.Latitude = jsonObj.getDouble("lat");
+                gravePhoto.Longitude = jsonObj.getDouble("lng");
+            }catch(JSONException exc){
+                //do nothing
+            }
+            Date createDate = parseDate(dateOfCreationString);
+            gravePhoto.CreateDate = createDate != null ? createDate : new Date();
+        	if(TextUtils.isEmpty(gravePhoto.FileName) || gravePhoto.FileName.equalsIgnoreCase("null")){
+        	    gravePhoto.FileName = null;
+            }
+        	if(TextUtils.isEmpty(gravePhoto.ServerFileName) || gravePhoto.ServerFileName.equalsIgnoreCase("null")){
+                gravePhoto.ServerFileName = null;
+            }        	
         	gravePhotoList.add(gravePhoto);    	
         }
         return gravePhotoList;
@@ -1203,8 +1218,52 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
             JSONObject jsonPlace = jsonObj.getJSONObject("place");
             placePhoto.ServerId = jsonObj.getInt("pk");            
             placePhoto.ParentServerId = jsonPlace.getInt("pk");
+            placePhoto.FileName = jsonObj.getString("original_name");
+            placePhoto.ServerFileName = jsonObj.getString("bfile");
+            String dateOfCreationString = jsonObj.getString("date_of_creation");
+            try{
+                placePhoto.Latitude = jsonObj.getDouble("lat");
+                placePhoto.Longitude = jsonObj.getDouble("lng");
+            }catch(JSONException exc){
+                //do nothing
+            }
+            Date createDate = parseDate(dateOfCreationString);
+            placePhoto.CreateDate = createDate != null ? createDate : new Date();
+            if(TextUtils.isEmpty(placePhoto.FileName) || placePhoto.FileName.equalsIgnoreCase("null")){
+                placePhoto.FileName = null;
+            }
+            if(TextUtils.isEmpty(placePhoto.ServerFileName) || placePhoto.ServerFileName.equalsIgnoreCase("null")){
+                placePhoto.ServerFileName = null;
+            } 
             placePhotoList.add(placePhoto);
         }
         return placePhotoList;
+    }
+	
+	public void handleResponseGetPlacePhotoJSON(String placePhotoJSON) throws Exception {       
+        ArrayList<PlacePhoto> placePhotoList = parsePlacePhotoJSON(placePhotoJSON);
+        RuntimeExceptionDao<PlacePhoto, Integer> placePhotoDAO = DB.dao(PlacePhoto.class);
+        RuntimeExceptionDao<Place, Integer> placeDAO = DB.dao(Place.class);
+        for(int i = 0; i < placePhotoList.size(); i++){
+            checkIsCancelTask();
+            PlacePhoto placePhoto = placePhotoList.get(i);                               
+            QueryBuilder<PlacePhoto, Integer> builder = placePhotoDAO.queryBuilder();
+            builder.where().eq(BaseDTO.COLUMN_SERVER_ID, placePhoto.ServerId);
+            List<PlacePhoto> findedPlacePhoto = placePhotoDAO.query(builder.prepare());
+            if(findedPlacePhoto.size() == 0){
+                QueryBuilder<Place, Integer> placeBuilder = placeDAO.queryBuilder();
+                placeBuilder.where().eq(BaseDTO.COLUMN_SERVER_ID, placePhoto.ParentServerId);
+                List<Place> findedPlace = placeDAO.query(placeBuilder.prepare());
+                if(findedPlace.size() > 0){
+                    Place dbPlace = findedPlace.get(0);
+                    placePhoto.Place = dbPlace;
+                    placePhotoDAO.create(placePhoto);
+                }
+            }            
+            
+        }
+        
+        
+        
     }
 }

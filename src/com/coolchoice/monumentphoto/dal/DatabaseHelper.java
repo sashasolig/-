@@ -43,10 +43,10 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	
     private final String LOG_TAG = getClass().getSimpleName();
     
-    //public static final String DATABASE_NAME = "/mnt/sdcard/monument.db";
-    public static final String DATABASE_NAME = "monument.db";
+    public static final String DATABASE_NAME = "/mnt/sdcard/monument.db";
+    //public static final String DATABASE_NAME = "monument.db";
     
-    public static final int DATABASE_VERSION = 10;
+    public static final int DATABASE_VERSION = 11;
     
     private Context context;
 
@@ -134,7 +134,9 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	    	case 9:	    	
                 migrateDBFromVer9ToLast(db, connectionSource);
                 break;
-	    	
+	    	case 10:         
+                migrateDBFromVer10ToLast(db, connectionSource);
+                break;	    	
     	}    	
     	
     }
@@ -295,6 +297,22 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         	db.execSQL("alter table cemetery add column Square DOUBLE PRECISION;");
         	db.execSQL("alter table region add column Square DOUBLE PRECISION;");
         	db.setTransactionSuccessful();               
+        } finally {
+            db.endTransaction();
+        }
+        migrateDBFromVer10ToLast(db, connectionSource);
+    }
+    
+    private void migrateDBFromVer10ToLast(SQLiteDatabase db, ConnectionSource connectionSource){
+        db.beginTransaction();
+        try {
+            db.execSQL("alter table gravephoto add column FileName VARCHAR;");
+            db.execSQL("alter table gravephoto add column ServerFileName VARCHAR;");
+            db.execSQL("alter table gravephoto add column ThumbnailUriString VARCHAR;");
+            db.execSQL("alter table placephoto add column FileName VARCHAR;");
+            db.execSQL("alter table placephoto add column ServerFileName VARCHAR;");
+            db.execSQL("alter table placephoto add column ThumbnailUriString VARCHAR;");
+            db.setTransactionSuccessful();               
         } finally {
             db.endTransaction();
         }

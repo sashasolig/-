@@ -60,6 +60,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 	private final static String PD_GETCEMETERY_MESSAGE = "Получение кладбищ";
 	private final static String PD_GETREGION_MESSAGE = "Получение участков";
 	private final static String PD_GETPLACE_MESSAGE = "Получение мест";
+	private final static String PD_GETPLACEPHOTO_MESSAGE = "Получение фотографий мест";
 	private final static String PD_GETGRAVE_MESSAGE = "Получение могил";
 	private final static String PD_GETBURIAL_MESSAGE = "Получение захоронений";
 	
@@ -148,7 +149,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		this.mRegionServerId = regionServerId;
 		mOperationType = OperationType.GET_DATA;
 		mTasks.clear();
-		mTasks.add(new GetPlaceTask(this, this, this.mContext));
+		mTasks.add(new GetPlaceTask(this, this, this.mContext));		
 		mCurrentTaskIndex = -1;
 		mProgressDialogTitle = "Загрузка данных...";
 		mProgressDialogMessage = "Подождите";
@@ -189,6 +190,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mOperationType = OperationType.GET_DATA;
 		mTasks.clear();
 		mTasks.add(new GetGraveTask(this, this, this.mContext));
+		mTasks.add(new GetPlacePhotoTask(this, this, this.mContext));
 		mCurrentTaskIndex = -1;
 		mProgressDialogTitle = "Загрузка данных...";
 		mProgressDialogMessage = "Подождите";
@@ -776,7 +778,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						getPlaceTask.execute(Settings.getPlaceUrl(mContext) + getArgs);
 						this.mCurrentExecutedTask = getPlaceTask;						
 						isNextTaskStarted = true;
-					}
+					}					
 					if(nextTask.getTaskName() == Settings.TASK_GETGRAVE){
 						mProgressDialogMessage = PD_GETGRAVE_MESSAGE;
 						mProgressDialogSyncData.setMessage(mProgressDialogMessage);
@@ -785,6 +787,14 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						this.mCurrentExecutedTask = getGraveTask;
 						isNextTaskStarted = true;
 					}
+					if(nextTask.getTaskName() == Settings.TASK_GETPLACEPHOTO){
+                        mProgressDialogMessage = PD_GETPLACEPHOTO_MESSAGE;
+                        mProgressDialogSyncData.setMessage(mProgressDialogMessage);
+                        GetPlacePhotoTask getPlacePhotoTask = new GetPlacePhotoTask(this, this, this.mContext);
+                        getPlacePhotoTask.execute(Settings.getPlacePhotoItemsUrl(mContext) + getArgs);
+                        this.mCurrentExecutedTask = getPlacePhotoTask;                       
+                        isNextTaskStarted = true;
+                    }
 					if(nextTask.getTaskName() == Settings.TASK_GETBURIAL){
 						mProgressDialogMessage = PD_GETBURIAL_MESSAGE;
 						mProgressDialogSyncData.setMessage(mProgressDialogMessage);

@@ -83,6 +83,8 @@ public class UploadPhotoTask extends BaseTask {
             					GravePhoto serverGravePhoto = listGravePhoto.get(0);
             					gravePhoto.ServerId = serverGravePhoto.ServerId;
             					gravePhoto.Status = Photo.STATUS_SEND;
+            					gravePhoto.FileName = serverGravePhoto.FileName;
+            					gravePhoto.ServerFileName = serverGravePhoto.ServerFileName;
             					DB.dao(GravePhoto.class).update(gravePhoto);
             				}
         			    }
@@ -92,6 +94,8 @@ public class UploadPhotoTask extends BaseTask {
                                 PlacePhoto serverPlacePhoto = listPlacePhoto.get(0);
                                 placePhoto.ServerId = serverPlacePhoto.ServerId;
                                 placePhoto.Status = Photo.STATUS_SEND;
+                                placePhoto.FileName = serverPlacePhoto.FileName;
+                                placePhoto.ServerFileName = serverPlacePhoto.ServerFileName;
                                 DB.dao(PlacePhoto.class).update(placePhoto);
                             }
         			    }

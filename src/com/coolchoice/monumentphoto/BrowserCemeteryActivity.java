@@ -1,51 +1,28 @@
 package com.coolchoice.monumentphoto;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
 import org.apache.log4j.Logger;
-import org.apache.sanselan.Sanselan;
-import org.apache.sanselan.common.IImageMetadata;
-import org.apache.sanselan.formats.jpeg.JpegImageMetadata;
-import org.apache.sanselan.formats.jpeg.exifRewrite.ExifRewriter;
-import org.apache.sanselan.formats.tiff.TiffImageMetadata;
-import org.apache.sanselan.formats.tiff.constants.ExifTagConstants;
-import org.apache.sanselan.formats.tiff.constants.TiffConstants;
-import org.apache.sanselan.formats.tiff.write.TiffOutputDirectory;
-import org.apache.sanselan.formats.tiff.write.TiffOutputField;
-import org.apache.sanselan.formats.tiff.write.TiffOutputSet;
 
-
-import android.R.bool;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.Matrix;
 import android.graphics.Typeface;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.Editable;
+import android.text.Html;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -57,15 +34,17 @@ import android.text.style.UnderlineSpan;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -75,25 +54,35 @@ import android.widget.GridView;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.AdapterView.OnItemClickListener;
 
 import com.coolchoice.monumentphoto.BrowserCemeteryActivity.RowGridAdapter.RowOrPlace;
 import com.coolchoice.monumentphoto.Settings.ISettings;
 import com.coolchoice.monumentphoto.SyncTaskHandler.OperationType;
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.dal.MonumentDB;
-import com.coolchoice.monumentphoto.data.*;
-import com.coolchoice.monumentphoto.task.BaseTask;
+import com.coolchoice.monumentphoto.data.BaseDTO;
+import com.coolchoice.monumentphoto.data.Burial;
+import com.coolchoice.monumentphoto.data.Cemetery;
+import com.coolchoice.monumentphoto.data.ComplexGrave;
+import com.coolchoice.monumentphoto.data.Grave;
+import com.coolchoice.monumentphoto.data.GravePhoto;
+import com.coolchoice.monumentphoto.data.Photo;
+import com.coolchoice.monumentphoto.data.Place;
+import com.coolchoice.monumentphoto.data.PlacePhoto;
+import com.coolchoice.monumentphoto.data.Region;
+import com.coolchoice.monumentphoto.data.ResponsibleUser;
+import com.coolchoice.monumentphoto.data.Row;
+import com.coolchoice.monumentphoto.data.SettingsData;
+import com.coolchoice.monumentphoto.photomanager.ThreadManager;
 import com.coolchoice.monumentphoto.task.TaskResult;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
 import com.j256.ormlite.stmt.QueryBuilder;
-import android.text.Html;
 
-public class BrowserCemeteryActivity extends Activity implements LocationListener, SyncTaskHandler.SyncCompleteListener, ISettings {
+
+public class BrowserCemeteryActivity extends Activity implements LocationListener, SyncTaskHandler.SyncCompleteListener, ISettings, ThreadManager.OnChangeStatus {
 
 	public static final String EXTRA_CEMETERY_ID = "CemeteryId";
 	public static final String EXTRA_REGION_ID = "RegionId";
@@ -116,14 +105,10 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	
 	private LinearLayout mainView;
 	
-	private static final int linkbgcolor_selected = Color.BLUE;
-	private static final int linkbgcolor = Color.GRAY;
-	
 	private int mCemeteryId, mRegionId, mRowId, mPlaceId, mGraveId;
 	private int mType;
 	
-	private ComplexGrave mComplexGrave;
-	
+		
 	private static Region mChoosedRegion;
 	private static RowOrPlace mChoosedRowOrPlace;
 	private static Place mChoosedPlace;
@@ -150,11 +135,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	private Menu mOptionsMenu;
 	
 	private CheckBox cbPlaceUnowned, cbPlaceSizeVioleted, cbPlaceUnindentified, cbPlaceWrongFIO, cbPlaceMilitary;
-	
-	/*private CheckBox cbIsOwnerLessPlace = null;
-	
-	private CheckBox cbIsGraveWrongFIO = null, cbIsGraveMilitary = null;*/
-	
+			
 	private TextView tvPersons = null;
 	
 	private EditText etPlaceWidth = null, etPlaceLength = null;
@@ -346,14 +327,26 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		mSyncTaskHandler.checkResumeDataOperation(this);
 		mSyncTaskHandler.setOnSyncCompleteListener(this);
 		updateContent(mType);
+		ThreadManager.getInstance().setOnChangeDownloadStatus(this);
 	}
 	
 	@Override
 	public void onComplete(OperationType operationType, TaskResult taskResult) {
 		updateContent(mType);
+		switch (mType) {        
+        case AddObjectActivity.ADD_PLACE_WITHOUTROW:
+            mPlaceId = getIntent().getIntExtra(BrowserCemeteryActivity.EXTRA_PLACE_ID, -1);
+            startDownloadThumbnails(mPlaceId);
+            break;
+        case AddObjectActivity.ADD_PLACE_WITHROW :
+            mPlaceId = getIntent().getIntExtra(BrowserCemeteryActivity.EXTRA_PLACE_ID, -1);
+            startDownloadThumbnails(mPlaceId);
+            break;
+        default:
+            break;
+        }
 	}
-	
-	
+		
 	private void updateContent(int type){
 		switch (type) {
 		case AddObjectActivity.ADD_CEMETERY:
@@ -499,7 +492,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 			SettingsData settingsData = Settings.getSettingData(this);
 			if (!settingsData.IsAutoDownloadData){
 				settingsData.IsAutoDownloadData = true;
-				actionGet(false);
+				actionGet();
 			} else {
 				settingsData.IsAutoDownloadData = false;
 			}
@@ -510,7 +503,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	    return true;
 	}	
 	
-	private void actionGet(boolean isCache){		
+	private void actionGet(){		
 		switch (mType) {
 		case AddObjectActivity.ADD_CEMETERY:
 			mCemeteryId = getIntent().getIntExtra(BrowserCemeteryActivity.EXTRA_CEMETERY_ID, -1);
@@ -929,7 +922,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		if(Settings.IsAutoDownloadData(this)){
 			if(mPrevType < type){
 				if(type != AddObjectActivity.ADD_ROW){
-					actionGet(false);
+					actionGet();
 				}
 			}
 		}
@@ -1233,27 +1226,6 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
             }
         });
 		
-		
-        
-		
-		
-		/*this.mGVGrave.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
-				Grave grave = (Grave) mGVGrave.getAdapter().getItem(pos);
-				if((mType & AddObjectActivity.MASK_ROW) == AddObjectActivity.MASK_ROW){
-					mType = AddObjectActivity.ADD_GRAVE_WITHROW;
-				} else {
-					mType = AddObjectActivity.ADD_GRAVE_WITHOUTROW;
-				}
-				mGraveId = grave.Id;
-				setNewIdInExtras(EXTRA_TYPE, mType);
-				setNewIdInExtras(EXTRA_GRAVE_ID, mGraveId);
-				updateContent(mType, mGraveId);			
-			}
-		});*/
-		
 		Place place = DB.dao(Place.class).queryForId(placeId);
 		this.cbPlaceUnowned.setChecked(place.isUnowned());
 		this.cbPlaceMilitary.setChecked(place.isMilitary());
@@ -1446,6 +1418,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
         });
 		
 		updatePhotoGrid();
+		
+		
 		
 	}
 	
@@ -2019,66 +1993,21 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
         }
 	    return result;	    
 	}
-	
-	private void updatePhotoGrid(){
-	    DisplayMetrics metrics = new DisplayMetrics();
-        this.getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        screenHeight = metrics.heightPixels;
-        screenWidth = metrics.widthPixels;
-        screenHeightDp = (int)(screenHeight/metrics.density);
-        screenWidthDp = (int)(screenWidth/metrics.density);
-        int sizeDp = 0;        
-        if(screenWidth < screenHeight){
-            //min is screenWidth
-            sizeDp = screenWidthDp;
-            gridPhotoWidthDp = WIDTH_PTOTO_DP;
-        } else {
-            //min is screenHeight
-            sizeDp = screenHeightDp;
-            gridPhotoWidthDp = WIDTH_PTOTO_DP;
-        }
-        if(sizeDp < gridPhotoWidthDp){
-            gridPhotoWidthDp = sizeDp;
-        }        
-        widthPhotoDp = gridPhotoWidthDp;
-        widthPhoto =(int) (widthPhotoDp * metrics.density);
-        this.gridPhotos.setColumnWidth(gridPhotoWidthDp);
-        
-        updatePhotoGridItems();
-        this.mPhotoGridAdapter = new PhotoGridAdapter();
-        this.gridPhotos.setAdapter(this.mPhotoGridAdapter);
-        this.gridPhotos.setOnItemClickListener(new OnItemClickListener() {            
-            @Override
-            public void onItemClick(AdapterView<?> parent, View v, int position, long id ) {
-                PhotoGridItem item = gridPhotoItems.get(position);
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setDataAndType(item.getUri(), "image/*");
-                startActivity(intent);              
-            }
-        });
-        this.gridPhotos.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View v, int position, long id) {
-                gridPhotoItems.get(position).setChecked(!gridPhotoItems.get(position).isChecked());
-                ((BaseAdapter)gridPhotos.getAdapter()).notifyDataSetChanged();              
-                MenuItem actionRemoveMenuItem = BrowserCemeteryActivity.this.mOptionsMenu.findItem(R.id.action_remove);
-                actionRemoveMenuItem.setEnabled(mPhotoGridAdapter.isChoosePhoto());
-                return true;
-            }
-        });        
-        if(BrowserCemeteryActivity.this.mOptionsMenu != null){
-            MenuItem actionRemoveMenuItem = BrowserCemeteryActivity.this.mOptionsMenu.findItem(R.id.action_remove);
-            actionRemoveMenuItem.setEnabled(mPhotoGridAdapter.isChoosePhoto());
-        }        
-	}
-	
+		
 	private void deleteSelectedPhotos(){
 		ArrayList<PhotoGridItem> deletedItems = new ArrayList<PhotoGridItem>();
 		for(PhotoGridItem item : gridPhotoItems){
 			if(item.isChecked()){
-				File file = new File(item.getPath());
-				file.delete();
+			    String thumbnailPath = item.getThumbnailPath();
+			    String imagePath = item.getImagePath();
+			    if(imagePath != null){
+			        File file = new File(imagePath);
+                    file.delete();
+			    }
+			    if(thumbnailPath != null){
+			        File file = new File(thumbnailPath);
+                    file.delete();
+			    }
 				if(item.getGravePhoto() != null){
 				    MonumentDB.deleteGravePhoto(item.getGravePhoto());
 				}
@@ -2095,7 +2024,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	}
 	
 	private void startIntentForMakePhoto(ComplexGrave complexGrave){
-	    mUri = generateFileUri(complexGrave);
+	    mUri = complexGrave.generateFileUri(null);
         if (mUri == null) {
             Toast.makeText(BrowserCemeteryActivity.this, "Невозможно сделать фото", Toast.LENGTH_LONG).show();
             return;
@@ -2310,6 +2239,63 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		return result;
 	}
 	
+	private void updatePhotoGrid(){
+        DisplayMetrics metrics = new DisplayMetrics();
+        this.getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        screenHeight = metrics.heightPixels;
+        screenWidth = metrics.widthPixels;
+        screenHeightDp = (int)(screenHeight/metrics.density);
+        screenWidthDp = (int)(screenWidth/metrics.density);
+        int sizeDp = 0;        
+        if(screenWidth < screenHeight){
+            //min is screenWidth
+            sizeDp = screenWidthDp;
+            gridPhotoWidthDp = WIDTH_PTOTO_DP;
+        } else {
+            //min is screenHeight
+            sizeDp = screenHeightDp;
+            gridPhotoWidthDp = WIDTH_PTOTO_DP;
+        }
+        if(sizeDp < gridPhotoWidthDp){
+            gridPhotoWidthDp = sizeDp;
+        }        
+        widthPhotoDp = gridPhotoWidthDp;
+        widthPhoto =(int) (widthPhotoDp * metrics.density);
+        this.gridPhotos.setColumnWidth(gridPhotoWidthDp);
+        
+        updatePhotoGridItems();
+        this.mPhotoGridAdapter = new PhotoGridAdapter();
+        this.gridPhotos.setAdapter(this.mPhotoGridAdapter);
+        this.gridPhotos.setOnItemClickListener(new OnItemClickListener() {            
+            @Override
+            public void onItemClick(AdapterView<?> parent, View v, int position, long id ) {
+                PhotoGridItem item = gridPhotoItems.get(position);
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                Uri imageUri = item.getImageUri();
+                if(imageUri == null){
+                    imageUri = item.getThumbnailUri();
+                }
+                intent.setDataAndType(imageUri, "image/*");
+                startActivity(intent);              
+            }
+        });
+        this.gridPhotos.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View v, int position, long id) {
+                gridPhotoItems.get(position).setChecked(!gridPhotoItems.get(position).isChecked());
+                ((BaseAdapter)gridPhotos.getAdapter()).notifyDataSetChanged();              
+                MenuItem actionRemoveMenuItem = BrowserCemeteryActivity.this.mOptionsMenu.findItem(R.id.action_remove);
+                actionRemoveMenuItem.setEnabled(mPhotoGridAdapter.isChoosePhoto());
+                return true;
+            }
+        });        
+        if(BrowserCemeteryActivity.this.mOptionsMenu != null){
+            MenuItem actionRemoveMenuItem = BrowserCemeteryActivity.this.mOptionsMenu.findItem(R.id.action_remove);
+            actionRemoveMenuItem.setEnabled(mPhotoGridAdapter.isChoosePhoto());
+        }        
+    }
+	
 	private void updatePhotoGridItems(){
 	    Grave grave = null;
 	    Place place = null;
@@ -2328,234 +2314,100 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
         default:
             break;
         }
-	    boolean isAddImage = true;
-        if(isAddImage){
-            gridPhotoItems.clear();
-        	if(grave != null){        	    
-		        for(GravePhoto photo : grave.Photos){
-		        	PhotoGridItem item = new PhotoGridItem();
-		        	Uri uri = Uri.parse(photo.UriString);
-		        	item.setPath(uri.getPath());
-		        	item.setChecked(false);
-		        	item.setUri(uri);
-		        	item.setBmp(null);
-		        	item.setGravePhoto(photo);
-		        	gridPhotoItems.add(item);
-		        }
-        	}
-        	if(place != null){
-        	    ArrayList<Photo> photoList = new ArrayList<Photo>();
-        	    for(PlacePhoto photo : place.Photos){        	        
-                    photoList.add(photo);                    
-        	    }
-        	    List<Grave> graves = DB.dao(Grave.class).queryForEq("Place_id", place.Id);
-        	    for(Grave g : graves){
-        	        DB.dao(Grave.class).refresh(g);
-        	        for(GravePhoto photo : g.Photos){
-        	            photoList.add(photo);
-        	        }
-        	    }
-        	    Collections.sort(photoList, new Comparator<Photo>() {
-                    @Override
-                    public int compare(Photo one, Photo two) {
-                        return two.CreateDate.compareTo(one.CreateDate);
-                    }
-                });        	    
-        	    for(Photo photo : photoList){
-        	        PhotoGridItem item = new PhotoGridItem();
-                    Uri uri = Uri.parse(photo.UriString);
-                    item.setPath(uri.getPath());
-                    item.setChecked(false);
-                    item.setUri(uri);
-                    item.setBmp(null);
-                    if(photo instanceof PlacePhoto){
-                        item.setPlacePhoto((PlacePhoto)photo);
-                    }
-                    if(photo instanceof GravePhoto){
-                        item.setGravePhoto((GravePhoto)photo);
-                    }                   
-                    gridPhotoItems.add(item);
-        	    }
-        	}
-        } else {
-        	for(PhotoGridItem item : gridPhotoItems){
-        	    if(item.getGravePhoto() != null){
-        	        DB.dao(GravePhoto.class).refresh(item.getGravePhoto());
-        	    }
-        	    if(item.getPlacePhoto() != null){
-        	        DB.dao(PlacePhoto.class).refresh(item.getPlacePhoto());     
-        	    }
-		    }
-        }
+	    
+	    HashMap<Integer, PhotoGridItem> histPlacePhotoGridItemHashMap = new HashMap<Integer, PhotoGridItem>();
+	    HashMap<Integer, PhotoGridItem> histGravePhotoGridItemHashMap = new HashMap<Integer, PhotoGridItem>();
+	    for(PhotoGridItem photoGridItem : gridPhotoItems){
+	        if(photoGridItem.getPlacePhoto() != null){
+	            histPlacePhotoGridItemHashMap.put(photoGridItem.getPlacePhoto().Id, photoGridItem);
+	        }
+	        if(photoGridItem.getGravePhoto() != null){
+	            histGravePhotoGridItemHashMap.put(photoGridItem.getGravePhoto().Id, photoGridItem);
+	        }
+	    }
+        gridPhotoItems.clear();    	
+    	if(place != null){
+    	    ArrayList<Photo> photoList = MonumentDB.getPhotos(place);    	        	    
+    	    for(Photo photo : photoList){
+    	        PhotoGridItem item = new PhotoGridItem();                    
+                item.setChecked(false);
+                PhotoGridItem prevPhotoGridItem = null;
+                if(photo instanceof PlacePhoto){
+                    prevPhotoGridItem = histPlacePhotoGridItemHashMap.get(photo.Id);
+                    item.setPlacePhoto((PlacePhoto)photo);                    
+                }
+                if(photo instanceof GravePhoto){
+                    prevPhotoGridItem = histGravePhotoGridItemHashMap.get(photo.Id);
+                    item.setGravePhoto((GravePhoto)photo);
+                    
+                }
+                if(prevPhotoGridItem != null){
+                    item.setChecked(prevPhotoGridItem.isChecked());
+                    item.setStatus(prevPhotoGridItem.getStatus());
+                }
+                gridPhotoItems.add(item);
+    	    }
+    	}
+        
+	}	
+	
+	public void startDownloadThumbnails(int placeId){
+	    Place place = DB.dao(Place.class).queryForId(placeId);
+	    ComplexGrave complexGrave = new ComplexGrave();
+	    complexGrave.loadByPlaceId(placeId);
+	    for(PhotoGridItem photoGridItem : gridPhotoItems){
+	        if(photoGridItem.isNecessaryToDownloadImage() && photoGridItem.getPlacePhoto() != null){
+	            ThreadManager.getInstance().downloadThumbnail(photoGridItem.getPlacePhoto(), complexGrave);
+	        }
+	    }
 	}
 	
-	public void updateStatusInPhotoGrid(){
-		int graveId = getIntent().getIntExtra(EXTRA_GRAVE_ID, -1);
-		Grave grave = DB.dao(Grave.class).queryForId(graveId);
-		HashMap<Integer, GravePhoto> hashMapStatus = new HashMap<Integer,GravePhoto>();
-		for(GravePhoto photo : grave.Photos){
-			hashMapStatus.put(photo.Id, photo);
-		}
-		for(PhotoGridItem item : gridPhotoItems){
-			if(item.getGravePhoto() != null){
-				item.setGravePhoto(hashMapStatus.get(item.getGravePhoto().Id));
-			}
-		}
-		mPhotoGridAdapter.notifyDataSetChanged();
-	}
+	public void startCreateThumbnail(int placePhotoId){
+        PlacePhoto placePhoto = DB.dao(PlacePhoto.class).queryForId(placePhotoId);
+        ComplexGrave complexGrave = new ComplexGrave();
+        complexGrave.loadByPlaceId(placePhoto.Place.Id);
+        ThreadManager.getInstance().createThumbnail(placePhoto, complexGrave);        
+    }
 	
 	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if (resultCode == Activity.RESULT_OK) {
-			switch (requestCode) {
-			case REQUEST_CODE_PHOTO_INTENT:
-			    ComplexGrave complexGrave = new ComplexGrave();
-			    switch (mMakePhotoType) {
-                case GRAVEPHOTO_CURRENT:
-                case GRAVEPHOTO_NEXTGRAVE:
-                case GRAVEPHOTO_NEXTPLACE:
-                    int extraGraveId = this.getIntent().getIntExtra(EXTRA_GRAVE_ID, -1);
-                    Grave grave = DB.dao(Grave.class).queryForId(extraGraveId);                    
-                    complexGrave.loadByGraveId(grave.Id);
-                    GravePhoto gravePhoto = new GravePhoto();
-                    gravePhoto.Grave = grave;
-                    gravePhoto.CreateDate = new Date();
-                    gravePhoto.UriString = mUri.toString();
-                    if(Settings.getCurrentLocation() != null){
-                        Location location = Settings.getCurrentLocation();
-                        gravePhoto.Latitude = location.getLatitude();
-                        gravePhoto.Longitude = location.getLongitude();
-                    }
-                    if(Settings.IsAutoSendPhotoToServer(this)){
-                        gravePhoto.Status = GravePhoto.STATUS_WAIT_SEND;
-                    } else {
-                        gravePhoto.Status = GravePhoto.STATUS_FORMATE;
-                    }
-                    DB.dao(GravePhoto.class).create(gravePhoto);
-                    //saveExifInfo(mUri.getPath(), complexGrave, gravePhoto);
-                                                    
-                    gridPhotoItems.clear();
-                    mType = getIntent().getIntExtra(EXTRA_TYPE, -1);                
-                    updateContent(mType, extraGraveId);                    
-                    break;
-                case PLACEPHOTO_CURRENT:
-                case PLACEPHOTO_NEXTPLACE:
-                    int extraPlaceId = this.getIntent().getIntExtra(EXTRA_PLACE_ID, -1);
-                    Place place = DB.dao(Place.class).queryForId(extraPlaceId);
-                    complexGrave.loadByPlaceId(place.Id);
-                    PlacePhoto placePhoto = new PlacePhoto();
-                    placePhoto.Place = place;
-                    placePhoto.CreateDate = new Date();
-                    placePhoto.UriString = mUri.toString();
-                    if(Settings.getCurrentLocation() != null){
-                        Location location = Settings.getCurrentLocation();
-                        placePhoto.Latitude = location.getLatitude();
-                        placePhoto.Longitude = location.getLongitude();
-                    }
-                    if(Settings.IsAutoSendPhotoToServer(this)){
-                        placePhoto.Status = GravePhoto.STATUS_WAIT_SEND;
-                    } else {
-                        placePhoto.Status = GravePhoto.STATUS_FORMATE;
-                    }
-                    DB.dao(PlacePhoto.class).create(placePhoto);
-                    //saveExifInfo(mUri.getPath(), complexGrave, placePhoto);
-                                                    
-                    gridPhotoItems.clear();
-                    mType = getIntent().getIntExtra(EXTRA_TYPE, -1);                
-                    updateContent(mType, extraPlaceId);
-                    break;
-
-                default:
-                    break;
-                }
-				
-				break;
-			case ADD_OBJECT_REQUEST_CODE:
-				mType = getIntent().getIntExtra(EXTRA_TYPE, -1);				
-				updateContent(mType);
-				break;
-			case EDIT_OBJECT_REQUEST_CODE:
-				mType = getIntent().getIntExtra(EXTRA_TYPE, -1);				
-				updateContent(mType);
-				break;
-			case PlaceSearchActivity.PLACE_SEARCH_REQUESTCODE:
-				String oldPlaceName = data.getStringExtra(PlaceSearchActivity.EXTRA_PLACE_OLDNAME);
-	        	if(oldPlaceName == null){
-	        		oldPlaceName = data.getStringExtra(PlaceSearchActivity.EXTRA_PLACE_NAME);
-	        	}
-	        	if(this.etOldPlaceInAlert == null){
-	        		enterOldPlaceName();	        		
-	        	}
-	        	this.etOldPlaceInAlert.setText(oldPlaceName);
-				break;
-			}			
-		} 
+    public void onChangeDownloadStatus(PlacePhoto placePhoto, int status) {
+	    PlacePhoto dbPlacePhoto = DB.dao(PlacePhoto.class).queryForId(placePhoto.Id);
+	    if(status == ThreadManager.STATUS_DOWNLOAD_COMPLETE){	        
+	        dbPlacePhoto.UriString = placePhoto.UriString;
+	        dbPlacePhoto.ThumbnailUriString = placePhoto.ThumbnailUriString;
+	        DB.dao(PlacePhoto.class).update(dbPlacePhoto);	        
+	    }
+	    for(PhotoGridItem photoGridItem : gridPhotoItems){
+	        if(photoGridItem.getPlacePhoto() != null && photoGridItem.getPlacePhoto().Id == placePhoto.Id){
+	            photoGridItem.setPlacePhoto(dbPlacePhoto);
+	            photoGridItem.setStatus(status);
+	            break;
+	        }
+	    }
+	    this.mPhotoGridAdapter.notifyDataSetChanged();
+    }
+	
+	@Override
+    public void onChangeCreateThumbnailStatus(PlacePhoto placePhoto, int status) {
+	    PlacePhoto dbPlacePhoto = DB.dao(PlacePhoto.class).queryForId(placePhoto.Id);
+        if(status == ThreadManager.STATUS_CREATE_THUMBNAIL_COMPLETE){
+            dbPlacePhoto.ThumbnailUriString = placePhoto.ThumbnailUriString;
+            DB.dao(PlacePhoto.class).update(dbPlacePhoto);          
+        }
+        for(PhotoGridItem photoGridItem : gridPhotoItems){
+            if(photoGridItem.getPlacePhoto() != null && photoGridItem.getPlacePhoto().Id == placePhoto.Id){
+                photoGridItem.setPlacePhoto(dbPlacePhoto);
+                photoGridItem.setStatus(status);
+                break;
+            }
+        }
+        this.mPhotoGridAdapter.notifyDataSetChanged();      
+    }
 		
-	}
-	
-	private Uri generateFileUri(ComplexGrave complexGrave) {
-		File rootDir = Settings.getRootDirPhoto();
-		if(complexGrave != null){
-			return complexGrave.generateFileUri(rootDir);
-		} else {
-			String timeValue = String.valueOf(System.currentTimeMillis());
-			File newFile = new File(rootDir.getPath() + File.separator + timeValue	+ ".jpg");
-			return Uri.fromFile(newFile);			
-		}		
-	}
-	
-	public boolean saveExifInfo(String filePath, ComplexGrave complexGrave, Photo photo){
-		try {
-			TiffOutputSet outputSet = null;
-			IImageMetadata metadata = Sanselan.getMetadata(new File(filePath));
-			JpegImageMetadata jpegMetadata = (JpegImageMetadata) metadata;
-			if (null != jpegMetadata) {
-				TiffImageMetadata exif = jpegMetadata.getExif();
-				if (null != exif) {
-					outputSet = exif.getOutputSet();
-				}
-			}
-			if (null != outputSet) {
-				TiffOutputDirectory exifDirectory = outputSet.getOrCreateExifDirectory();
-				int ownerLessFlag = 0;
-				if(complexGrave.Place.IsOwnerLess){
-					ownerLessFlag = 1;
-				}
-				String rowName = "";
-				if(complexGrave.Row != null){
-					rowName = complexGrave.Row.Name;
-				}
-				String graveName = "";
-				if(complexGrave.Grave != null){
-				    graveName = complexGrave.Grave.Name;
-				}
-				String userCommentValue = String.format("%f~%f~%s~%s~%s~%s~%s~%d", photo.Longitude, photo.Latitude, complexGrave.Cemetery.Name,
-						complexGrave.Region.Name, rowName, complexGrave.Place.Name, graveName, ownerLessFlag);
-				byte[] userCommentValueBytes = userCommentValue.getBytes("Cp1251");
-				TiffOutputField f = new TiffOutputField(ExifTagConstants.EXIF_TAG_USER_COMMENT,
-						ExifTagConstants.EXIF_TAG_USER_COMMENT.FIELD_TYPE_ASCII,
-						userCommentValueBytes.length, userCommentValueBytes);
-				exifDirectory.removeField(TiffConstants.EXIF_TAG_USER_COMMENT);
-				exifDirectory.add(f);
-				outputSet.setGPSInDegrees(photo.Longitude, photo.Latitude);
-				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				ExifRewriter exifRewriter = new ExifRewriter();
-				exifRewriter.updateExifMetadataLossless(new File(filePath), baos, outputSet);
-				FileOutputStream output = new FileOutputStream(filePath);
-				output.write(baos.toByteArray());
-				output.close();				
-			}
-		} catch (Exception e) {
-			this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
-			return false;
-		}
-		return true;
-
-	}
-	
 	public class PhotoGridAdapter extends BaseAdapter {
-		
+	    
         public PhotoGridAdapter() {
+            super();                                    
         }        
 
         public View getView(int position, View convertView, ViewGroup parent) {
@@ -2567,74 +2419,59 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
             ImageView ivPhotoChoose = (ImageView) convertView.findViewById(R.id.ivChoosePhoto);
             ImageView ivIsSend = (ImageView) convertView.findViewById(R.id.ivStatus);
             TextView tvGPS = (TextView) convertView.findViewById(R.id.tvGPS);
+            ProgressBar pbDownload = (ProgressBar) convertView.findViewById(R.id.pbDownload);
+            TextView tvDownloadStatus = (TextView) convertView.findViewById(R.id.tvStatusDownload);
             PhotoGridItem item = gridPhotoItems.get(position);
-            if(item.getBmp() == null) {
-	            File imgFile = new  File(item.getPath());
-	            int widthScaledPhotoPx = BrowserCemeteryActivity.widthPhoto;
-	            int heightScaledPhotoPx;
-	            int rotateAngle = 0;
-	            if(imgFile.exists()){	
-	            	try {
-						ExifInterface ex = new ExifInterface(imgFile.getAbsolutePath());
-						//byte[] thumbnail = ex.getThumbnail();
-						int orientation = ex.getAttributeInt(ExifInterface.TAG_ORIENTATION, -1);
-						switch (orientation) {
-						case ExifInterface.ORIENTATION_NORMAL:
-							rotateAngle = 0;
-							break;
-						case ExifInterface.ORIENTATION_ROTATE_90:
-							rotateAngle = 90;		
-							break;
-						case ExifInterface.ORIENTATION_ROTATE_180:
-							rotateAngle = 180;
-							break;
-						case ExifInterface.ORIENTATION_ROTATE_270:
-							rotateAngle = 270;
-							break;
-						default:
-							rotateAngle = 0;
-							break;
-						}
-						
-					} catch (IOException e) {
-						mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
-					}
-	                Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-	                heightScaledPhotoPx = myBitmap.getHeight() * widthScaledPhotoPx / myBitmap.getWidth();
-	                Bitmap scaledBmp = Bitmap.createScaledBitmap(myBitmap, widthScaledPhotoPx, heightScaledPhotoPx, true);
-	                
-	                Matrix matrix = new Matrix();
-	                matrix.setRotate(rotateAngle);
-	                Bitmap rotateScaledBmp = Bitmap.createBitmap(scaledBmp, 0, 0, scaledBmp.getWidth(), scaledBmp.getHeight(), matrix, true);
-	                                
-	                
-	                ivPhoto.setImageBitmap(rotateScaledBmp);
-	                gridPhotoItems.get(position).setBmp(rotateScaledBmp);	                
-	            }            
-            } else {
-            	ivPhoto.setImageBitmap(item.getBmp());
-            }
-            
+            item.setImageView(ivPhoto);            
             if(item.isChecked()) {
             	ivPhotoChoose.setVisibility(View.VISIBLE);
             } else {
             	ivPhotoChoose.setVisibility(View.GONE);
             }
-            Photo photo = null;
-            if(item.getGravePhoto() != null){
-                photo = item.getGravePhoto();
-            }
-            if(item.getPlacePhoto() != null) {
-                photo = item.getPlacePhoto();
-            }
-            if(photo != null){
+            Photo photo = item.getPhoto();
+            
+            if(photo != null){                
+                if(photo.ThumbnailUriString != null){                    
+                    ivPhoto.setImageURI(Uri.parse(photo.ThumbnailUriString));
+                }
             	ivIsSend.getDrawable().setLevel(photo.Status);
             	double lat = photo.Latitude;
                 double lng = photo.Longitude;
                 String gpsString = String.format("GPS:%s, %s", Location.convert(lat, Location.FORMAT_SECONDS), Location.convert(lat, Location.FORMAT_SECONDS) );
                 tvGPS.setText(gpsString);
             }
-
+            if(item.getStatus() != BaseDTO.INT_NULL_VALUE){
+                pbDownload.setVisibility(View.GONE);
+                tvDownloadStatus.setVisibility(View.GONE);
+                switch (item.getStatus()) {
+                case ThreadManager.STATUS_INITIAL:
+                case ThreadManager.STATUS_DOWNLOAD_START:                
+                case ThreadManager.STATUS_CREATE_THUMBNAIL_START:
+                    pbDownload.setVisibility(View.VISIBLE);
+                    break;
+                case ThreadManager.STATUS_DOWNLOAD_ERROR:
+                    tvDownloadStatus.setVisibility(View.VISIBLE);
+                    tvDownloadStatus.setText(R.string.photo_download_error);
+                    break;
+                case ThreadManager.STATUS_CREATE_THUMBNAIL_ERROR:
+                    tvDownloadStatus.setVisibility(View.VISIBLE);
+                    tvDownloadStatus.setText(R.string.photo_create_thumbnail_error);
+                    break;
+                case ThreadManager.STATUS_DOWNLOAD_COMPLETE:
+                    break;
+                default:                    
+                    break;
+                }                
+                
+            } else {
+                pbDownload.setVisibility(View.GONE);
+                tvDownloadStatus.setVisibility(View.GONE);
+                if(photo.ThumbnailUriString == null && photo.UriString == null){
+                    tvDownloadStatus.setVisibility(View.VISIBLE);
+                    tvDownloadStatus.setText(R.string.photo_not_found);
+                }                
+                
+            }
             return convertView;
         }  
         
@@ -2646,8 +2483,6 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
         	}
         	return false;
         }
-        
-
 
         public final int getCount() {
             return gridPhotoItems.size();
@@ -2661,17 +2496,32 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
             return position;
         }
     }
-    
+   
     class PhotoGridItem {
-    	  	
-		private String path;
-		private Uri uri;
-    	private Bitmap bmp;
+		    	
     	private boolean checked;
     	private GravePhoto gravePhoto;
     	private PlacePhoto placePhoto;
-    	
-    	public PlacePhoto getPlacePhoto() {
+    	private ImageView imageView;
+    	private int status = BaseDTO.INT_NULL_VALUE;
+
+        public int getStatus() {
+            return this.status;
+        }
+
+        public void setStatus(int status) {
+            this.status = status;
+        }
+
+        public ImageView getImageView() {
+            return imageView;
+        }
+
+        public void setImageView(ImageView imageView) {
+            this.imageView = imageView;
+        }
+
+        public PlacePhoto getPlacePhoto() {
             return placePhoto;
         }
 
@@ -2690,34 +2540,62 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		public boolean isChecked() {
 			return checked;
 		}
+		
+		public Photo getPhoto(){
+		    if(this.placePhoto != null){
+		        return this.placePhoto;
+		    }
+		    if(this.gravePhoto != null){
+		        return this.gravePhoto;
+		    }
+		    return null;
+		}
+		
+		public Uri getImageUri() {
+		    Photo photo = getPhoto();
+            String uriString = photo.UriString;
+            if(uriString != null){
+                return Uri.parse(uriString);
+            }
+            return null;            
+        }
     	
-		public String getPath() {
-			return path;
+		public String getImagePath() {
+			Uri uri = getImageUri();
+			if(uri != null){
+			    return uri.getPath();
+			}
+			return null;
+			
 		}
-
-		public void setPath(String path) {
-			this.path = path;
-		}
-
-		public Uri getUri() {
-			return uri;
-		}
-
-		public void setUri(Uri uri) {
-			this.uri = uri;
-		}
-
+		
+		public Uri getThumbnailUri() {
+		    Photo photo = getPhoto();
+            String uriString = photo.ThumbnailUriString;
+            if(uriString != null){
+                return Uri.parse(uriString);
+            }
+            return null;
+        }
+		
+		public String getThumbnailPath() {
+		    Uri uri = getThumbnailUri();
+            if(uri != null){
+                return uri.getPath();
+            }
+            return null;
+        }		
+		
 		public void setChecked(boolean checked) {
 			this.checked = checked;
 		}
 		
-		public Bitmap getBmp() {
-			return bmp;
+		public boolean isNecessaryToDownloadImage(){
+		    if(this.getPhoto().UriString == null && this.status == BaseDTO.INT_NULL_VALUE){
+		        return true;
+		    }
+		    return false;
 		}
-		
-		public void setBmp(Bitmap bmp) {
-			this.bmp = bmp;
-		}	
 	}
 
 	@Override
@@ -2754,6 +2632,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		
 	}
 
-	
+    
+
+    
 	
 }

@@ -5,6 +5,8 @@ import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -18,6 +20,7 @@ import com.coolchoice.monumentphoto.data.DeletedObject;
 import com.coolchoice.monumentphoto.data.DeletedObjectType;
 import com.coolchoice.monumentphoto.data.Grave;
 import com.coolchoice.monumentphoto.data.GravePhoto;
+import com.coolchoice.monumentphoto.data.Photo;
 import com.coolchoice.monumentphoto.data.Place;
 import com.coolchoice.monumentphoto.data.PlacePhoto;
 import com.coolchoice.monumentphoto.data.Region;
@@ -52,6 +55,27 @@ public class MonumentDB {
             DB.dao(DeletedObject.class).create(deletedObject);
         }
         DB.dao(PlacePhoto.class).delete(placePhoto);
+    }
+	
+	public static ArrayList<Photo> getPhotos(Place place){
+	    ArrayList<Photo> photoList = new ArrayList<Photo>();
+        for(PlacePhoto photo : place.Photos){                   
+            photoList.add(photo);                    
+        }
+        List<Grave> graves = DB.dao(Grave.class).queryForEq("Place_id", place.Id);
+        for(Grave g : graves){
+            DB.dao(Grave.class).refresh(g);
+            for(GravePhoto photo : g.Photos){
+                photoList.add(photo);
+            }
+        }
+        Collections.sort(photoList, new Comparator<Photo>() {
+            @Override
+            public int compare(Photo one, Photo two) {
+                return two.CreateDate.compareTo(one.CreateDate);
+            }
+        });  
+        return photoList;
     }
 	
 	public List<ComplexGrave.PlaceWithFIO> getPlaceWithFIO(int cemeteryId, String filterLastName){
