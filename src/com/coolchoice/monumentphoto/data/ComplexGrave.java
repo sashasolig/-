@@ -155,7 +155,7 @@ public class ComplexGrave {
 		    newFile = new File(dir.getPath() + File.separator + fileName);
 		} else {
 		    String timeValue = String.valueOf(System.currentTimeMillis());
-	        newFile = new File(dir.getPath() + File.separator + timeValue  + Settings.JPG_EXTENSION);
+	        newFile = new File(dir.getPath() + File.separator + timeValue  + "." + Settings.JPG_EXTENSION);
 		}
 		
 		return Uri.fromFile(newFile);

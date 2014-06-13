@@ -2631,6 +2631,91 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		}
 		
 	}
+	
+	@Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == Activity.RESULT_OK) {
+            switch (requestCode) {
+            case REQUEST_CODE_PHOTO_INTENT:
+                ComplexGrave complexGrave = new ComplexGrave();
+                switch (mMakePhotoType) {
+                case GRAVEPHOTO_CURRENT:
+                case GRAVEPHOTO_NEXTGRAVE:
+                case GRAVEPHOTO_NEXTPLACE:
+                    int extraGraveId = this.getIntent().getIntExtra(EXTRA_GRAVE_ID, -1);
+                    Grave grave = DB.dao(Grave.class).queryForId(extraGraveId);                    
+                    complexGrave.loadByGraveId(grave.Id);
+                    GravePhoto gravePhoto = new GravePhoto();
+                    gravePhoto.Grave = grave;
+                    gravePhoto.CreateDate = new Date();
+                    gravePhoto.UriString = mUri.toString();
+                    if(Settings.getCurrentLocation() != null){
+                        Location location = Settings.getCurrentLocation();
+                        gravePhoto.Latitude = location.getLatitude();
+                        gravePhoto.Longitude = location.getLongitude();
+                    }
+                    if(Settings.IsAutoSendPhotoToServer(this)){
+                        gravePhoto.Status = GravePhoto.STATUS_WAIT_SEND;
+                    } else {
+                        gravePhoto.Status = GravePhoto.STATUS_FORMATE;
+                    }
+                    DB.dao(GravePhoto.class).create(gravePhoto);
+                    gridPhotoItems.clear();
+                    mType = getIntent().getIntExtra(EXTRA_TYPE, -1);                
+                    updateContent(mType, extraGraveId);                    
+                    break;
+                case PLACEPHOTO_CURRENT:
+                case PLACEPHOTO_NEXTPLACE:
+                    int extraPlaceId = this.getIntent().getIntExtra(EXTRA_PLACE_ID, -1);
+                    Place place = DB.dao(Place.class).queryForId(extraPlaceId);
+                    complexGrave.loadByPlaceId(place.Id);
+                    PlacePhoto placePhoto = new PlacePhoto();
+                    placePhoto.Place = place;
+                    placePhoto.CreateDate = new Date();
+                    placePhoto.UriString = mUri.toString();
+                    if(Settings.getCurrentLocation() != null){
+                        Location location = Settings.getCurrentLocation();
+                        placePhoto.Latitude = location.getLatitude();
+                        placePhoto.Longitude = location.getLongitude();
+                    }
+                    if(Settings.IsAutoSendPhotoToServer(this)){
+                        placePhoto.Status = GravePhoto.STATUS_WAIT_SEND;
+                    } else {
+                        placePhoto.Status = GravePhoto.STATUS_FORMATE;
+                    }
+                    DB.dao(PlacePhoto.class).create(placePhoto);                                                                        
+                    gridPhotoItems.clear();
+                    mType = getIntent().getIntExtra(EXTRA_TYPE, -1);                
+                    updateContent(mType, extraPlaceId);
+                    startCreateThumbnail(placePhoto.Id);
+                    break;
+                default:
+                    break;
+                }
+                
+                break;
+            case ADD_OBJECT_REQUEST_CODE:
+                mType = getIntent().getIntExtra(EXTRA_TYPE, -1);                
+                updateContent(mType);
+                break;
+            case EDIT_OBJECT_REQUEST_CODE:
+                mType = getIntent().getIntExtra(EXTRA_TYPE, -1);                
+                updateContent(mType);
+                break;
+            case PlaceSearchActivity.PLACE_SEARCH_REQUESTCODE:
+                String oldPlaceName = data.getStringExtra(PlaceSearchActivity.EXTRA_PLACE_OLDNAME);
+                if(oldPlaceName == null){
+                    oldPlaceName = data.getStringExtra(PlaceSearchActivity.EXTRA_PLACE_NAME);
+                }
+                if(this.etOldPlaceInAlert == null){
+                    enterOldPlaceName();                    
+                }
+                this.etOldPlaceInAlert.setText(oldPlaceName);
+                break;
+            }           
+        } 
+        
+    }
 
     
 
