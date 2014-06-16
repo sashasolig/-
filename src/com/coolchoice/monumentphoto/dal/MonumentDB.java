@@ -4,14 +4,9 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
-import java.util.UUID;
-
-import android.util.Log;
 
 import com.coolchoice.monumentphoto.data.Burial;
 import com.coolchoice.monumentphoto.data.Cemetery;
@@ -25,11 +20,8 @@ import com.coolchoice.monumentphoto.data.Place;
 import com.coolchoice.monumentphoto.data.PlacePhoto;
 import com.coolchoice.monumentphoto.data.Region;
 import com.coolchoice.monumentphoto.data.Row;
-import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.GenericRawResults;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
-import com.j256.ormlite.stmt.DeleteBuilder;
-import com.j256.ormlite.stmt.UpdateBuilder;
 
 public class MonumentDB {
 	
@@ -118,124 +110,24 @@ public class MonumentDB {
 		}
 		return listResults;
 	}
-	
-	public List<Integer> getGravePhotoIds(Cemetery cemetery){
-		String selectQuery = String.format(selectGravePhotoIdsByCemetery1, cemetery.Id);
-		List<Integer> result1 = getGravePhotoIds(selectQuery);
-		selectQuery = String.format(selectGravePhotoIdsByCemetery2, cemetery.Id);
-		List<Integer> result2 = getGravePhotoIds(selectQuery);
-		result1.addAll(result2);
-		return result1;
-	}
-	
-	public List<Integer> getGravePhotoIds(Region region){
-		String selectQuery = String.format(selectGravePhotoIdsByRegion1, region.Id);
-		List<Integer> result1 = getGravePhotoIds(selectQuery);
-		selectQuery = String.format(selectGravePhotoIdsByRegion2, region.Id);
-		List<Integer> result2 = getGravePhotoIds(selectQuery);
-		result1.addAll(result2);
-		return result1;
-	}
-	
-	public List<Integer> getGravePhotoIds(Row row){
-		String selectQuery = String.format(selectGravePhotoIdsByRow, row.Id);
-		List<Integer> result = getGravePhotoIds(selectQuery);
-		return result;
-	}
-	
-	public List<Integer> getGravePhotoIds(Place place){
-		String selectQuery = String.format(selectGravePhotoIdsByPlace, place.Id);
-		List<Integer> result = getGravePhotoIds(selectQuery);
-		return result;
-	}
-	
-	public List<Integer> getGravePhotoIds(Grave grave){
-		String selectQuery = String.format(selectGravePhotoIdsByGrave, grave.Id);
-		List<Integer> result = getGravePhotoIds(selectQuery);
-		return result;
-	}
-	
+		
 	//search Place by name
 	private String selectPlaceByName1 = "select distinct b.FName, b.MName, b.LName, p.Name, p.OldName, p.Id from burial b, grave g, place p, row row, region reg, cemetery c where b.Grave_id = g.id and g.Place_id = p.id and p.Row_id = row.id and row.Region_id = reg.Id and reg.Cemetery_id = c.Id and c.Id = %d and b.LName like '%s%%' ORDER BY b.LName LIMIT 20 OFFSET 0";
 	
 	private String selectPlaceByName2 = "select distinct b.FName, b.MName, b.LName, p.Name, p.OldName, p.Id from burial b, grave g, place p, region reg, cemetery c where b.Grave_id = g.id and g.Place_id = p.id and p.Region_id = reg.Id and reg.Cemetery_id = c.Id and c.Id = %d and b.LName like '%s%%' ORDER BY b.LName LIMIT 20 OFFSET 0 ";
 	
-	
-	//Cemetery change
-	private String selectGravePhotoIdsByCemetery1 = "select distinct gp.id from gravephoto gp, grave g, place p, row row, region reg, cemetery c where gp.Grave_id = g.id and g.Place_id = p.id and p.Row_id = row.id and row.Region_id = reg.Id and reg.Cemetery_id = c.Id and c.Id = %d ";
-
-	private String selectGravePhotoIdsByCemetery2 = "select distinct gp.id from gravephoto gp, grave g, place p, region reg, cemetery c where gp.Grave_id = g.id and g.Place_id = p.id and p.Region_id = reg.Id and reg.Cemetery_id = c.Id and c.Id = %d ";
-
-	//Region change
-	private String selectGravePhotoIdsByRegion1 = "select distinct gp.id from gravephoto gp, grave g, place p, row row, region reg where gp.Grave_id = g.id and g.Place_id = p.id and p.Row_id = row.id and row.Region_id = reg.Id and reg.id = %d ";
-
-	private String selectGravePhotoIdsByRegion2 = "select distinct gp.id from gravephoto gp, grave g, place p, region reg where gp.Grave_id = g.id and g.Place_id = p.id and p.Region_id = reg.Id and reg.Id = %d ";
-
-	//Row change
-	private String selectGravePhotoIdsByRow = "select distinct gp.id from gravephoto gp, grave g, place p, row row where gp.Grave_id = g.id and g.Place_id = p.id and p.Row_id = row.id	and row.id = %d ";
-
-	//Place change
-	private String selectGravePhotoIdsByPlace = "select distinct gp.id from gravephoto gp, grave g, place p	where gp.Grave_id = g.id and g.Place_id = p.id and p.id = %d ";
-
-	//Grave change
-	private String selectGravePhotoIdsByGrave = "select distinct gp.id from gravephoto gp, grave g where gp.Grave_id = g.id and g.id = %d ";
-	
-	private List<Integer> getGravePhotoIds(String selectQuery){
-		List<Integer> listResults = new ArrayList<Integer>(); 
-		try {
-			RuntimeExceptionDao<GravePhoto, Integer> dao = DB.db().dao(GravePhoto.class);
-			GenericRawResults<String[]> rawResults = dao.queryRaw(selectQuery);
-			List<String[]> results = rawResults.getResults();
-			if(results != null && results.size() > 0){
-				for(String[] row : results){
-					Integer id = Integer.parseInt(row[0]);
-					listResults.add(id);
-				}
-			}			
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return listResults;
-	}
-	
-	public void updateGravePhotoUriString(Cemetery cemetery, String oldPartOfPath, String newPartOfPath ){
-		List<Integer> gravePhotIds = getGravePhotoIds(cemetery);
-		updateGravePhotoUriString(oldPartOfPath, newPartOfPath, gravePhotIds);
-	}
-	
-	public void updateGravePhotoUriString(Region region, String oldPartOfPath, String newPartOfPath ){
-		List<Integer> gravePhotIds = getGravePhotoIds(region);
-		updateGravePhotoUriString(oldPartOfPath, newPartOfPath, gravePhotIds);
-	}
-	
-	public void updateGravePhotoUriString(Row row, String oldPartOfPath, String newPartOfPath ){
-		List<Integer> gravePhotIds = getGravePhotoIds(row);
-		updateGravePhotoUriString(oldPartOfPath, newPartOfPath, gravePhotIds);
-	}
-	
-	public void updateGravePhotoUriString(Place place, String oldPartOfPath, String newPartOfPath ){
-		List<Integer> gravePhotIds = getGravePhotoIds(place);
-		updateGravePhotoUriString(oldPartOfPath, newPartOfPath, gravePhotIds);
-	}
-	
-	public void updateGravePhotoUriString(Grave grave, String oldPartOfPath, String newPartOfPath ){
-		List<Integer> gravePhotIds = getGravePhotoIds(grave);
-		updateGravePhotoUriString(oldPartOfPath, newPartOfPath, gravePhotIds);
-	}
-	
-	public void updateGravePhotoUriString(String oldPartName, String newPartName, List<Integer> gravePhotoIds){
-		if(gravePhotoIds.size() > 0){
-			String updateQuery = "update gravephoto set UriString = replace(UriString, '%s', '%s') where Id in (%s) ";
-			StringBuilder sbIds = new StringBuilder();
-			for(int i = 0; i < gravePhotoIds.size() - 1; i++){
-				sbIds.append(gravePhotoIds.get(i));
-				sbIds.append(",");
-			}
-			sbIds.append(gravePhotoIds.get(gravePhotoIds.size() - 1));
-			updateQuery = String.format(updateQuery, oldPartName, newPartName, sbIds.toString());
-			RuntimeExceptionDao<GravePhoto, Integer> dao = DB.db().dao(GravePhoto.class);
-			dao.updateRaw(updateQuery);			
-		}
+	public void updateGravePhotoUriString(String oldPartName, String newPartName){
+		String updateQuery = "update gravephoto set UriString = replace(UriString, '%s', '%s'), ThumbnailUriString = replace(ThumbnailUriString, '%s', '%s');";
+		updateQuery = String.format(updateQuery, oldPartName, newPartName, oldPartName, newPartName);
+		RuntimeExceptionDao<GravePhoto, Integer> gravePhotoDAO = DB.db().dao(GravePhoto.class);
+		gravePhotoDAO.updateRaw(updateQuery);
+		
+		updateQuery = "update placephoto set UriString = replace(UriString, '%s', '%s'), ThumbnailUriString = replace(ThumbnailUriString, '%s', '%s');";
+        updateQuery = String.format(updateQuery, oldPartName, newPartName, oldPartName, newPartName);
+        RuntimeExceptionDao<PlacePhoto, Integer> placePhotoDAO = DB.db().dao(PlacePhoto.class);
+        placePhotoDAO.updateRaw(updateQuery);
+        
+		
 	}
 	 
 	public static void deleteCemetery(int cemeteryId){

@@ -2347,7 +2347,9 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                 }
                 gridPhotoItems.add(item);
     	    }
+    	    startCreateThumbnails(place.Id);
     	}
+    	
         
 	}	
 	
@@ -2361,6 +2363,16 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	        }
 	    }
 	}
+	
+	public void startCreateThumbnails(int placeId){
+        ComplexGrave complexGrave = new ComplexGrave();
+        complexGrave.loadByPlaceId(placeId);
+        for(PhotoGridItem photoGridItem : gridPhotoItems){
+            if(photoGridItem.getPlacePhoto() != null && photoGridItem.isNecessaryToCreateThumbnailImage()){
+                ThreadManager.getInstance().createThumbnail(photoGridItem.getPlacePhoto(), complexGrave);
+            }
+        }        
+    }
 	
 	public void startCreateThumbnail(int placePhotoId){
         PlacePhoto placePhoto = DB.dao(PlacePhoto.class).queryForId(placePhotoId);
@@ -2472,7 +2484,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                 }                
                 
             }
-            convertView.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, (int) (Settings.THUMBNAIL_SIZE * 1.5)));
+            convertView.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, Settings.THUMBNAIL_SIZE));
             return convertView;
         }  
         
@@ -2597,6 +2609,14 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		    }
 		    return false;
 		}
+		
+		public boolean isNecessaryToCreateThumbnailImage(){
+            if(this.getPhoto().UriString != null && this.getPhoto().ThumbnailUriString == null && this.status == BaseDTO.INT_NULL_VALUE){
+                return true;
+            }
+            return false;
+        }
+		
 	}
 
 	@Override

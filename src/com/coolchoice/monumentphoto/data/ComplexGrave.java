@@ -207,130 +207,72 @@ public class ComplexGrave {
     }	
 	
 	public static boolean renameCemetery(Cemetery cemetery, String oldCemeteryName){
-		MonumentDB monumentDB = new MonumentDB();
-		ComplexGrave complexGrave = new ComplexGrave();
-		complexGrave.loadByCemeteryId(cemetery.Id);
-		File photoDir = Settings.getRootDirPhoto();
-		File source = new File(photoDir.getPath(), oldCemeteryName);
-		if(!source.exists()){
-			return true;
-		}
-		File dest = new File(photoDir.getPath(), cemetery.Name);
-		Uri oldPartOfPathURI = Uri.fromFile(source);
-		Uri newPartOfPathURI = Uri.fromFile(dest);		
-		if(!dest.exists()){
-			source.renameTo(dest);
-		} else {
-			
-		}		
-		monumentDB.updateGravePhotoUriString(cemetery, oldPartOfPathURI.toString(), newPartOfPathURI.toString());
-		return true;
+	    ComplexGrave complexGrave = new ComplexGrave();
+        complexGrave.loadByCemeteryId(cemetery.Id);
+        boolean result = renameMonumentEntity(complexGrave, oldCemeteryName);
+        return result;
 	}
 	
 	public static boolean renameRegion(Region region, String oldRegionName){
-		MonumentDB monumentDB = new MonumentDB();
-		ComplexGrave complexGrave = new ComplexGrave();
-		complexGrave.loadByRegionId(region.Id);
-		File photoDir = Settings.getRootDirPhoto();
-		String firstPartOfPath = photoDir.getPath() + File.separator + complexGrave.Cemetery.Name;
-		File source = new File(firstPartOfPath, oldRegionName);
-		if(!source.exists()){
-			return true; // ��� ���������� ��� �����������
-		}
-		File dest = new File(firstPartOfPath, region.Name);
-		Uri oldPartOfPathURI = Uri.fromFile(source);
-		Uri newPartOfPathURI = Uri.fromFile(dest);		
-		if(!dest.exists()){
-			source.renameTo(dest);
-		} else {
-			
-		}		
-		monumentDB.updateGravePhotoUriString(region, oldPartOfPathURI.toString(), newPartOfPathURI.toString());
-		return true;
+	    ComplexGrave complexGrave = new ComplexGrave();
+        complexGrave.loadByRegionId(region.Id);
+        boolean result = renameMonumentEntity(complexGrave, oldRegionName);
+        return result;
 	}
 	
 	public static boolean renameRow(Row row, String oldRowName){
-		MonumentDB monumentDB = new MonumentDB();
-		ComplexGrave complexGrave = new ComplexGrave();
-		complexGrave.loadByRowId(row.Id);
-		File photoDir = Settings.getRootDirPhoto();
-		String firstPartOfPath = photoDir.getPath() + File.separator + complexGrave.Cemetery.Name +
-				File.separator + complexGrave.Region.Name;
-		File source = new File(firstPartOfPath, oldRowName);
-		if(!source.exists()){
-			return true; // ��� ���������� ��� �����������
-		}
-		File dest = new File(firstPartOfPath, row.Name);
-		Uri oldPartOfPathURI = Uri.fromFile(source);
-		Uri newPartOfPathURI = Uri.fromFile(dest);		
-		if(!dest.exists()){
-			source.renameTo(dest);
-		} else {
-			
-		}		
-		monumentDB.updateGravePhotoUriString(row, oldPartOfPathURI.toString(), newPartOfPathURI.toString());
-		return true;
+	    ComplexGrave complexGrave = new ComplexGrave();
+        complexGrave.loadByRowId(row.Id);
+        boolean result = renameMonumentEntity(complexGrave, oldRowName);
+        return result;
 	}
 	
 	public static boolean renamePlace(Place place, String oldPlaceName){
-		MonumentDB monumentDB = new MonumentDB();
-		ComplexGrave complexGrave = new ComplexGrave();
-		complexGrave.loadByPlaceId(place.Id);
-		File photoDir = Settings.getRootDirPhoto();
-		String firstPartOfPath = null;
-		if(complexGrave.Row != null){
-			firstPartOfPath = photoDir.getPath() + File.separator + complexGrave.Cemetery.Name +
-					File.separator + complexGrave.Region.Name + File.separator + complexGrave.Row.Name;
-		} else {
-			firstPartOfPath = photoDir.getPath() + File.separator + complexGrave.Cemetery.Name +
-					File.separator + complexGrave.Region.Name;
-		}
-		
-		File source = new File(firstPartOfPath, oldPlaceName);
-		if(!source.exists()){
-			return true; // ��� ���������� ��� �����������
-		}
-		File dest = new File(firstPartOfPath, place.Name);
-		Uri oldPartOfPathURI = Uri.fromFile(source);
-		Uri newPartOfPathURI = Uri.fromFile(dest);		
-		if(!dest.exists()){
-			source.renameTo(dest);
-		} else {
-			
-		}		
-		monumentDB.updateGravePhotoUriString(place, oldPartOfPathURI.toString(), newPartOfPathURI.toString());
-		return true;
+	    ComplexGrave complexGrave = new ComplexGrave();
+        complexGrave.loadByPlaceId(place.Id);
+        boolean result = renameMonumentEntity(complexGrave, oldPlaceName);
+        return result;
 	}
 
-	public static boolean renameGrave(Grave grave, String oldGraveName){
-		MonumentDB monumentDB = new MonumentDB();
+	public static boolean renameGrave(Grave grave, String oldGraveName){		
 		ComplexGrave complexGrave = new ComplexGrave();
 		complexGrave.loadByGraveId(grave.Id);
-		File photoDir = Settings.getRootDirPhoto();
-		String firstPartOfPath = null;
-		if(complexGrave.Row != null){
-			firstPartOfPath = photoDir.getPath() + File.separator + complexGrave.Cemetery.Name +
-					File.separator + complexGrave.Region.Name + File.separator + complexGrave.Row.Name +
-					File.separator + complexGrave.Place.Name;
-		} else {
-			firstPartOfPath = photoDir.getPath() + File.separator + complexGrave.Cemetery.Name +
-					File.separator + complexGrave.Region.Name + File.separator + complexGrave.Place.Name;
-		}
-		
-		File source = new File(firstPartOfPath, oldGraveName);
-		if(!source.exists()){
-			return true; // ��� ���������� ��� �����������
-		}
-		File dest = new File(firstPartOfPath, grave.Name);
-		Uri oldPartOfPathURI = Uri.fromFile(source);
-		Uri newPartOfPathURI = Uri.fromFile(dest);		
-		if(!dest.exists()){
-			source.renameTo(dest);
-		} else {
-			
-		}		
-		monumentDB.updateGravePhotoUriString(grave, oldPartOfPathURI.toString(), newPartOfPathURI.toString());
-		return true;
+		boolean result = renameMonumentEntity(complexGrave, oldGraveName);
+		return result;
+	}
+	
+	private static boolean renameMonumentEntity(ComplexGrave complexGrave, String oldMonumentEntityName){
+	    MonumentDB monumentDB = new MonumentDB();
+	    File photoDir = Settings.getRootDirPhoto();        
+        StringBuilder sbNewPath = new StringBuilder(photoDir.getPath());
+        if(complexGrave.Cemetery != null){
+            sbNewPath.append(File.separator + complexGrave.Cemetery.Name);
+        }
+        if(complexGrave.Region != null){
+            sbNewPath.append(File.separator + complexGrave.Region.Name);
+        }
+        if(complexGrave.Row != null){
+            sbNewPath.append(File.separator + complexGrave.Row.Name);
+        }
+        if(complexGrave.Place != null){
+            sbNewPath.append(File.separator + complexGrave.Place.Name);
+        }
+        if(complexGrave.Grave != null){
+            sbNewPath.append(File.separator + complexGrave.Grave.Name);
+        }
+        String oldPath = sbNewPath.substring(0, sbNewPath.lastIndexOf(File.separator)) + File.separator + oldMonumentEntityName;                      
+        File source = new File(oldPath);
+        if(!source.exists()){
+            return true; 
+        }
+        File dest = new File(sbNewPath.toString());
+        Uri oldPartOfPathURI = Uri.fromFile(source);
+        Uri newPartOfPathURI = Uri.fromFile(dest);      
+        if(!dest.exists()){
+            source.renameTo(dest);
+        }       
+        monumentDB.updateGravePhotoUriString(oldPartOfPathURI.toString(), newPartOfPathURI.toString());
+        return true;
 	}
 
 	

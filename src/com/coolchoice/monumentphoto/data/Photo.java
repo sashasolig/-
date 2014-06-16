@@ -37,7 +37,7 @@ public class Photo extends BaseDTO
     
     public static String generateThumbnailUriString(String imageUriString){
         String thumbnailUriString = null;
-        thumbnailUriString = imageUriString.substring(0, imageUriString.lastIndexOf(".") - 1) + Settings.SMALL_PHOTO_SUFFIX + "." + Settings.JPG_EXTENSION;
+        thumbnailUriString = imageUriString.substring(0, imageUriString.lastIndexOf(".")) + Settings.SMALL_PHOTO_SUFFIX + "." + Settings.JPG_EXTENSION;
         return thumbnailUriString;
     }
     
