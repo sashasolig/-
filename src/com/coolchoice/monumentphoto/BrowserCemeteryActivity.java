@@ -2261,7 +2261,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
         }        
         widthPhotoDp = gridPhotoWidthDp;
         widthPhoto =(int) (widthPhotoDp * metrics.density);
-        this.gridPhotos.setColumnWidth(gridPhotoWidthDp);
+        this.gridPhotos.setColumnWidth(gridPhotoWidthDp);        
         
         updatePhotoGridItems();
         this.mPhotoGridAdapter = new PhotoGridAdapter();
@@ -2472,6 +2472,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                 }                
                 
             }
+            convertView.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, (int) (Settings.THUMBNAIL_SIZE * 1.5)));
             return convertView;
         }  
         
@@ -2591,7 +2592,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		}
 		
 		public boolean isNecessaryToDownloadImage(){
-		    if(this.getPhoto().UriString == null && this.status == BaseDTO.INT_NULL_VALUE){
+		    if(this.getPhoto().UriString == null && this.getPhoto().ThumbnailUriString == null && this.status == BaseDTO.INT_NULL_VALUE){
 		        return true;
 		    }
 		    return false;

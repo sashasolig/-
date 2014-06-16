@@ -163,7 +163,7 @@
         android:id="@+id/gvPhotos"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:columnWidth="140dp"
+        android:columnWidth="140dp"        
         android:gravity="center_vertical|center_horizontal"
         android:numColumns="auto_fit"
         android:stretchMode="columnWidth"
