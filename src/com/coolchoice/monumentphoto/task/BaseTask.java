@@ -55,6 +55,7 @@ import com.coolchoice.monumentphoto.data.GPSCemetery;
 import com.coolchoice.monumentphoto.data.GPSRegion;
 import com.coolchoice.monumentphoto.data.Grave;
 import com.coolchoice.monumentphoto.data.GravePhoto;
+import com.coolchoice.monumentphoto.data.Photo;
 import com.coolchoice.monumentphoto.data.Place;
 import com.coolchoice.monumentphoto.data.PlacePhoto;
 import com.coolchoice.monumentphoto.data.Region;
@@ -1201,7 +1202,8 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
             }
         	if(TextUtils.isEmpty(gravePhoto.ServerFileName) || gravePhoto.ServerFileName.equalsIgnoreCase("null")){
                 gravePhoto.ServerFileName = null;
-            }        	
+            }
+        	gravePhoto.Status = Photo.STATUS_SEND;
         	gravePhotoList.add(gravePhoto);    	
         }
         return gravePhotoList;
@@ -1234,7 +1236,8 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
             }
             if(TextUtils.isEmpty(placePhoto.ServerFileName) || placePhoto.ServerFileName.equalsIgnoreCase("null")){
                 placePhoto.ServerFileName = null;
-            } 
+            }
+            placePhoto.Status = Photo.STATUS_SEND;
             placePhotoList.add(placePhoto);
         }
         return placePhotoList;

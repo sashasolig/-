@@ -82,7 +82,7 @@ public class Settings {
     private static String RelativeGetGraveDataUrl = "/mobile/grave/";
     private static String RelativeGetBurialDataUrl = "/mobile/burial/";
     private static String RelativeGetPlacePhotoItemsDataUrl = "/mobile/placephoto/";
-    private static String RelativeGetPlacePhotoDataUrl = "/media/";
+    private static String RelativeGetPlacePhotoDataUrl = "/thumb/";
     
     private static String RelativeUploadCemeteryDataUrl = "/mobile/cemetery/upload/";
     private static String RelativeUploadRegionDataUrl = "/mobile/area/upload/";
@@ -170,6 +170,11 @@ public class Settings {
     public static String getPlacePhotoItemsUrl(Context context){
         String serverAddress = getServerAddress(context);
         return serverAddress + RelativeGetPlacePhotoItemsDataUrl;
+    }
+    
+    public static String getPlacePhotoUrl(Context context){
+        String serverAddress = getServerAddress(context);
+        return serverAddress + RelativeGetPlacePhotoDataUrl;
     }
     
     public static String getGraveUrl(Context context){

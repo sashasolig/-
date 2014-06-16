@@ -7,6 +7,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -41,7 +42,7 @@ public final class ThreadManager {
     private final BlockingQueue<Runnable> mDownloadWorkQueue;
 
     private final ThreadPoolExecutor mThreadPool;
-            
+                    
     private Handler mHandlerUI;
     
     private HashMap<Integer, PhotoTask> mTaskQueue;
@@ -74,10 +75,10 @@ public final class ThreadManager {
         this.mOnChangeStatus = onChangeDownloadStatus;
     }
         
-    public void downloadThumbnail (PlacePhoto placePhoto, ComplexGrave complexGrave) {            
+    public void downloadThumbnail (Context context, PlacePhoto placePhoto, ComplexGrave complexGrave) {            
         synchronized (sInstance) {
             if(this.mTaskQueue.get(placePhoto.Id) == null){
-                PhotoTask task = new PhotoTask(placePhoto, complexGrave, ThreadManager.TASK_DOWNLOAD_THUMBNAIL);
+                PhotoTask task = new PhotoTask(context, placePhoto, complexGrave, ThreadManager.TASK_DOWNLOAD_THUMBNAIL);
                 this.mTaskQueue.put(placePhoto.Id, task);
                 DownloadPhotoRunnable runnable = new DownloadPhotoRunnable(task);
                 this.mThreadPool.execute(runnable);
@@ -85,10 +86,10 @@ public final class ThreadManager {
         }
     }
     
-    public void createThumbnail (PlacePhoto placePhoto, ComplexGrave complexGrave) {            
+    public void createThumbnail (Context context, PlacePhoto placePhoto, ComplexGrave complexGrave) {            
         synchronized (sInstance) {
             if(this.mTaskQueue.get(placePhoto.Id) == null){
-                PhotoTask task = new PhotoTask(placePhoto, complexGrave, ThreadManager.TASK_CREATE_THUMBNAIL);
+                PhotoTask task = new PhotoTask(context, placePhoto, complexGrave, ThreadManager.TASK_CREATE_THUMBNAIL);
                 this.mTaskQueue.put(placePhoto.Id, task);
                 CreatorThumbnailRunnable runnable = new CreatorThumbnailRunnable(task);
                 this.mThreadPool.execute(runnable);

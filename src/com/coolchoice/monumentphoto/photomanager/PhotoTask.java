@@ -1,5 +1,7 @@
 package com.coolchoice.monumentphoto.photomanager;
 
+import android.content.Context;
+
 import com.coolchoice.monumentphoto.data.ComplexGrave;
 import com.coolchoice.monumentphoto.data.Photo;
 
@@ -17,12 +19,19 @@ public class PhotoTask {
     
     private ComplexGrave mComplexGrave;
     
+    private Context mContext;
+    
     private String mResultUriString = null;
     
-    public PhotoTask(Photo photo, ComplexGrave complexGrave, int taskType){
+    public PhotoTask(Context context, Photo photo, ComplexGrave complexGrave, int taskType){
+        this.mContext = context;
         this.mPhoto = photo;
         this.mComplexGrave = complexGrave;
         this.mTaskType = taskType;
+    }
+    
+    public Context getContext() {
+        return mContext;
     }
     
     public int getTaskType() {

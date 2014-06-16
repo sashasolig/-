@@ -2359,7 +2359,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	    complexGrave.loadByPlaceId(placeId);
 	    for(PhotoGridItem photoGridItem : gridPhotoItems){
 	        if(photoGridItem.isNecessaryToDownloadImage() && photoGridItem.getPlacePhoto() != null){
-	            ThreadManager.getInstance().downloadThumbnail(photoGridItem.getPlacePhoto(), complexGrave);
+	            ThreadManager.getInstance().downloadThumbnail(this, photoGridItem.getPlacePhoto(), complexGrave);
 	        }
 	    }
 	}
@@ -2369,7 +2369,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
         complexGrave.loadByPlaceId(placeId);
         for(PhotoGridItem photoGridItem : gridPhotoItems){
             if(photoGridItem.getPlacePhoto() != null && photoGridItem.isNecessaryToCreateThumbnailImage()){
-                ThreadManager.getInstance().createThumbnail(photoGridItem.getPlacePhoto(), complexGrave);
+                ThreadManager.getInstance().createThumbnail(this, photoGridItem.getPlacePhoto(), complexGrave);
             }
         }        
     }
@@ -2378,7 +2378,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
         PlacePhoto placePhoto = DB.dao(PlacePhoto.class).queryForId(placePhotoId);
         ComplexGrave complexGrave = new ComplexGrave();
         complexGrave.loadByPlaceId(placePhoto.Place.Id);
-        ThreadManager.getInstance().createThumbnail(placePhoto, complexGrave);        
+        ThreadManager.getInstance().createThumbnail(this, placePhoto, complexGrave);        
     }
 	
 	@Override

@@ -50,7 +50,10 @@ public class DownloadPhotoRunnable implements Runnable {
         }
         destinationFileUri = Uri.parse(destinationUriString);
         String destinationFilePath = destinationFileUri.getPath();
-        String url = "http://192.168.53.11:8000/media/place-photos/2014/02/27/2/140246885384.jpg";        
+        // http://192.168.53.11:8000/thumb/place-photos/2014/06/16/12/1402931941501.jpg/160x160~scale~secret.jpg
+        //String url = "http://192.168.53.11:8000/media/place-photos/2014/02/27/2/140246885384.jpg";
+        String suffix = String.format("/%dx%d~scale~secret.jpg", Settings.THUMBNAIL_SIZE, Settings.THUMBNAIL_SIZE);
+        String url = String.format("%s%s%s", Settings.getPlacePhotoUrl(mDownloadPhotoTask.getContext()), mDownloadPhotoTask.getPhoto().ServerFileName, suffix);
         try {
             Log.i("Download photo start", String.format("url=%s destinationFilePath=%s", url, destinationFilePath));
             setDownloadStatus(ThreadManager.STATUS_DOWNLOAD_START);
