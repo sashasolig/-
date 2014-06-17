@@ -3,15 +3,11 @@ package com.coolchoice.monumentphoto.dal;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-
 
 import android.content.Context;
-import android.content.pm.FeatureInfo;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Environment;
 import android.util.Log;
@@ -35,7 +31,6 @@ import com.coolchoice.monumentphoto.data.ResponsibleUser;
 import com.coolchoice.monumentphoto.data.Row;
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
-import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
@@ -43,8 +38,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	
     private final String LOG_TAG = getClass().getSimpleName();
     
-    public static final String DATABASE_NAME = "/mnt/sdcard/monument.db";
-    //public static final String DATABASE_NAME = "monument.db";
+    //public static final String DATABASE_NAME = "/mnt/sdcard/monument.db";
+    public static final String DATABASE_NAME = "monument.db";
     
     public static final int DATABASE_VERSION = 11;
     
@@ -276,7 +271,11 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
                 deleteFolder(newFile);
             }
             boolean success = file.renameTo(newFile);
-            ConfigureLog4J.configure();
+            try{
+                ConfigureLog4J.configure();
+            }catch(Exception exc){
+                Log.e("ConfigureLog4J", "ConfigureLog4J", exc);
+            }
             if(success){
                 db.beginTransaction();
                 try {

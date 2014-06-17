@@ -29,17 +29,8 @@ public class CreatorThumbnailRunnable implements Runnable {
         String uriString = this.mTask.getPhoto().UriString;
         String thumbnailUriString = Photo.generateThumbnailUriString(uriString);
         Uri uri = Uri.parse(uriString);        
-        Uri thumbnailUri = Uri.parse(thumbnailUriString);                
-        /*Bitmap thumbnailImage = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(uri.getPath()), Settings.THUMBNAIL_SIZE, Settings.THUMBNAIL_SIZE);        
-        File file = new File(thumbnailUri.getPath());
-        if (file.exists()) {
-            file.delete();
-        }*/
-        try {
-            /*FileOutputStream out = new FileOutputStream(file);
-            thumbnailImage.compress(Bitmap.CompressFormat.JPEG, 100, out); 
-            out.flush();
-            out.close();*/
+        Uri thumbnailUri = Uri.parse(thumbnailUriString);
+        try {            
             createThumbnail(uri, thumbnailUri);
             this.mTask.setResultUriString(thumbnailUriString);
             setStatus(ThreadManager.STATUS_CREATE_THUMBNAIL_COMPLETE);
