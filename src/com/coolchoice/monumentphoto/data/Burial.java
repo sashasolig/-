@@ -53,6 +53,12 @@ public class Burial extends BaseDTO {
 	@DatabaseField(dataType = DataType.ENUM_INTEGER)
     public ContainerTypeEnum ContainerType;
 	
+	@DatabaseField(foreign = true, foreignAutoRefresh = false, index = true)
+    public Cemetery Cemetery;
+	
+	@DatabaseField
+    public Date PlanDate;
+	
 	public void toLowerCaseFIO(){
 		if(this.FName != null){
 			this.FName = this.FName.toLowerCase();

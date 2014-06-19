@@ -65,6 +65,7 @@ public class Settings {
     public static final String TASK_GETGRAVE = "getGrave";
     public static final String TASK_POSTGRAVE = "postGrave";
     public static final String TASK_GETBURIAL = "getBurial";
+    public static final String TASK_POSTBURIAL = "postBurial";
     public static final String TASK_POSTPHOTO = "postPhoto";
     public static final String TASK_REMOVEPHOTO = "removePhoto";
     
