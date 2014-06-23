@@ -499,6 +499,10 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 			Settings.saveSettingsData(this, settingsData);
 			updateOptionsMenu();
 			break;
+		case R.id.action_burial_plan:
+		    Intent intent = new Intent(this, BurialPlanActivity.class);
+		    startActivity(intent);
+		    break;
 		}	    
 	    return true;
 	}	

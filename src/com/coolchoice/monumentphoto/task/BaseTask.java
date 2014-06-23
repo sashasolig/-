@@ -70,6 +70,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.TextView.BufferType;
 
 public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 	
@@ -91,12 +92,14 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
     public static final String ARG_AREA_ID = "areaId";
     public static final String ARG_PLACE_ID = "placeId";
     public static final String ARG_GRAVE_ID = "graveId";
+    public static final String ARG_BURIAL_STATUS = "status";
     public static final String ARG_SYNC_DATE = "syncDate";
     
     protected int mCemeteryServerId = BaseDTO.INT_NULL_VALUE;
     protected int mRegionServerId = BaseDTO.INT_NULL_VALUE;
     protected int mPlaceServerId = BaseDTO.INT_NULL_VALUE;
     protected int mGraveServerId = BaseDTO.INT_NULL_VALUE;
+    protected Burial.StatusEnum mBurialStatus = null;
     protected Date mSyncDate = null;
     private long mSyncDateUNIX = BaseDTO.INT_NULL_VALUE; 
     
@@ -171,6 +174,22 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         return resultDate;        
     }
     
+    public Date parseDateAndTime(String strDate, String strTime){
+        Date resultDate = null;
+        if(!TextUtils.isEmpty(strDate)){
+            try {
+                if(!TextUtils.isEmpty(strTime)){
+                    resultDate = new SimpleDateFormat("yyyy-MM-ddHH:mm:ss").parse(String.format("%s%s", strDate, strTime));
+                } else {
+                    resultDate = new SimpleDateFormat("yyyy-MM-dd").parse(strDate);
+                }
+            } catch (ParseException e) {
+                resultDate = null;
+            }
+        }
+        return resultDate;        
+    }
+    
     public String serializeDate(Date date){
         String resultStr = null;
         if(date != null){            
@@ -202,6 +221,9 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 	    	    	value = Integer.parseInt(p.getValue());
 	    	    	this.mGraveServerId = value;
 	    	    }
+	    	    if(p.getName().equalsIgnoreCase(ARG_BURIAL_STATUS)){
+	    	        this.mBurialStatus = Burial.StatusEnum.getEnum(p.getValue());                    
+                }
 	    	    if(p.getName().equalsIgnoreCase(ARG_SYNC_DATE)){
 	    	    	valueLong = Long.parseLong(p.getValue());
 	    	    	this.mSyncDateUNIX = valueLong;
@@ -213,6 +235,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 		    this.mRegionServerId = BaseDTO.INT_NULL_VALUE;
 		    this.mPlaceServerId = BaseDTO.INT_NULL_VALUE;
 		    this.mGraveServerId = BaseDTO.INT_NULL_VALUE;
+		    this.mBurialStatus = null;
 		    this.mSyncDateUNIX = BaseDTO.INT_NULL_VALUE;
 		    this.mSyncDate = null;
 		}
@@ -1110,19 +1133,37 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	checkIsCancelTask();
         	Burial burial = new Burial();
         	JSONObject jsonObj = jsonArray.getJSONObject(i);
-        	burial.ServerId = jsonObj.getInt("pk");        	
-        	JSONObject jsonGrave = jsonObj.getJSONObject("grave");
+        	burial.ServerId = jsonObj.getInt("pk");
+        	JSONObject jsonGrave = null;
+        	if(!jsonObj.isNull("grave")){
+        	    jsonGrave = jsonObj.getJSONObject("grave");
+        	}
+        	JSONObject jsonCemetery = jsonObj.getJSONObject("cemetery");
         	JSONObject jsonDeadman = null;
         	if(!jsonObj.isNull("deadman")){
         		jsonDeadman = jsonObj.getJSONObject("deadman");
+        	}        	
+        	if(jsonGrave != null){
+        	    burial.ParentServerId = Integer.parseInt(jsonGrave.getString("pk"));
+        	    burial.Cemetery = null;
+        	} else {
+        	    burial.ParentServerId = BaseDTO.INT_NULL_VALUE;
+        	    burial.Cemetery = new Cemetery();
+        	    burial.Cemetery.ServerId = jsonCemetery.getInt("pk");
         	}
-        	burial.ParentServerId = jsonGrave.getInt("pk");
+        	
         	String containerString = jsonObj.getString("burial_container");
         	try{
         	    burial.ContainerType = Burial.ContainerTypeEnum.getEnum(containerString);
         	} catch(Exception exc){
         	    burial.ContainerType = null;
-        	}        	
+        	}
+        	String statusString = jsonObj.getString("status");
+        	try{
+                burial.Status = Burial.StatusEnum.getEnum(statusString);
+            } catch(Exception exc){
+                burial.Status = null;
+            }
         	String factDateString = jsonObj.getString("fact_date");
         	factDateString = getStringOrNull(factDateString);
         	try {
@@ -1132,6 +1173,13 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
             } catch (ParseException e) {
                 burial.FactDate = null;
             }
+        	String planDateString = getStringOrNull(jsonObj.getString("plan_date"));
+        	String planTimeString = getStringOrNull(jsonObj.getString("plan_time"));
+        	if(planDateString != null){
+        	    burial.PlanDate = parseDateAndTime(planDateString, planTimeString);
+        	}
+        	
+        	
         	if(jsonDeadman != null){
         		burial.FName = jsonDeadman.getString("first_name");
         		burial.LName = jsonDeadman.getString("last_name");
@@ -1159,11 +1207,13 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         for(int i = 0; i < burialList.size(); i++){
         	checkIsCancelTask();
         	Burial burial = burialList.get(i);
-        	RuntimeExceptionDao<Burial, Integer> burialDAO = DB.dao(Burial.class);
-        	DeleteBuilder<Burial, Integer> deleteBuilder = burialDAO.deleteBuilder();
-        	deleteBuilder.where().eq(BaseDTO.COLUMN_PARENT_SERVER_ID, burial.ParentServerId).and().isNotNull("Grave_id");
-        	burialDAO.delete(deleteBuilder.prepare());        	
-			burialDAO.create(burial);			
+        	if(burial.Cemetery == null && !BaseDTO.isNullValue(burial.ParentServerId)){
+            	RuntimeExceptionDao<Burial, Integer> burialDAO = DB.dao(Burial.class);
+            	DeleteBuilder<Burial, Integer> deleteBuilder = burialDAO.deleteBuilder();
+            	deleteBuilder.where().eq(BaseDTO.COLUMN_PARENT_SERVER_ID, burial.ParentServerId).and().isNotNull("Grave_id");
+            	burialDAO.delete(deleteBuilder.prepare());        	
+    			burialDAO.create(burial);
+        	}
         }        
         
         if(syncDate != null && regionServerId > 0){
@@ -1174,6 +1224,45 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	}
         }        
 	}
+	
+	public void handleResponseGetApprovedBurialJSON(String burialJSON) throws Exception {
+        ArrayList<Burial> burialList = parseBurialJSON(burialJSON);                
+        for(int i = 0; i < burialList.size(); i++){
+            checkIsCancelTask();
+            Burial burial = burialList.get(i);
+            if(burial.Cemetery != null && BaseDTO.isNullValue(burial.ParentServerId)){
+                RuntimeExceptionDao<Burial, Integer> burialDAO = DB.dao(Burial.class);
+                QueryBuilder<Burial, Integer> burialBuilder = burialDAO.queryBuilder();
+                burialBuilder.where().eq(BaseDTO.COLUMN_SERVER_ID, burial.ServerId);
+                List<Burial> findedBurials = burialDAO.query(burialBuilder.prepare());
+                if(findedBurials.size() > 0){
+                    Burial dbBurial = findedBurials.get(0);
+                    dbBurial.ContainerType = burial.ContainerType;
+                    dbBurial.Status = burial.Status;
+                    dbBurial.FName = burial.FName;
+                    dbBurial.MName = burial.MName;
+                    dbBurial.LName = burial.LName;
+                    dbBurial.PlanDate = burial.PlanDate;
+                    if(dbBurial.Cemetery == null){
+                        List<Cemetery> cemeteryList = DB.dao(Cemetery.class).queryBuilder().where().eq(BaseDTO.COLUMN_SERVER_ID, burial.Cemetery.ServerId).query();
+                        if(cemeteryList.size() > 0){
+                            dbBurial.Cemetery = cemeteryList.get(0);
+                        }
+                    }
+                    burialDAO.update(dbBurial);
+                } else {
+                    List<Cemetery> cemeteryList = DB.dao(Cemetery.class).queryBuilder().where().eq(BaseDTO.COLUMN_SERVER_ID, burial.Cemetery.ServerId).query();
+                    Cemetery dbCemetery = null;
+                    if(cemeteryList.size() > 0){
+                        dbCemetery = cemeteryList.get(0);
+                    }
+                    burial.Cemetery = dbCemetery;
+                    burialDAO.create(burial);
+                }
+            }
+        }
+             
+    }
 	
 	public ArrayList<GravePhoto> parseGravePhotoJSON(String gravePhotoJSON) throws Exception {	
 		JSONTokener tokener = new JSONTokener(gravePhotoJSON);

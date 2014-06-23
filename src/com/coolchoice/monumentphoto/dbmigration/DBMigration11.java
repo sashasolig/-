@@ -11,7 +11,8 @@ public class DBMigration11 implements IDBMigrate {
         db.beginTransaction();
         try {
             db.execSQL("alter table burial add column PlanDate VARCHAR;");
-            db.execSQL("alter table burial add column Cemetery_id INTEGER ;");            
+            db.execSQL("alter table burial add column Cemetery_id INTEGER ;");
+            db.execSQL("alter table burial add column Status INTEGER ;");
             db.setTransactionSuccessful();               
         } finally {
             db.endTransaction();

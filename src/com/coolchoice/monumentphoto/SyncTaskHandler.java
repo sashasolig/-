@@ -6,25 +6,36 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import android.R;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.database.CursorJoiner.Result;
-import android.text.style.ReplacementSpan;
-import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
-import com.coolchoice.monumentphoto.Settings.ISettings;
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.data.BaseDTO;
+import com.coolchoice.monumentphoto.data.Burial;
 import com.coolchoice.monumentphoto.data.Cemetery;
 import com.coolchoice.monumentphoto.data.Region;
 import com.coolchoice.monumentphoto.data.SettingsData;
-import com.coolchoice.monumentphoto.task.*;
+import com.coolchoice.monumentphoto.task.AsyncTaskCompleteListener;
+import com.coolchoice.monumentphoto.task.AsyncTaskProgressListener;
+import com.coolchoice.monumentphoto.task.BaseTask;
+import com.coolchoice.monumentphoto.task.GetBurialTask;
+import com.coolchoice.monumentphoto.task.GetCemeteryTask;
+import com.coolchoice.monumentphoto.task.GetGraveTask;
+import com.coolchoice.monumentphoto.task.GetPlacePhotoTask;
+import com.coolchoice.monumentphoto.task.GetPlaceTask;
+import com.coolchoice.monumentphoto.task.GetRegionTask;
+import com.coolchoice.monumentphoto.task.LoginTask;
+import com.coolchoice.monumentphoto.task.RemovePhotoTask;
+import com.coolchoice.monumentphoto.task.TaskResult;
 import com.coolchoice.monumentphoto.task.TaskResult.Status;
+import com.coolchoice.monumentphoto.task.UploadCemeteryTask;
+import com.coolchoice.monumentphoto.task.UploadGraveTask;
+import com.coolchoice.monumentphoto.task.UploadPhotoTask;
+import com.coolchoice.monumentphoto.task.UploadPlaceTask;
+import com.coolchoice.monumentphoto.task.UploadRegionTask;
 
 class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTaskProgressListener{
 
@@ -48,6 +59,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 	private BaseTask mCurrentExecutedTask = null;
 	private int mCurrentTaskIndex = -1;
 	private int mCemeteryServerId, mRegionServerId, mPlaceServerId, mGraveServerId;
+	private Burial.StatusEnum mBurialStatus = null;
 	private Date mSyncDate;
 	private boolean mIsStartExecuteNextTask = true;
 	private boolean mIsInteruptExecutedTask = false;
@@ -85,6 +97,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		this.mRegionServerId = Integer.MIN_VALUE;
 		this.mPlaceServerId = Integer.MIN_VALUE;
 		this.mGraveServerId = Integer.MIN_VALUE;
+		this.mBurialStatus = null;
 		this.mSyncDate = null;
 		
 		this.mCurrentCemeteryIdsIndex = -1;
@@ -219,6 +232,25 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);
 		this.mCurrentExecutedTask = loginTask;
 	}
+	
+	public void startGetApprovedBurial(){
+        if(mOperationType != OperationType.NOTHING){
+            return;
+        }
+        setEmptyServerId();
+        this.mBurialStatus = Burial.StatusEnum.APPROVED;       
+        mOperationType = OperationType.GET_DATA;
+        mTasks.clear();
+        mTasks.add(new GetBurialTask(this, this, this.mContext));
+        mCurrentTaskIndex = -1;
+        mProgressDialogTitle = "Загрузка данных...";
+        mProgressDialogMessage = "Подождите";
+        showOperationInfo();
+        SettingsData settingsData = Settings.getSettingData(this.mContext);
+        LoginTask loginTask = new LoginTask(this, this, this.mContext);
+        loginTask.execute(Settings.getLoginUrl(mContext), settingsData.Login, settingsData.Password);
+        this.mCurrentExecutedTask = loginTask;
+    }
 	
 	public void startCheckLogin(){
 		if(mOperationType != OperationType.NOTHING){
@@ -546,6 +578,15 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 				getArgs += String.format("&"+ BaseTask.ARG_GRAVE_ID + "=%d", mGraveServerId);
 			}
 		}
+		
+		if(mBurialStatus != null){
+            if(getArgs.length() == 0){
+                getArgs += String.format("?"+ BaseTask.ARG_BURIAL_STATUS + "=%s", mBurialStatus.name().toLowerCase());
+            } else{
+                getArgs += String.format("&"+ BaseTask.ARG_BURIAL_STATUS + "=%s", mBurialStatus.name().toLowerCase());
+            }
+        }
+		
 		if(mSyncDate != null){
 			if(getArgs.length() == 0){
 				getArgs += String.format("?"+ BaseTask.ARG_SYNC_DATE + "=%d", (mSyncDate.getTime()/1000L));

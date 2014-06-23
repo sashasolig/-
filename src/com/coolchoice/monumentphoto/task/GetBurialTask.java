@@ -1,8 +1,10 @@
 package com.coolchoice.monumentphoto.task;
 
-import com.coolchoice.monumentphoto.Settings;
 import android.content.Context;
-import android.text.TextUtils.TruncateAt;
+import android.widget.TextView.BufferType;
+
+import com.coolchoice.monumentphoto.Settings;
+import com.coolchoice.monumentphoto.data.Burial;
 
 public class GetBurialTask extends BaseTask {
 		   
@@ -39,7 +41,11 @@ public class GetBurialTask extends BaseTask {
         
         if(resultJSON != null && !result.isError()){
             try{
-            	handleResponseGetBurialJSON(resultJSON, this.mCemeteryServerId, this.mRegionServerId, this.mLastQueryServerDate);
+                if(mBurialStatus == Burial.StatusEnum.APPROVED){
+                    handleResponseGetApprovedBurialJSON(resultJSON);
+                } else {
+                    handleResponseGetBurialJSON(resultJSON, this.mCemeteryServerId, this.mRegionServerId, this.mLastQueryServerDate);
+                }
             } catch (CancelTaskException cte){
             	result.setError(true);
                 result.setStatus(TaskResult.Status.CANCEL_TASK);

@@ -14,6 +14,13 @@
 	<color name="light_steel_blue">#afeeee</color>
 	<color name="dark_steel_blue">#191970</color>
 	
+	<color name="burial_list_item_color">#acecf4</color>
+	<color name="burial_list_item_color2">#77e4f2</color>
+	<color name="burial_section_item_color">#9eb5d4</color>
+	
+	
+	
+	
 	<color name="table_header">#496b90</color>
 	<color name="tab_active_down">#86bbf3</color>
 	<color name="tab_active_up">#315173</color>

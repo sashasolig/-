@@ -9,6 +9,8 @@ import com.j256.ormlite.table.DatabaseTable;
 @DatabaseTable
 public class Burial extends BaseDTO {
     
+    public static String STATUS_COLUMN_NAME = "Status";
+    
     public enum ContainerTypeEnum {
         CONTAINER_COFFIN("Гроб"),
         CONTAINER_URN("Урна"),
@@ -30,6 +32,34 @@ public class Burial extends BaseDTO {
         public String toString(){
             return this.value;
         }
+    }
+    
+    public enum StatusEnum {        
+        BACKED("Отозвано"),
+        DECLINED("Отклонено"),
+        DRAFT("Черновик"),
+        READY("На согласовании"),
+        INSPECTING("На обследовании"),
+        APPROVED("Согласовано"),
+        CLOSED("Закрыто"),
+        EXHUMATED("Эксгумировано");         
+        String value;
+        StatusEnum(String s) {
+            value = s;
+        }
+        
+        public static StatusEnum getEnum(String value) {
+            if(value == null){
+                return null;
+            }
+            return StatusEnum.valueOf(value.toUpperCase());
+        }
+        
+        @Override
+        public String toString(){
+            return this.value;
+        }        
+        
     }
 	
 	@DatabaseField(foreign = true, foreignAutoRefresh = false, index = true)
@@ -58,6 +88,9 @@ public class Burial extends BaseDTO {
 	
 	@DatabaseField
     public Date PlanDate;
+	
+	@DatabaseField(dataType = DataType.ENUM_INTEGER)
+    public StatusEnum Status;
 	
 	public void toLowerCaseFIO(){
 		if(this.FName != null){

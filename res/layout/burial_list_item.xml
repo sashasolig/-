@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:padding="5dp"
+    android:background="@color/burial_list_item_color" >
+
+    
+    <LinearLayout 
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:orientation="horizontal">
+    	<TextView
+	        android:id="@+id/tvFIO"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:singleLine="false"
+	        android:layout_margin="5dp"
+	        style="@style/tvBurialItem" />
+    	<TextView
+	        android:id="@+id/tvBurialPlanDate"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:singleLine="false"
+	        android:layout_margin="5dp"
+	        style="@style/tvBurialItem" />    	
+    	<Button
+	        android:id="@+id/btnBind"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_margin="5dp"
+	        android:padding="5dp"
+	        android:text="Привязать"
+	        style="@android:style/Widget.Button" />
+    	<Button
+	        android:id="@+id/btnUnbind"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_margin="5dp"
+	        android:padding="5dp"
+	        android:text="Отвязать"
+	        style="@android:style/Widget.Button" />
+    	<Button
+	        android:id="@+id/btnClose"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_margin="5dp"
+	        android:padding="5dp"
+	        android:text="Закрыть"
+	        style="@android:style/Widget.Button" />     
+    </LinearLayout>
+
+    
+
+</LinearLayout>

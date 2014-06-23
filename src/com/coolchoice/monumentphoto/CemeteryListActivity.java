@@ -149,9 +149,11 @@ public class CemeteryListActivity extends Activity implements SyncTaskHandler.Sy
 			}
 			Settings.saveSettingsData(this, settingsData);
 			updateOptionsMenu();
-			break;
-		case R.id.action_upload:
-			break;
+			break;		
+		case R.id.action_burial_plan:
+            Intent intent = new Intent(this, BurialPlanActivity.class);
+            startActivity(intent);
+            return true;
 		}	    
 	    return true;
 	}
@@ -222,7 +224,7 @@ public class CemeteryListActivity extends Activity implements SyncTaskHandler.Sy
 		    	String titleConfirmDeleteDialog = String.format(getString(R.string.deleteItemQuestion), mChoosedCemetery.Name);
 		    	builder.setMessage(titleConfirmDeleteDialog).setPositiveButton(getString(R.string.yes), dialogClickListener)
 		    	    .setNegativeButton(getString(R.string.no), dialogClickListener).show();
-	            return true;
+	            return true;	        
 	        default:
 	            return super.onContextItemSelected(item);
 	    }

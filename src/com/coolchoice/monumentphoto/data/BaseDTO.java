@@ -17,6 +17,10 @@ public class BaseDTO {
 	
 	public static final int INT_NULL_VALUE = Integer.MIN_VALUE;
 	
+	public static boolean isNullValue(int value){
+	    return value == BaseDTO.INT_NULL_VALUE;
+	}
+	
 	public BaseDTO() {
 		this.ServerId = INT_NULL_VALUE;
 		this.ParentServerId = INT_NULL_VALUE;
