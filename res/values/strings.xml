@@ -11,6 +11,7 @@
     <string name="settings_title">Настройки</string>    
     <string name="place_search_activity">Поиск старого места по фамилии</string>
     <string name="square">Площадь(м2): %s</string>
+    <string name="new_place">Новое место</string>
     
     
     <string name="cb_place_is_unowner">  Заброшенное место</string>

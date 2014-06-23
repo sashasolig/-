@@ -1,5 +1,7 @@
 package com.coolchoice.monumentphoto;
 
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -32,6 +34,7 @@ import com.coolchoice.monumentphoto.data.Burial;
 import com.coolchoice.monumentphoto.data.Cemetery;
 import com.coolchoice.monumentphoto.data.SettingsData;
 import com.coolchoice.monumentphoto.task.TaskResult;
+import com.j256.ormlite.dao.RuntimeExceptionDao;
 import com.j256.ormlite.stmt.QueryBuilder;
 
 public class BurialPlanActivity extends Activity implements SyncTaskHandler.SyncCompleteListener {
@@ -89,7 +92,7 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
     }
     
     private void updateBurialPlanListView(){
-        ArrayList<BurialItem> items = new ArrayList<BurialPlanActivity.BurialItem>();
+        /*ArrayList<BurialItem> items = new ArrayList<BurialPlanActivity.BurialItem>();
         for(int i = 0; i < 15; i++){
             BurialItem item = new BurialItem();
             if(i % 4 == 0){                
@@ -99,10 +102,33 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
                 item.setSectionDate(new Date());
             }
             items.add(item);
+        }*/        
+        RuntimeExceptionDao<Burial, Integer> burialDao = DB.dao(Burial.class); 
+        List<Burial> burials = null;
+        try {
+            burials = burialDao.queryBuilder().orderBy(Burial.PLANDATE_COLUMN_NAME, true).where().eq(Burial.STATUS_COLUMN_NAME, Burial.StatusEnum.APPROVED).query();
+        } catch (SQLException e) {            
+            e.printStackTrace();
+        }
+        ArrayList<BurialItem> items = new ArrayList<BurialPlanActivity.BurialItem>();
+        Date currentDate = null;
+        if(burials.size() > 0){
+            for(int i = 0; i < burials.size(); i++){
+                Burial burial = burials.get(i);
+                if((currentDate == null) || (burial.PlanDate.getTime() / (86400  * 1000)) != (currentDate.getTime() / (86400  * 1000))){
+                    currentDate = burial.PlanDate;
+                    BurialItem item = new BurialItem();
+                    item.setBurial(null);
+                    item.setSectionDate(currentDate);
+                    items.add(item);
+                }
+                BurialItem item = new BurialItem();
+                item.setBurial(burial);
+                item.setSectionDate(null);
+                items.add(item);
+            }
         }
         BurialListAdapter adapter = new BurialListAdapter(items);
-        /*QueryBuilder<Burial, Integer> burialDao = DB.dao(Burial.class).queryBuilder();
-        burialDao.where().eq(Burial.STATUS_COLUMN_NAME, "approved");*/
         this.lvBurialPlan.setAdapter(adapter);
         
     }
@@ -217,6 +243,8 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
     }
 
     public class BurialListAdapter extends BaseAdapter {
+        SimpleDateFormat mSectionDateFormat = new SimpleDateFormat("dd.MM.yyyy");
+        SimpleDateFormat mItemDateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm");
 
         private List<BurialItem> mItems;
 
@@ -230,7 +258,7 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
             if(item.isSectionItem()){
                 convertView = inflater.inflate(R.layout.burial_section_list_item, parent, false);
                 TextView tvSectionTitle = (TextView) convertView.findViewById(R.id.tvSectionTitle);
-                tvSectionTitle.setText(item.getSectionDate().toString());
+                tvSectionTitle.setText(" * " + mSectionDateFormat.format(item.getSectionDate()));
             } else {
                 convertView = inflater.inflate(R.layout.burial_list_item, parent, false);
                 if(position % 2 == 0){
@@ -241,7 +269,9 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
                 Button btnBind = (Button) convertView.findViewById(R.id.btnBind);
                 Button btnUnbind = (Button) convertView.findViewById(R.id.btnUnbind);
                 Button btnClose = (Button) convertView.findViewById(R.id.btnClose);
-                tvFIO.setText("FIO" + Integer.toString(position));
+                item.getBurial().toUpperFirstCharacterInFIO();
+                tvFIO.setText(item.getBurial().getFIO());
+                tvBurialPlanDate.setText(mItemDateFormat.format(item.getBurial().PlanDate));
             }
             return convertView;
         }

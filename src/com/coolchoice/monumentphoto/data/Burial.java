@@ -11,6 +11,8 @@ public class Burial extends BaseDTO {
     
     public static String STATUS_COLUMN_NAME = "Status";
     
+    public static String PLANDATE_COLUMN_NAME = "PlanDate";
+    
     public enum ContainerTypeEnum {
         CONTAINER_COFFIN("Гроб"),
         CONTAINER_URN("Урна"),
@@ -127,5 +129,11 @@ public class Burial extends BaseDTO {
 			}
 		}
 	}	
+	
+	public String getFIO(){
+	    return String.format("%s %s %s", this.LName != null ? this.LName : "",
+	            this.FName != null ? this.FName : "",
+	            this.MName != null ? this.MName : "");
+	}
 	
 }
