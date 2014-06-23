@@ -1736,29 +1736,25 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
             	LayoutInflater inflater = (LayoutInflater) BrowserCemeteryActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 convertView = inflater.inflate(R.layout.grave_item, parent, false);
             }
+            Grave grave = mItems.get(position);
             ImageView ivIcon = (ImageView) convertView.findViewById(R.id.ivGrave);
             TextView tvGrave = (TextView) convertView.findViewById(R.id.tvGrave);
             TextView tvFIO = (TextView) convertView.findViewById(R.id.tvFIO);
-            TextView tvUnusedGrave = (TextView) convertView.findViewById(R.id.tvUnusedGrave);
-            Grave grave = mItems.get(position);
+            Button btnBindBurial = (Button) convertView.findViewById(R.id.btnBind);
+            btnBindBurial.setTag(grave.Id);            
             String value = grave.Name;
             tvGrave.setText(value);
-            boolean unusedGrave = false;
-            List<GravePhoto> photos = DB.dao(GravePhoto.class).queryForEq("Grave_id", grave.Id);
-            if(photos == null || photos.size() == 0){
-            	unusedGrave = true;
-            } else {
-            	unusedGrave = false;
-            }
-            /*if(unusedGrave){
-            	tvGrave.setTextColor(getResources().getColor(R.color.unused_grave_color));
-            	tvUnusedGrave.setTextColor(getResources().getColor(R.color.unused_grave_color));
-            	tvUnusedGrave.setVisibility(View.VISIBLE);
-            } else {
-            	tvGrave.setTextColor(getResources().getColor(R.color.text_view_color));
-            	tvUnusedGrave.setTextColor(getResources().getColor(R.color.text_view_color));
-            	tvUnusedGrave.setVisibility(View.GONE);
-            }*/
+            btnBindBurial.setOnClickListener(new View.OnClickListener() {
+                
+                @Override
+                public void onClick(View v) {
+                    int graveId = (Integer) v.getTag();
+                    Intent intent = new Intent(BrowserCemeteryActivity.this, BurialPlanActivity.class);
+                    intent.putExtra(BurialPlanActivity.EXTRA_GRAVE_ID, graveId);
+                    startActivity(intent);                    
+                }
+            });
+            
             tvFIO.setText(Html.fromHtml(getGraveItemText(grave.Id)));
             return convertView;
         }

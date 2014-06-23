@@ -12,6 +12,9 @@
     <string name="place_search_activity">Поиск старого места по фамилии</string>
     <string name="square">Площадь(м2): %s</string>
     <string name="new_place">Новое место</string>
+    <string name="burial_bind">Прикрепить</string>
+    <string name="burial_unbind">Открепить</string>
+    <string name="burial_close">Закрыть</string>
     
     
     <string name="cb_place_is_unowner">  Заброшенное место</string>

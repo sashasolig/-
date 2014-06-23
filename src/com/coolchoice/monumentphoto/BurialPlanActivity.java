@@ -3,8 +3,11 @@ package com.coolchoice.monumentphoto;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.TimeZone;
 
 import android.app.Activity;
 import android.content.Context;
@@ -32,6 +35,8 @@ import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.data.BaseDTO;
 import com.coolchoice.monumentphoto.data.Burial;
 import com.coolchoice.monumentphoto.data.Cemetery;
+import com.coolchoice.monumentphoto.data.ComplexGrave;
+import com.coolchoice.monumentphoto.data.Grave;
 import com.coolchoice.monumentphoto.data.SettingsData;
 import com.coolchoice.monumentphoto.task.TaskResult;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
@@ -62,6 +67,8 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
         } else {
             actionGetMenuItem.setIcon(R.drawable.load_data_disable);
         }
+        MenuItem actionBurialPlanMenuItem = this.mOptionsMenu.findItem(R.id.action_burial_plan);
+        actionBurialPlanMenuItem.setIcon(R.drawable.burial_plan_enable);
     }
 
     @Override
@@ -82,6 +89,9 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
             this.llLayout.setVisibility(View.GONE);
         } else {
             this.llLayout.setVisibility(View.VISIBLE);
+            ComplexGrave complexGrave = new ComplexGrave();
+            complexGrave.loadByGraveId(this.mGraveId);
+            tvTitle.setText(complexGrave.toString());
         }
         if (mSyncTaskHandler == null) {
             mSyncTaskHandler = new SyncTaskHandler();
@@ -141,8 +151,7 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
     @Override
     protected void onResume() {
         super.onResume();
-        this.updateBurialPlanListView();        
-        registerForContextMenu(this.lvBurialPlan);
+        this.updateBurialPlanListView();
         updateOptionsMenu();
     }
 
@@ -174,7 +183,8 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
             Settings.saveSettingsData(this, settingsData);
             updateOptionsMenu();
             break;
-        case R.id.action_upload:
+        case R.id.action_burial_plan:
+            finish();
             break;
         }
         return true;
@@ -188,17 +198,6 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
     private void actionGet() {
         mSyncTaskHandler.startGetApprovedBurial();
         mSyncTaskHandler.setOnSyncCompleteListener(this);
-    }
-    
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {        
-        if (v.getId() == R.id.lvCemetery) {
-            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-            Cemetery cemetery = (Cemetery) this.lvBurialPlan.getAdapter().getItem(info.position);
-            MenuInflater inflater = getMenuInflater();
-            inflater.inflate(R.menu.edit_context_menu, menu);
-            menu.setHeaderTitle(cemetery.Name);           
-        }
     }
 
     @Override
@@ -242,7 +241,7 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
         
     }
 
-    public class BurialListAdapter extends BaseAdapter {
+    public class BurialListAdapter extends BaseAdapter implements View.OnClickListener {
         SimpleDateFormat mSectionDateFormat = new SimpleDateFormat("dd.MM.yyyy");
         SimpleDateFormat mItemDateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm");
 
@@ -264,14 +263,42 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
                 if(position % 2 == 0){
                     convertView.setBackgroundColor(getResources().getColor(R.color.burial_list_item_color2));
                 }
+                Burial burial = item.getBurial();
                 TextView tvFIO = (TextView) convertView.findViewById(R.id.tvFIO);
                 TextView tvBurialPlanDate = (TextView) convertView.findViewById(R.id.tvBurialPlanDate);
                 Button btnBind = (Button) convertView.findViewById(R.id.btnBind);
                 Button btnUnbind = (Button) convertView.findViewById(R.id.btnUnbind);
                 Button btnClose = (Button) convertView.findViewById(R.id.btnClose);
-                item.getBurial().toUpperFirstCharacterInFIO();
-                tvFIO.setText(item.getBurial().getFIO());
-                tvBurialPlanDate.setText(mItemDateFormat.format(item.getBurial().PlanDate));
+                btnBind.setTag(position);
+                btnUnbind.setTag(position);
+                btnClose.setTag(position);
+                btnBind.setOnClickListener(this);
+                btnUnbind.setOnClickListener(this);
+                btnClose.setOnClickListener(this);
+                burial.toUpperFirstCharacterInFIO();
+                tvFIO.setText(burial.getFIO());
+                tvBurialPlanDate.setText(mItemDateFormat.format(burial.PlanDate));
+                if(!BaseDTO.isNullValue(mGraveId)){
+                    if(burial.Status == Burial.StatusEnum.APPROVED){
+                        if(burial.Grave != null){
+                            btnBind.setEnabled(false);
+                            btnUnbind.setEnabled(true);
+                            btnClose.setEnabled(true);                    
+                        } else {
+                            btnBind.setEnabled(true);
+                            btnUnbind.setEnabled(false);
+                            btnClose.setEnabled(false);   
+                        }
+                    } else {
+                        btnBind.setEnabled(false);
+                        btnUnbind.setEnabled(false);
+                        btnClose.setEnabled(false); 
+                    }
+                } else {
+                    btnBind.setEnabled(false);
+                    btnUnbind.setEnabled(false);
+                    btnClose.setEnabled(false); 
+                }
             }
             return convertView;
         }
@@ -286,6 +313,39 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
 
         public final long getItemId(int position) {
             return position;
+        }
+
+        @Override
+        public void onClick(View btn) {
+            int position = (Integer) btn.getTag();
+            BurialItem item = (BurialItem) getItem(position);
+            Burial dbBurial = DB.dao(Burial.class).queryForId(item.getBurial().Id);
+            Grave dbGrave = DB.dao(Grave.class).queryForId(mGraveId);
+            dbBurial.IsChanged = 1;
+            switch (btn.getId()) {
+            case R.id.btnBind:                
+                dbBurial.Grave = dbGrave;
+                DB.dao(Burial.class).update(dbBurial);
+                item.setBurial(dbBurial);
+                break;
+            case R.id.btnUnbind: 
+                dbBurial.Grave = null;
+                DB.dao(Burial.class).update(dbBurial);
+                item.setBurial(dbBurial);
+                break;
+            case R.id.btnClose: 
+                Calendar c = Calendar.getInstance(TimeZone.getDefault());
+                c.set(Calendar.HOUR, 0);
+                c.set(Calendar.MINUTE, 0);
+                c.set(Calendar.SECOND, 0);
+                c.set(Calendar.MILLISECOND, 0);                
+                dbBurial.FactDate =  c.getTime();
+                dbBurial.Status = Burial.StatusEnum.CLOSED;
+                DB.dao(Burial.class).update(dbBurial);
+                item.setBurial(dbBurial);
+                break;
+            }
+            notifyDataSetChanged();            
         }
     }
 

@@ -2,12 +2,12 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:padding="5dp"
     android:background="@color/burial_list_item_color" >
     
     <LinearLayout 
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_width="match_parent"
         android:orientation="horizontal">
     	<TextView
@@ -23,31 +23,34 @@
 	        android:layout_height="wrap_content"
 	        android:singleLine="false"
 	        android:layout_margin="5dp"
-	        style="@style/tvBurialItem" />    	
+	        style="@style/tvBurialItem" />
+    </LinearLayout>
+    
+    <LinearLayout 
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:orientation="horizontal">
     	<Button
 	        android:id="@+id/btnBind"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
-	        android:layout_margin="5dp"
 	        android:padding="5dp"
-	        android:text="Привязать"
+	        android:text="@string/burial_bind"
 	        style="@android:style/Widget.Button" />
     	<Button
 	        android:id="@+id/btnUnbind"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
-	        android:layout_margin="5dp"
 	        android:padding="5dp"
-	        android:text="Отвязать"
+	        android:text="@string/burial_unbind"
 	        style="@android:style/Widget.Button" />
     	<Button
 	        android:id="@+id/btnClose"
 	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:layout_margin="5dp"
+	        android:layout_height="wrap_content"	        
 	        android:padding="5dp"
-	        android:text="Закрыть"
-	        style="@android:style/Widget.Button" />     
+	        android:text="@string/burial_close"
+	        style="@android:style/Widget.Button" /> 
     </LinearLayout>
 
     

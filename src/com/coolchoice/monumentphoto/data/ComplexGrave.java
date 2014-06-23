@@ -7,6 +7,7 @@ import android.net.Uri;
 import com.coolchoice.monumentphoto.Settings;
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.dal.MonumentDB;
+import com.j256.ormlite.field.types.StringBytesType;
 
 public class ComplexGrave {
 	
@@ -22,6 +23,29 @@ public class ComplexGrave {
 	
 	public ComplexGrave(){
 		setToNullObject();
+	}
+	
+	public String toString(){
+        StringBuilder sb = new StringBuilder();
+        if(this.Cemetery != null){
+            sb.append(this.Cemetery.Name);
+        }
+        if(this.Region != null){
+            sb.append(String.format(" / Уч. %s", this.Region.Name));
+        }
+        
+        if(this.Row != null){
+            sb.append(String.format(" / Ряд %s", this.Row.Name));
+        }
+        
+        if(this.Place != null){
+            sb.append(String.format(" / Место %s", this.Place.Name));
+        }
+        
+        if(this.Grave != null){
+            sb.append(String.format(" / Могила %s", this.Grave.Name));
+        }
+        return sb.toString();
 	}
 	
 	public static class PlaceWithFIO{

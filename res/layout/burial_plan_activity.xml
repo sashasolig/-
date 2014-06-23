@@ -2,8 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/burial_list_item_color">
+    android:orientation="vertical" >
 
     <LinearLayout 
         android:id="@+id/llTitle"
@@ -11,20 +10,22 @@
     	android:layout_height="wrap_content"
     	android:orientation="horizontal"
     	android:layout_margin="10dp"
-    	android:visibility="visible">
+    	android:visibility="visible"
+    	android:background="@android:color/white">
 	    <TextView
 	        android:id="@+id/tvTitle"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
-	        style="@style/tvBurialItem"        
-	        android:text="Кладб.1"/>
+	        style="@style/tvBurialItem"
+	        android:textSize="24sp"/>
     </LinearLayout>
 
     <ListView
         android:id="@+id/lvBurials"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fadeScrollbars="false" >
+        android:fadeScrollbars="false"
+        android:fastScrollAlwaysVisible="true" >
     </ListView>
 
 </LinearLayout>

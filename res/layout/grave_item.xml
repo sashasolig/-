@@ -36,17 +36,11 @@
 	        android:layout_marginTop="5dp"
 	        android:text="ФИО: Дата захоронения: Тип захоронения:"
 	        android:textAppearance="?android:attr/textAppearanceMedium"
-	        android:textStyle="bold" />
-    	<TextView
-	        android:id="@+id/tvUnusedGrave"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:singleLine="true"
-	        android:layout_marginTop="5dp"
-	        android:text="Нет фото"
-	        android:textAppearance="?android:attr/textAppearanceMedium"
-	        android:textStyle="bold"
-	        android:visibility="gone" />    
+	        android:textStyle="bold" />    	
+    	<Button android:id="@+id/btnBind"
+    	    android:layout_width="wrap_content"
+    	    android:layout_height="wrap_content"
+    	    android:text="@string/burial_bind"/>    
     </LinearLayout>
 
 </LinearLayout>
