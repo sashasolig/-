@@ -869,7 +869,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						mProgressDialogMessage = "Удаление фотографий на сервере";
 						mProgressDialogSyncData.setMessage(mProgressDialogMessage);
 						RemovePhotoTask removePhotoTask = new RemovePhotoTask(this, this, this.mContext);
-						removePhotoTask.execute(Settings.getRemoveGravePhotoUrl(this.mContext));
+						removePhotoTask.execute();
 						this.mCurrentExecutedTask = removePhotoTask;
 						isNextTaskStarted = true;
 					}
@@ -917,7 +917,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						mProgressDialogMessage = "Отправка фотографий на сервер";
 						mProgressDialogSyncData.setMessage(mProgressDialogMessage);						
 						UploadPhotoTask uploadPhotoTask = new UploadPhotoTask(this, this, this.mContext);
-						uploadPhotoTask.execute(Settings.getUploadGravePhotoUrl(this.mContext), Settings.getUploadPlacePhotoUrl(this.mContext));
+						uploadPhotoTask.execute();
 						this.mCurrentExecutedTask = uploadPhotoTask;
 						isNextTaskStarted = true;
 					}

@@ -309,7 +309,7 @@ public class ComplexGrave {
         if(!dest.exists()){
             source.renameTo(dest);
         }       
-        monumentDB.updateGravePhotoUriString(oldPartOfPathURI.toString(), newPartOfPathURI.toString());
+        monumentDB.updatePhotoUriString(oldPartOfPathURI.toString(), newPartOfPathURI.toString());
         return true;
 	}
 

@@ -16,7 +16,6 @@ import com.coolchoice.monumentphoto.data.ComplexGrave;
 import com.coolchoice.monumentphoto.data.DeletedObject;
 import com.coolchoice.monumentphoto.data.DeletedObjectType;
 import com.coolchoice.monumentphoto.data.Grave;
-import com.coolchoice.monumentphoto.data.GravePhoto;
 import com.coolchoice.monumentphoto.data.Photo;
 import com.coolchoice.monumentphoto.data.Place;
 import com.coolchoice.monumentphoto.data.PlacePhoto;
@@ -26,18 +25,7 @@ import com.j256.ormlite.dao.GenericRawResults;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
 
 public class MonumentDB {
-	
-	public static void deleteGravePhoto(GravePhoto gravePhoto){
-		DB.dao(GravePhoto.class).refresh(gravePhoto);
-		if(gravePhoto.ServerId > 0){
-			DeletedObject deletedObject = new DeletedObject();
-			deletedObject.ServerId = gravePhoto.ServerId;
-			deletedObject.ClientId = gravePhoto.Id;
-			deletedObject.TypeId = DeletedObjectType.GRAVEPHOTO;
-			DB.dao(DeletedObject.class).create(deletedObject);
-		}
-		DB.dao(GravePhoto.class).delete(gravePhoto);
-	}
+		
 	
 	public static void deletePlacePhoto(PlacePhoto placePhoto){
         DB.dao(PlacePhoto.class).refresh(placePhoto);
@@ -51,18 +39,11 @@ public class MonumentDB {
         DB.dao(PlacePhoto.class).delete(placePhoto);
     }
 	
-	public static ArrayList<Photo> getPhotos(Place place){
-	    ArrayList<Photo> photoList = new ArrayList<Photo>();
+	public static ArrayList<PlacePhoto> getPhotos(Place place){
+	    ArrayList<PlacePhoto> photoList = new ArrayList<PlacePhoto>();
         for(PlacePhoto photo : place.Photos){                   
             photoList.add(photo);                    
-        }
-        List<Grave> graves = DB.dao(Grave.class).queryForEq("Place_id", place.Id);
-        for(Grave g : graves){
-            DB.dao(Grave.class).refresh(g);
-            for(GravePhoto photo : g.Photos){
-                photoList.add(photo);
-            }
-        }
+        }        
         Collections.sort(photoList, new Comparator<Photo>() {
             @Override
             public int compare(Photo one, Photo two) {
@@ -118,18 +99,11 @@ public class MonumentDB {
 	
 	private String selectPlaceByName2 = "select distinct b.FName, b.MName, b.LName, p.Name, p.OldName, p.Id from burial b, grave g, place p, region reg, cemetery c where b.Grave_id = g.id and g.Place_id = p.id and p.Region_id = reg.Id and reg.Cemetery_id = c.Id and c.Id = %d and b.LName like '%s%%' ORDER BY b.LName LIMIT 20 OFFSET 0 ";
 	
-	public void updateGravePhotoUriString(String oldPartName, String newPartName){
-		String updateQuery = "update gravephoto set UriString = replace(UriString, '%s', '%s'), ThumbnailUriString = replace(ThumbnailUriString, '%s', '%s');";
-		updateQuery = String.format(updateQuery, oldPartName, newPartName, oldPartName, newPartName);
-		RuntimeExceptionDao<GravePhoto, Integer> gravePhotoDAO = DB.db().dao(GravePhoto.class);
-		gravePhotoDAO.updateRaw(updateQuery);
-		
-		updateQuery = "update placephoto set UriString = replace(UriString, '%s', '%s'), ThumbnailUriString = replace(ThumbnailUriString, '%s', '%s');";
+	public void updatePhotoUriString(String oldPartName, String newPartName){				
+		String updateQuery = "update placephoto set UriString = replace(UriString, '%s', '%s'), ThumbnailUriString = replace(ThumbnailUriString, '%s', '%s');";
         updateQuery = String.format(updateQuery, oldPartName, newPartName, oldPartName, newPartName);
         RuntimeExceptionDao<PlacePhoto, Integer> placePhotoDAO = DB.db().dao(PlacePhoto.class);
         placePhotoDAO.updateRaw(updateQuery);
-        
-		
 	}
 	 
 	public static void deleteCemetery(int cemeteryId){
@@ -144,7 +118,7 @@ public class MonumentDB {
 		deleteNonLinkedRow();
 		deleteNonLinkedPlace();
 		deleteNonLinkedGrave();
-		deleteNonLinkedGravePhoto();
+		deleteNonLinkedPhoto();
 	}
 	
 	public static void deleteRegion(int regionId){
@@ -159,7 +133,7 @@ public class MonumentDB {
 		deleteNonLinkedRow();
 		deleteNonLinkedPlace();
 		deleteNonLinkedGrave();
-		deleteNonLinkedGravePhoto();
+		deleteNonLinkedPhoto();
 	}
 	
 	public static void deleteRow(int rowId){
@@ -173,7 +147,7 @@ public class MonumentDB {
 		DB.dao(Row.class).deleteById(rowId);
 		deleteNonLinkedPlace();
 		deleteNonLinkedGrave();
-		deleteNonLinkedGravePhoto();
+		deleteNonLinkedPhoto();
 	}
 	
 	public static void deletePlace(int placeId){
@@ -186,7 +160,7 @@ public class MonumentDB {
 		
 		DB.dao(Place.class).deleteById(placeId);
 		deleteNonLinkedGrave();
-		deleteNonLinkedGravePhoto();
+		deleteNonLinkedPhoto();
 	}
 	
 	public static void deleteGrave(int graveId){
@@ -200,7 +174,7 @@ public class MonumentDB {
 		}
 		
 		DB.dao(Grave.class).deleteById(graveId);
-		deleteNonLinkedGravePhoto();
+		deleteNonLinkedPhoto();
 	}
 	
 	private static void deleteNonLinkedRegion(){
@@ -219,8 +193,8 @@ public class MonumentDB {
 		DB.db().execManualSQL("delete from grave where not exists(select * from place where place.Id = grave.Place_id);");
 	}
 	
-	private static void deleteNonLinkedGravePhoto(){
-		DB.db().execManualSQL("delete from gravephoto where not exists(select * from grave where grave.Id = gravephoto.Grave_id);");
+	private static void deleteNonLinkedPhoto(){
+		DB.db().execManualSQL("delete from placephoto where not exists(select * from place where place.Id = placephoto.Place_id);");
 	}
 	
 	private static void deleteFolder(File fileOrDirectory) {

@@ -18,7 +18,6 @@ import com.coolchoice.monumentphoto.data.GPSPlace;
 import com.coolchoice.monumentphoto.data.GPSRegion;
 import com.coolchoice.monumentphoto.data.GPSRow;
 import com.coolchoice.monumentphoto.data.Grave;
-import com.coolchoice.monumentphoto.data.GravePhoto;
 import com.coolchoice.monumentphoto.data.Place;
 import com.coolchoice.monumentphoto.data.PlacePhoto;
 import com.coolchoice.monumentphoto.data.Region;
@@ -49,8 +48,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         entityClassesArray.add(Region.class);
         entityClassesArray.add(Row.class);
         entityClassesArray.add(Place.class);
-        entityClassesArray.add(Grave.class);
-        entityClassesArray.add(GravePhoto.class);
+        entityClassesArray.add(Grave.class);        
         entityClassesArray.add(PlacePhoto.class);
         entityClassesArray.add(Burial.class);
         entityClassesArray.add(GPSCemetery.class);
@@ -85,7 +83,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         		TableUtils.createTable(connectionSource, c);
             }
         } catch (SQLException e) {
-            Log.e(LOG_TAG, "Unable to create datbases", e);
+            Log.e(LOG_TAG, "Unable to create databases", e);
         }        
     }    
 

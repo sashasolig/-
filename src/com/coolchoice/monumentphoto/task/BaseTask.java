@@ -57,7 +57,6 @@ import com.coolchoice.monumentphoto.data.Cemetery;
 import com.coolchoice.monumentphoto.data.GPSCemetery;
 import com.coolchoice.monumentphoto.data.GPSRegion;
 import com.coolchoice.monumentphoto.data.Grave;
-import com.coolchoice.monumentphoto.data.GravePhoto;
 import com.coolchoice.monumentphoto.data.Photo;
 import com.coolchoice.monumentphoto.data.Place;
 import com.coolchoice.monumentphoto.data.PlacePhoto;
@@ -1243,40 +1242,6 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         }
              
     }
-	
-	public ArrayList<GravePhoto> parseGravePhotoJSON(String gravePhotoJSON) throws Exception {	
-		JSONTokener tokener = new JSONTokener(gravePhotoJSON);
-        JSONArray jsonArray = new JSONArray(tokener);
-        ArrayList<GravePhoto> gravePhotoList = new ArrayList<GravePhoto>();
-        for(int i = 0; i < jsonArray.length(); i++){
-        	checkIsCancelTask();
-        	GravePhoto gravePhoto = new GravePhoto();
-        	JSONObject jsonObj = jsonArray.getJSONObject(i);
-        	JSONObject jsonGrave = jsonObj.getJSONObject("grave");
-        	gravePhoto.ServerId = jsonObj.getInt("pk");
-        	gravePhoto.ParentServerId = jsonGrave.getInt("pk");
-        	gravePhoto.FileName = jsonObj.getString("original_name");
-        	gravePhoto.ServerFileName = jsonObj.getString("bfile");
-        	String dateOfCreationString = jsonObj.getString("date_of_creation");
-            try{
-                gravePhoto.Latitude = jsonObj.getDouble("lat");
-                gravePhoto.Longitude = jsonObj.getDouble("lng");
-            }catch(JSONException exc){
-                //do nothing
-            }
-            Date createDate = parseDate(dateOfCreationString);
-            gravePhoto.CreateDate = createDate != null ? createDate : new Date();
-        	if(TextUtils.isEmpty(gravePhoto.FileName) || gravePhoto.FileName.equalsIgnoreCase("null")){
-        	    gravePhoto.FileName = null;
-            }
-        	if(TextUtils.isEmpty(gravePhoto.ServerFileName) || gravePhoto.ServerFileName.equalsIgnoreCase("null")){
-                gravePhoto.ServerFileName = null;
-            }
-        	gravePhoto.Status = Photo.STATUS_SEND;
-        	gravePhotoList.add(gravePhoto);    	
-        }
-        return gravePhotoList;
-	}
 	
 	public ArrayList<PlacePhoto> parsePlacePhotoJSON(String placePhotoJSON) throws Exception { 
         JSONTokener tokener = new JSONTokener(placePhotoJSON);

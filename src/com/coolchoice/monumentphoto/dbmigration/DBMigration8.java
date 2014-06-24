@@ -29,8 +29,7 @@ public class DBMigration8 implements IDBMigrate {
             if(success){
                 db.beginTransaction();
                 try {
-                    db.execSQL("update placephoto set UriString = replace(UriString , '/MonumentPhoto/','/MobileKeeper/');");
-                    db.execSQL("update gravephoto set UriString = replace(UriString , '/MonumentPhoto/','/MobileKeeper/');");                                  
+                    db.execSQL("update placephoto set UriString = replace(UriString , '/MonumentPhoto/','/MobileKeeper/');");                                                     
                     db.setTransactionSuccessful();
                 } finally {
                     db.endTransaction();

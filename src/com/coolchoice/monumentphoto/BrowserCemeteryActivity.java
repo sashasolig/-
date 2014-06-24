@@ -68,7 +68,6 @@ import com.coolchoice.monumentphoto.data.Burial;
 import com.coolchoice.monumentphoto.data.Cemetery;
 import com.coolchoice.monumentphoto.data.ComplexGrave;
 import com.coolchoice.monumentphoto.data.Grave;
-import com.coolchoice.monumentphoto.data.GravePhoto;
 import com.coolchoice.monumentphoto.data.Photo;
 import com.coolchoice.monumentphoto.data.Place;
 import com.coolchoice.monumentphoto.data.PlacePhoto;
@@ -116,12 +115,9 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	private static int mChoosedGridViewId = -1;
 	
 	private static boolean mIsCheckGPS = true;
-	private static PHOTOTYPE mMakePhotoType = PHOTOTYPE.GRAVEPHOTO_CURRENT; // 0 - current gravephoto, 1 - next gravephoto, 2 - next place gravephoto, 
+	private static PHOTOTYPE mMakePhotoType = PHOTOTYPE.PLACEPHOTO_CURRENT; 
 	
-	public enum PHOTOTYPE {
-	     GRAVEPHOTO_CURRENT,
-	     GRAVEPHOTO_NEXTGRAVE,
-	     GRAVEPHOTO_NEXTPLACE,
+	public enum PHOTOTYPE {	     
 	     PLACEPHOTO_CURRENT,
 	     PLACEPHOTO_NEXTPLACE
 	}
@@ -166,10 +162,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	    alert.setPositiveButton(getString(R.string.yes), new DialogInterface.OnClickListener() {
 	        public void onClick(DialogInterface dialog, int whichButton) {
 	            String value = etOldPlaceInAlert.getText().toString().trim();
-	            switch (mMakePhotoType) {               
-                case GRAVEPHOTO_NEXTPLACE:
-                    makeGravePhotoNextPlace(value);
-                    break;                
+	            switch (mMakePhotoType) {
                 case PLACEPHOTO_NEXTPLACE:
                     makePlacePhotoNextPlace(value);
                 default:
@@ -181,10 +174,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 
 	    alert.setNegativeButton(getString(R.string.no), new DialogInterface.OnClickListener() {
 	        public void onClick(DialogInterface dialog, int whichButton) {
-	            switch (mMakePhotoType) {               
-                case GRAVEPHOTO_NEXTPLACE:
-                    makeGravePhotoNextPlace(null);
-                    break;                
+	            switch (mMakePhotoType) {
                 case PLACEPHOTO_NEXTPLACE:
                     makePlacePhotoNextPlace(null);
                 default:
@@ -905,19 +895,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 				contentView = LayoutInflater.from(this).inflate(R.layout.grave_list, null);
 				btnLinkPlace.setBackgroundDrawable(getResources().getDrawable(R.drawable.button_pressed));
 				handleGraveList(contentView, id);
-			break;
-			case AddObjectActivity.ADD_GRAVE_WITHROW:
-				complexGrave.loadByGraveId(id);
-				contentView = LayoutInflater.from(this).inflate(R.layout.photo_list, null);
-				btnLinkGrave.setBackgroundDrawable(getResources().getDrawable(R.drawable.button_pressed));
-				handleGravePhotoList(contentView, id);
-			break;
-			case AddObjectActivity.ADD_GRAVE_WITHOUTROW:
-				complexGrave.loadByGraveId(id);
-				contentView = LayoutInflater.from(this).inflate(R.layout.photo_list, null);				
-				btnLinkGrave.setBackgroundDrawable(getResources().getDrawable(R.drawable.button_pressed));
-				handleGravePhotoList(contentView, id);
-			break;
+			break;			
 		}
 		updateButtonLink(complexGrave);		
 		mainView.removeAllViews();
@@ -1796,7 +1774,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
     }
 
 	//make photo
-	private Button btnMakeGravePhoto, btnMakeGravePhotoNextGrave, btnMakeGravePhotoNextPlace, btnMakePlacePhoto, btnMakePlacePhotoNextPlace;
+	private Button btnMakePlacePhoto, btnMakePlacePhotoNextPlace;
 	
 	private GridView gridPhotos;
 	
@@ -1814,184 +1792,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	private static int widthPhoto, widthPhotoDp, gridPhotoWidthDp;
 		
 	private static final int WIDTH_PTOTO_DP = 300;
-	
-	private void handleGravePhotoList(View contentView, int graveId){
-		this.btnLinkCemetery.setVisibility(View.VISIBLE);
-		this.btnLinkRegion.setVisibility(View.VISIBLE);
-		if((mType & AddObjectActivity.MASK_ROW) == AddObjectActivity.MASK_ROW){
-			this.btnLinkRow.setVisibility(View.VISIBLE);
-		} else {
-			this.btnLinkRow.setVisibility(View.GONE);
-		}
-		this.btnLinkPlace.setVisibility(View.VISIBLE);
-		this.btnLinkGrave.setVisibility(View.VISIBLE);
-		
-		this.cbPlaceUnowned = (CheckBox) contentView.findViewById(R.id.cb_place_is_unowner);
-		this.cbPlaceMilitary = (CheckBox) contentView.findViewById(R.id.cb_place_is_military);
-		this.cbPlaceWrongFIO = (CheckBox) contentView.findViewById(R.id.cb_place_is_wrong_fio);
-		this.cbPlaceUnindentified = (CheckBox) contentView.findViewById(R.id.cb_place_is_unindentified);
-		this.cbPlaceSizeVioleted = null;
-		
-		
-		this.tvPersons = (TextView) contentView.findViewById(R.id.tvPersons);
-		this.btnMakeGravePhoto = (Button) contentView.findViewById(R.id.btnMakePhoto);
-        this.btnMakeGravePhotoNextGrave = (Button) contentView.findViewById(R.id.btnMakePhotoNextGrave);
-        this.btnMakeGravePhotoNextPlace = (Button) contentView.findViewById(R.id.btnMakePhotoNextPlace);
-        this.gridPhotos = (GridView) contentView.findViewById(R.id.gvPhotos);       
-        
-        this.btnMakeGravePhoto.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				mMakePhotoType = PHOTOTYPE.GRAVEPHOTO_CURRENT;
-				if(isMayMakePhoto()){
-				    makeGravePhotoCurrent();
-				}				
-			}
-		});
-        
-        this.btnMakeGravePhotoNextGrave.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				mMakePhotoType = PHOTOTYPE.GRAVEPHOTO_NEXTGRAVE;
-				if(isMayMakePhoto()){
-				    makeGravePhotoNextGrave();
-				}				
-			}
-		});
-        
-        this.btnMakeGravePhotoNextPlace.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				mMakePhotoType = PHOTOTYPE.GRAVEPHOTO_NEXTPLACE;
-				if(isMayMakePhoto()){
-    				if(Settings.IsOldPlaceNameOption(BrowserCemeteryActivity.this)){
-    					enterOldPlaceName();
-    				} else {
-    					makeGravePhotoNextPlace(null);
-    				}
-				}
-			}
-		});
-        
-        updatePhotoGrid();
-        
-        Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
-		ComplexGrave complexGrave = new ComplexGrave();
-		complexGrave.loadByGraveId(grave.Id);
-		this.cbPlaceUnowned.setChecked(complexGrave.Place.isUnowned());
-		this.cbPlaceMilitary.setChecked(complexGrave.Place.isMilitary());
-		this.cbPlaceWrongFIO.setChecked(complexGrave.Place.isWrongFIO());
-		this.cbPlaceUnindentified.setChecked(complexGrave.Place.isUnindentified());
-		try {
-			List<Burial> burials = DB.q(Burial.class).where().eq("Grave_id", grave.Id).query();
-			StringBuilder sb = new StringBuilder();
-			for(int i = 0; i < burials.size(); i++){
-				Burial burial = burials.get(i);
-				burial.toUpperFirstCharacterInFIO();
-				String fio = String.format("ФИО: <u>%s %s %s</u>    Дата захоронения: <u>%s</u>   Тип захоронения:<u>%s</u>", (burial.LName != null) ? burial.LName : "", 
-						(burial.FName != null) ? burial.FName : "", (burial.MName != null ) ? burial.MName : "",
-								 (burial.FactDate != null) ? android.text.format.DateFormat.format("dd.MM.yyyy", burial.FactDate) : "",
-								 (burial.ContainerType != null ? burial.ContainerType.toString() : ""));
-				sb.append(fio);
-				if(i < (burials.size() - 1)){
-					sb.append("<br/>");
-				}				
-			}
-			if(burials.size() > 0){
-				tvPersons.setVisibility(View.VISIBLE);
-				tvPersons.setText(Html.fromHtml(sb.toString()));
-			} else {
-				tvPersons.setVisibility(View.GONE);
-			}
-		} catch (SQLException e) {
-			this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
-		}
-		
-		this.cbPlaceUnowned.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
-                ComplexGrave complexGrave = new ComplexGrave();
-                complexGrave.loadByGraveId(grave.Id);
-                Place place = complexGrave.Place;
-                Date unownedDate = null;
-                if(isChecked){
-                    unownedDate = new Date();
-                }
-                place.UnownedDate = unownedDate;
-                place.IsOwnerLess = isChecked;
-                place.IsChanged = 1;
-                DB.dao(Place.class).update(place);
-                
-            }
-        });
-        
-        this.cbPlaceMilitary.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
-                ComplexGrave complexGrave = new ComplexGrave();
-                complexGrave.loadByGraveId(grave.Id);
-                Place place = complexGrave.Place;
-                Date militaryDate = null;
-                if(isChecked){
-                    militaryDate = new Date();
-                }
-                place.MilitaryDate = militaryDate;
-                place.IsChanged = 1;
-                DB.dao(Place.class).update(place);
-                grave.IsMilitary = isChecked;
-                grave.IsChanged = 1;
-                DB.dao(Grave.class).update(grave);              
-            }
-        });
-        
-        this.cbPlaceWrongFIO.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
-                ComplexGrave complexGrave = new ComplexGrave();
-                complexGrave.loadByGraveId(grave.Id);
-                Place place = complexGrave.Place;
-                Date wrongFIODate = null;
-                if(isChecked){
-                    wrongFIODate = new Date();
-                }
-                place.WrongFIODate = wrongFIODate;
-                place.IsChanged = 1;
-                DB.dao(Place.class).update(place);
-                grave.IsWrongFIO = isChecked;
-                grave.IsChanged = 1;
-                DB.dao(Grave.class).update(grave);              
-            }
-        });
-        
-        this.cbPlaceUnindentified.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
-                ComplexGrave complexGrave = new ComplexGrave();
-                complexGrave.loadByGraveId(grave.Id);
-                Place place = complexGrave.Place;
-                Date unindentifiedDate = null;
-                if(isChecked){
-                    unindentifiedDate = new Date();
-                }
-                place.UnindentifiedDate = unindentifiedDate;
-                place.IsChanged = 1;
-                DB.dao(Place.class).update(place);                            
-            }
-        });
-        
-	}
-	
+
 	private String getGraveItemText(int graveId){
 	    String result = "";
 	    try {
@@ -2030,10 +1831,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 			    if(thumbnailPath != null){
 			        File file = new File(thumbnailPath);
                     file.delete();
-			    }
-				if(item.getGravePhoto() != null){
-				    MonumentDB.deleteGravePhoto(item.getGravePhoto());
-				}
+			    }				
 				if(item.getPlacePhoto() != null){
 				    MonumentDB.deletePlacePhoto(item.getPlacePhoto());
 				}				
@@ -2056,91 +1854,13 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
         intent.putExtra(MediaStore.EXTRA_OUTPUT, mUri);
         startActivityForResult(intent, REQUEST_CODE_PHOTO_INTENT);
 	}
-	
-	private void makeGravePhotoCurrent(){
-		Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
-		ComplexGrave complexGrave = new ComplexGrave();
-		complexGrave.loadByGraveId(grave.Id);					
-		startIntentForMakePhoto(complexGrave);
-	}
-	
+		
 	private void makePlacePhotoCurrent(){
         Place place = DB.dao(Place.class).queryForId(getIntent().getIntExtra(EXTRA_PLACE_ID, -1));
         ComplexGrave complexGrave = new ComplexGrave();
         complexGrave.loadByPlaceId(place.Id);      
         startIntentForMakePhoto(complexGrave);
     }
-	
-	private void makeGravePhotoNextGrave(){
-		Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
-		ComplexGrave complexGrave = new ComplexGrave();
-		complexGrave.loadByGraveId(grave.Id);
-		
-		String nextGraveName = nextString(complexGrave.Grave.Name);
-		Grave nextGrave = new Grave();
-		nextGrave.Name = nextGraveName;
-		nextGrave.Place = complexGrave.Place;
-		nextGrave.IsChanged = 1;
-		RuntimeExceptionDao<Grave, Integer> graveDAO = DB.dao(Grave.class);
-		try {    				
-			QueryBuilder<Grave, Integer> builder = graveDAO.queryBuilder();
-			builder.where().eq("Name", nextGraveName).and().eq("Place_id", complexGrave.Place.Id);
-			List<Grave> findedGraves = graveDAO.query(builder.prepare());
-			if(findedGraves != null && findedGraves.size() > 0){
-				nextGrave = findedGraves.get(0);
-			}
-		} catch (SQLException e) {
-			this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
-		}
-		graveDAO.createOrUpdate(nextGrave);
-		
-		complexGrave = new ComplexGrave();
-		complexGrave.loadByGraveId(nextGrave.Id);
-		mGraveId = nextGrave.Id;
-		setNewIdInExtras(EXTRA_GRAVE_ID, nextGrave.Id);
-		startIntentForMakePhoto(complexGrave);
-	}
-	
-	private void makeGravePhotoNextPlace(String filterOldPlaceName){
-		Grave grave = DB.dao(Grave.class).queryForId(getIntent().getIntExtra(EXTRA_GRAVE_ID, -1));
-		ComplexGrave complexGrave = new ComplexGrave();
-		complexGrave.loadByGraveId(grave.Id);
-		
-		Place nextPlace = null;
-		Grave nextGrave = null;		
-		RuntimeExceptionDao<Place, Integer> placeDAO = DB.dao(Place.class);
-		RuntimeExceptionDao<Grave, Integer> graveDAO = DB.dao(Grave.class);
-		nextPlace = getPlaceForMakePhotoInNextPlace(filterOldPlaceName, complexGrave);		
-		List<Grave> findedGraves = null;
-        try {
-            QueryBuilder<Grave, Integer> graveBuilder = graveDAO.queryBuilder();
-            graveBuilder.orderBy("Name", true).where().eq("Place_id", nextPlace.Id);
-            findedGraves = graveDAO.query(graveBuilder.prepare());
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }        
-        if(findedGraves != null && findedGraves.size() > 0){
-            nextGrave = findedGraves.get(0);
-        } else {
-            nextGrave = new Grave();
-            nextGrave.Name = "1";
-            nextGrave.Place = nextPlace;
-            nextGrave.IsChanged = 1;
-        }		
-		nextGrave.Place = nextPlace;
-		placeDAO.createOrUpdate(nextPlace);
-		graveDAO.createOrUpdate(nextGrave);
-		
-		
-		complexGrave = new ComplexGrave();
-		complexGrave.loadByGraveId(nextGrave.Id);
-		mPlaceId = nextPlace.Id;
-		mGraveId = nextGrave.Id;
-		setNewIdInExtras(EXTRA_PLACE_ID, nextPlace.Id);
-		setNewIdInExtras(EXTRA_GRAVE_ID, nextGrave.Id);
-		startIntentForMakePhoto(complexGrave);
-	}
 	
 	private void makePlacePhotoNextPlace(String filterOldPlaceName){
         Place place = DB.dao(Place.class).queryForId(getIntent().getIntExtra(EXTRA_PLACE_ID, -1));
@@ -2338,32 +2058,22 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
             break;
         }
 	    
-	    HashMap<Integer, PhotoGridItem> histPlacePhotoGridItemHashMap = new HashMap<Integer, PhotoGridItem>();
-	    HashMap<Integer, PhotoGridItem> histGravePhotoGridItemHashMap = new HashMap<Integer, PhotoGridItem>();
+	    HashMap<Integer, PhotoGridItem> histPlacePhotoGridItemHashMap = new HashMap<Integer, PhotoGridItem>();	    
 	    for(PhotoGridItem photoGridItem : gridPhotoItems){
 	        if(photoGridItem.getPlacePhoto() != null){
 	            histPlacePhotoGridItemHashMap.put(photoGridItem.getPlacePhoto().Id, photoGridItem);
-	        }
-	        if(photoGridItem.getGravePhoto() != null){
-	            histGravePhotoGridItemHashMap.put(photoGridItem.getGravePhoto().Id, photoGridItem);
-	        }
+	        }	        
 	    }
         gridPhotoItems.clear();    	
     	if(place != null){
-    	    ArrayList<Photo> photoList = MonumentDB.getPhotos(place);    	        	    
-    	    for(Photo photo : photoList){
+    	    ArrayList<PlacePhoto> photoList = MonumentDB.getPhotos(place);    	        	    
+    	    for(PlacePhoto photo : photoList){
     	        PhotoGridItem item = new PhotoGridItem();                    
                 item.setChecked(false);
-                PhotoGridItem prevPhotoGridItem = null;
-                if(photo instanceof PlacePhoto){
-                    prevPhotoGridItem = histPlacePhotoGridItemHashMap.get(photo.Id);
-                    item.setPlacePhoto((PlacePhoto)photo);                    
-                }
-                if(photo instanceof GravePhoto){
-                    prevPhotoGridItem = histGravePhotoGridItemHashMap.get(photo.Id);
-                    item.setGravePhoto((GravePhoto)photo);
-                    
-                }
+                PhotoGridItem prevPhotoGridItem = null;                
+                prevPhotoGridItem = histPlacePhotoGridItemHashMap.get(photo.Id);
+                item.setPlacePhoto(photo);                    
+                
                 if(prevPhotoGridItem != null){
                     item.setChecked(prevPhotoGridItem.isChecked());
                     item.setStatus(prevPhotoGridItem.getStatus());
@@ -2536,7 +2246,6 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
     class PhotoGridItem {
 		    	
     	private boolean checked;
-    	private GravePhoto gravePhoto;
     	private PlacePhoto placePhoto;
     	private ImageView imageView;
     	private int status = BaseDTO.INT_NULL_VALUE;
@@ -2565,14 +2274,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
             this.placePhoto = placePhoto;
         }
 
-        public GravePhoto getGravePhoto() {
-			return gravePhoto;
-		}
-
-		public void setGravePhoto(GravePhoto gravePhoto) {
-			this.gravePhoto = gravePhoto;
-		}
-
+        
 		public boolean isChecked() {
 			return checked;
 		}
@@ -2580,10 +2282,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		public Photo getPhoto(){
 		    if(this.placePhoto != null){
 		        return this.placePhoto;
-		    }
-		    if(this.gravePhoto != null){
-		        return this.gravePhoto;
-		    }
+		    }		    
 		    return null;
 		}
 		
@@ -2645,20 +2344,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	@Override
 	public void onCloseCheckGPS(boolean isTurnGPS) {
 		if(isTurnGPS == false){
-			switch (mMakePhotoType) {
-			case GRAVEPHOTO_CURRENT:
-				makeGravePhotoCurrent();
-				break;
-			case GRAVEPHOTO_NEXTGRAVE:
-				makeGravePhotoNextGrave();
-				break;
-			case GRAVEPHOTO_NEXTPLACE:
-				if(Settings.IsOldPlaceNameOption(BrowserCemeteryActivity.this)){
-					enterOldPlaceName();
-				} else {
-					makeGravePhotoNextPlace(null);
-				}
-				break;
+			switch (mMakePhotoType) {			
 			case PLACEPHOTO_CURRENT:
 			    makePlacePhotoCurrent();
 			    break;
@@ -2667,7 +2353,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                     enterOldPlaceName();
                 } else {
                     makePlacePhotoNextPlace(null);
-                }                
+                }
 			    break;
 			default:
 				break;
@@ -2682,32 +2368,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
             switch (requestCode) {
             case REQUEST_CODE_PHOTO_INTENT:
                 ComplexGrave complexGrave = new ComplexGrave();
-                switch (mMakePhotoType) {
-                case GRAVEPHOTO_CURRENT:
-                case GRAVEPHOTO_NEXTGRAVE:
-                case GRAVEPHOTO_NEXTPLACE:
-                    int extraGraveId = this.getIntent().getIntExtra(EXTRA_GRAVE_ID, -1);
-                    Grave grave = DB.dao(Grave.class).queryForId(extraGraveId);                    
-                    complexGrave.loadByGraveId(grave.Id);
-                    GravePhoto gravePhoto = new GravePhoto();
-                    gravePhoto.Grave = grave;
-                    gravePhoto.CreateDate = new Date();
-                    gravePhoto.UriString = mUri.toString();
-                    if(Settings.getCurrentLocation() != null){
-                        Location location = Settings.getCurrentLocation();
-                        gravePhoto.Latitude = location.getLatitude();
-                        gravePhoto.Longitude = location.getLongitude();
-                    }
-                    if(Settings.IsAutoSendPhotoToServer(this)){
-                        gravePhoto.Status = GravePhoto.STATUS_WAIT_SEND;
-                    } else {
-                        gravePhoto.Status = GravePhoto.STATUS_FORMATE;
-                    }
-                    DB.dao(GravePhoto.class).create(gravePhoto);
-                    gridPhotoItems.clear();
-                    mType = getIntent().getIntExtra(EXTRA_TYPE, -1);                
-                    updateContent(mType, extraGraveId);                    
-                    break;
+                switch (mMakePhotoType) {                
                 case PLACEPHOTO_CURRENT:
                 case PLACEPHOTO_NEXTPLACE:
                     int extraPlaceId = this.getIntent().getIntExtra(EXTRA_PLACE_ID, -1);
@@ -2723,9 +2384,9 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                         placePhoto.Longitude = location.getLongitude();
                     }
                     if(Settings.IsAutoSendPhotoToServer(this)){
-                        placePhoto.Status = GravePhoto.STATUS_WAIT_SEND;
+                        placePhoto.Status = Photo.STATUS_WAIT_SEND;
                     } else {
-                        placePhoto.Status = GravePhoto.STATUS_FORMATE;
+                        placePhoto.Status = Photo.STATUS_FORMATE;
                     }
                     DB.dao(PlacePhoto.class).create(placePhoto);                                                                        
                     gridPhotoItems.clear();
