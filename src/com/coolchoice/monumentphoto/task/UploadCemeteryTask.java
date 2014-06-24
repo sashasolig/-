@@ -1,45 +1,16 @@
 package com.coolchoice.monumentphoto.task;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.Dictionary;
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.apache.http.*;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONTokener;
+import android.content.Context;
 
 import com.coolchoice.monumentphoto.Settings;
 import com.coolchoice.monumentphoto.dal.DB;
+import com.coolchoice.monumentphoto.data.BaseDTO;
 import com.coolchoice.monumentphoto.data.Cemetery;
 import com.coolchoice.monumentphoto.data.GPSCemetery;
-import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.dao.RuntimeExceptionDao;
-import com.j256.ormlite.stmt.QueryBuilder;
-
-import android.content.Context;
-import android.os.SystemClock;
 
 
 public class UploadCemeteryTask extends BaseTask {
@@ -58,9 +29,8 @@ public class UploadCemeteryTask extends BaseTask {
     protected TaskResult doInBackground(String... params) {
     	TaskResult result = new TaskResult();
     	result.setTaskName(Settings.TASK_POSTCEMETERY);
-    	result.setStatus(TaskResult.Status.OK);
-    	StringBuilder sbJSON = new StringBuilder();    	
-    	List<Cemetery> cemeteryList = DB.dao(Cemetery.class).queryForEq("IsChanged", 1);
+    	result.setStatus(TaskResult.Status.OK);    	   	
+    	List<Cemetery> cemeteryList = DB.dao(Cemetery.class).queryForEq(BaseDTO.COLUMN_IS_CHANGED, 1);
     	result.setUploadCount(cemeteryList.size());
     	int successCount = 0;
     	int processedCount = 0;

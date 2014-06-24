@@ -2,34 +2,25 @@ package com.coolchoice.monumentphoto.task;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.http.*;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import com.coolchoice.monumentphoto.Settings;
-import com.coolchoice.monumentphoto.data.Cemetery;
-import com.coolchoice.monumentphoto.data.GPSCemetery;
-import com.coolchoice.monumentphoto.data.SettingsData;
-
 import android.content.Context;
-import android.provider.ContactsContract.RawContacts.Entity;
+
+import com.coolchoice.monumentphoto.Settings;
+import com.coolchoice.monumentphoto.data.SettingsData;
 
 public class LoginTask extends BaseTask {
 	
@@ -40,19 +31,13 @@ public class LoginTask extends BaseTask {
 	private final static String KEY_CSRFMIDDLETOKEN = "csrfmiddlewaretoken";
 	private final static String KEY_USERNAME = "username";
 	private final static String KEY_PASSWORD = "password";
-	
-	//private String pdSession = null;
-	
+			
 	private String csrfToken = null;
 	
 	private String userName = null;
 	
 	private String password = null;
-	
-	/*public String getPDSession(){
-		return this.pdSession;
-	}*/
-	
+		
 	private SettingsData settingsData = null;
     
     public SettingsData getSettingsData() {

@@ -1,30 +1,22 @@
 package com.coolchoice.monumentphoto.task;
 
-import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 
+import android.content.Context;
 
 import com.coolchoice.monumentphoto.Settings;
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.data.BaseDTO;
 import com.coolchoice.monumentphoto.data.DeletedObject;
 import com.coolchoice.monumentphoto.data.DeletedObjectType;
-import com.coolchoice.monumentphoto.data.Grave;
-import com.coolchoice.monumentphoto.data.GravePhoto;
-import com.j256.ormlite.stmt.UpdateBuilder;
-
-import android.content.Context;
-import android.net.Uri;
 
 
 public class RemovePhotoTask extends BaseTask {
@@ -43,9 +35,7 @@ public class RemovePhotoTask extends BaseTask {
     protected TaskResult doInBackground(String... params) {
     	TaskResult result = new TaskResult();
     	result.setTaskName(Settings.TASK_REMOVEPHOTO);
-    	result.setStatus(TaskResult.Status.OK);
-    	String url = null;    	           
-    	url = params[0];
+    	result.setStatus(TaskResult.Status.OK);    	
     	List<DeletedObject> photoInfoList = this.getPhotoForRemove();
     	int successCount = 0;
     	int processedCount = 0;

@@ -31,6 +31,7 @@ import com.coolchoice.monumentphoto.task.LoginTask;
 import com.coolchoice.monumentphoto.task.RemovePhotoTask;
 import com.coolchoice.monumentphoto.task.TaskResult;
 import com.coolchoice.monumentphoto.task.TaskResult.Status;
+import com.coolchoice.monumentphoto.task.UploadBurialTask;
 import com.coolchoice.monumentphoto.task.UploadCemeteryTask;
 import com.coolchoice.monumentphoto.task.UploadGraveTask;
 import com.coolchoice.monumentphoto.task.UploadPhotoTask;
@@ -344,6 +345,7 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 		mTasks.add(new UploadRegionTask(this, this, this.mContext));
 		mTasks.add(new UploadPlaceTask(this, this, this.mContext));
 		mTasks.add(new UploadGraveTask(this, this, this.mContext));
+		mTasks.add(new UploadBurialTask(this, this, this.mContext));
 		mTasks.add(new UploadPhotoTask(this, this, this.mContext));
 		mCurrentTaskIndex = -1;
 		mProgressDialogTitle = "Отправка данных...";
@@ -478,6 +480,9 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 				if(task instanceof UploadGraveTask){
 					sbMessage.append(String.format("Успешно отправлено могил: %d из %d.", result.getUploadCountSuccess(), result.getUploadCount()));				
 				}
+				if(task instanceof UploadBurialTask){
+                    sbMessage.append(String.format("Успешно отправлено захоронений: %d из %d.", result.getUploadCountSuccess(), result.getUploadCount()));                
+                }
 				if(task instanceof UploadPhotoTask){
 					sbMessage.append(String.format("Успешно отправлено фотографий: %d из %d.", result.getUploadCountSuccess(), result.getUploadCount()));				
 				}
@@ -900,6 +905,14 @@ class SyncTaskHandler implements AsyncTaskCompleteListener<TaskResult>, AsyncTas
 						this.mCurrentExecutedTask = uploadGraveTask;
 						isNextTaskStarted = true;
 					}
+					if(nextTask.getTaskName() == Settings.TASK_POSTBURIAL){
+                        mProgressDialogMessage = "Отправка захоронений на сервер";
+                        mProgressDialogSyncData.setMessage(mProgressDialogMessage);                     
+                        UploadBurialTask uploadBurialTask = new UploadBurialTask(this, this, this.mContext);
+                        uploadBurialTask.execute(Settings.getUploadBurialUrl(this.mContext));
+                        this.mCurrentExecutedTask = uploadBurialTask;
+                        isNextTaskStarted = true;
+                    }
 					if(nextTask.getTaskName() == Settings.TASK_POSTPHOTO){
 						mProgressDialogMessage = "Отправка фотографий на сервер";
 						mProgressDialogSyncData.setMessage(mProgressDialogMessage);						

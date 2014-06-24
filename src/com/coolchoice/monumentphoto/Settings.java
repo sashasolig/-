@@ -89,6 +89,9 @@ public class Settings {
     private static String RelativeUploadRegionDataUrl = "/mobile/area/upload/";
     private static String RelativeUploadPlaceDataUrl = "/mobile/place/upload/";
     private static String RelativeUploadGraveDataUrl = "/mobile/grave/upload/";
+    private static String RelativeUploadBurialDataUrl = "/mobile/burial/upload/";
+    
+    
     
     private static final String StorageDirPhoto = "MobileKeeper";
     private static Location CurrentLocation;
@@ -206,6 +209,11 @@ public class Settings {
     public static String getUploadGraveUrl(Context context){
     	String serverAddress = getServerAddress(context);
     	return serverAddress + RelativeUploadGraveDataUrl;
+    }
+    
+    public static String getUploadBurialUrl(Context context){
+        String serverAddress = getServerAddress(context);
+        return serverAddress + RelativeUploadBurialDataUrl;
     }
     
     public static String getStorageDirPhoto(){

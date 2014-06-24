@@ -7,12 +7,13 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 
+import android.content.Context;
+import android.net.Uri;
 
 import com.coolchoice.monumentphoto.Settings;
 import com.coolchoice.monumentphoto.dal.DB;
@@ -21,10 +22,6 @@ import com.coolchoice.monumentphoto.data.GravePhoto;
 import com.coolchoice.monumentphoto.data.Photo;
 import com.coolchoice.monumentphoto.data.Place;
 import com.coolchoice.monumentphoto.data.PlacePhoto;
-import com.j256.ormlite.stmt.UpdateBuilder;
-
-import android.content.Context;
-import android.net.Uri;
 
 
 public class UploadPhotoTask extends BaseTask {

@@ -1,8 +1,8 @@
 package com.coolchoice.monumentphoto.task;
 
-import com.coolchoice.monumentphoto.Settings;
 import android.content.Context;
-import android.util.Log;
+
+import com.coolchoice.monumentphoto.Settings;
 
 public class GetGraveTask extends BaseTask {
 		   

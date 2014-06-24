@@ -1,7 +1,6 @@
 package com.coolchoice.monumentphoto.task;
 
 import android.content.Context;
-import android.widget.TextView.BufferType;
 
 import com.coolchoice.monumentphoto.Settings;
 import com.coolchoice.monumentphoto.data.Burial;

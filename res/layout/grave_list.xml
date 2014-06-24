@@ -146,6 +146,21 @@
             android:textSize="@dimen/header_text_size" />
         
     </LinearLayout>
+    
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp">
+        <Button 
+            android:id="@+id/btnAddNewGrave"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Добавить новую могилу"
+            android:drawableTop="@drawable/add"
+            />
+    </LinearLayout>
 
     <GridView
         android:id="@+id/gvGraves"

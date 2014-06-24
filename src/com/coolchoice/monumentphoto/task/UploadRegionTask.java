@@ -1,46 +1,17 @@
 package com.coolchoice.monumentphoto.task;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.apache.http.*;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONTokener;
+import android.content.Context;
 
 import com.coolchoice.monumentphoto.Settings;
 import com.coolchoice.monumentphoto.dal.DB;
+import com.coolchoice.monumentphoto.data.BaseDTO;
 import com.coolchoice.monumentphoto.data.Cemetery;
-import com.coolchoice.monumentphoto.data.GPSCemetery;
 import com.coolchoice.monumentphoto.data.GPSRegion;
 import com.coolchoice.monumentphoto.data.Region;
-import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.dao.RuntimeExceptionDao;
-import com.j256.ormlite.stmt.QueryBuilder;
-
-import android.content.Context;
-import android.os.SystemClock;
 
 
 public class UploadRegionTask extends BaseTask {
@@ -60,7 +31,7 @@ public class UploadRegionTask extends BaseTask {
     	TaskResult result = new TaskResult();
     	result.setTaskName(Settings.TASK_POSTREGION);
     	result.setStatus(TaskResult.Status.OK);
-    	List<Region> regionList = DB.dao(Region.class).queryForEq("IsChanged", 1);
+    	List<Region> regionList = DB.dao(Region.class).queryForEq(BaseDTO.COLUMN_IS_CHANGED, 1);
     	for(Region region : regionList){
 			DB.dao(Cemetery.class).refresh(region.Cemetery);
 		}

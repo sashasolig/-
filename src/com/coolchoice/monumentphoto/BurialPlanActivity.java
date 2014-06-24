@@ -57,6 +57,8 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
     private Menu mOptionsMenu;
     
     private int mGraveId;
+    
+    private static Date mLastSyncDate = null;
 
     private void updateOptionsMenu() {
         if (this.mOptionsMenu == null)
@@ -101,18 +103,7 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
         mSyncTaskHandler.setOnSyncCompleteListener(this);
     }
     
-    private void updateBurialPlanListView(){
-        /*ArrayList<BurialItem> items = new ArrayList<BurialPlanActivity.BurialItem>();
-        for(int i = 0; i < 15; i++){
-            BurialItem item = new BurialItem();
-            if(i % 4 == 0){                
-                item.setSectionDate(new Date());
-            } else {                
-                item.setBurial(new Burial());
-                item.setSectionDate(new Date());
-            }
-            items.add(item);
-        }*/        
+    private void updateBurialPlanListView(){               
         RuntimeExceptionDao<Burial, Integer> burialDao = DB.dao(Burial.class); 
         List<Burial> burials = null;
         try {
@@ -153,6 +144,15 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
         super.onResume();
         this.updateBurialPlanListView();
         updateOptionsMenu();
+        autoGetData();
+    }
+    
+    private void autoGetData(){
+        Date curDate = new Date();
+        if(mLastSyncDate == null || (curDate.getTime() - mLastSyncDate.getTime()) > (3 * 60 * 60 * 1000)){
+            mLastSyncDate = curDate;
+            actionGet();
+        }
     }
 
     
@@ -279,12 +279,19 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
                 tvFIO.setText(burial.getFIO());
                 tvBurialPlanDate.setText(mItemDateFormat.format(burial.PlanDate));
                 if(!BaseDTO.isNullValue(mGraveId)){
-                    if(burial.Status == Burial.StatusEnum.APPROVED){
+                    if(burial.Status == Burial.StatusEnum.APPROVED){                        
                         if(burial.Grave != null){
-                            btnBind.setEnabled(false);
-                            btnUnbind.setEnabled(true);
-                            btnClose.setEnabled(true);                    
-                        } else {
+                            if(burial.Grave.Id == mGraveId){
+                                btnBind.setEnabled(false);
+                                btnUnbind.setEnabled(true);
+                                btnClose.setEnabled(true);
+                            } else {
+                                btnBind.setEnabled(false);
+                                btnUnbind.setEnabled(false);
+                                btnClose.setEnabled(false);
+                            }
+                                                
+                        } else {                            
                             btnBind.setEnabled(true);
                             btnUnbind.setEnabled(false);
                             btnClose.setEnabled(false);   
@@ -320,8 +327,7 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
             int position = (Integer) btn.getTag();
             BurialItem item = (BurialItem) getItem(position);
             Burial dbBurial = DB.dao(Burial.class).queryForId(item.getBurial().Id);
-            Grave dbGrave = DB.dao(Grave.class).queryForId(mGraveId);
-            dbBurial.IsChanged = 1;
+            Grave dbGrave = DB.dao(Grave.class).queryForId(mGraveId);            
             switch (btn.getId()) {
             case R.id.btnBind:                
                 dbBurial.Grave = dbGrave;
@@ -339,8 +345,9 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
                 c.set(Calendar.MINUTE, 0);
                 c.set(Calendar.SECOND, 0);
                 c.set(Calendar.MILLISECOND, 0);                
-                dbBurial.FactDate =  c.getTime();
+                dbBurial.FactDate =  c.getTime();                
                 dbBurial.Status = Burial.StatusEnum.CLOSED;
+                dbBurial.IsChanged = 1;
                 DB.dao(Burial.class).update(dbBurial);
                 item.setBurial(dbBurial);
                 break;

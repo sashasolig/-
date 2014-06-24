@@ -7,7 +7,6 @@ import android.net.Uri;
 import com.coolchoice.monumentphoto.Settings;
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.dal.MonumentDB;
-import com.j256.ormlite.field.types.StringBytesType;
 
 public class ComplexGrave {
 	
@@ -43,7 +42,7 @@ public class ComplexGrave {
         }
         
         if(this.Grave != null){
-            sb.append(String.format(" / Могила %s", this.Grave.Name));
+            sb.append(String.format(" / Могила %s", this.Grave.Name != null ? this.Grave.Name : "Новая могила"));
         }
         return sb.toString();
 	}

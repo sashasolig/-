@@ -17,7 +17,7 @@ public class Burial extends BaseDTO {
         CONTAINER_COFFIN("Гроб"),
         CONTAINER_URN("Урна"),
         CONTAINER_ASH("Прах"),
-        CONTAINER_BIO("Биоотходы"); 
+        CONTAINER_BIO("Биоотходы");
         String value;
         ContainerTypeEnum(String s) {
             value = s;

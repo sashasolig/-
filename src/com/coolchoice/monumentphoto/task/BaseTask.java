@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Dictionary;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
 
 import org.apache.http.Header;
@@ -46,6 +45,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import android.content.Context;
+import android.os.AsyncTask;
+import android.text.TextUtils;
+
 import com.coolchoice.monumentphoto.Settings;
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.data.BaseDTO;
@@ -64,13 +67,6 @@ import com.coolchoice.monumentphoto.data.Row;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
 import com.j256.ormlite.stmt.DeleteBuilder;
 import com.j256.ormlite.stmt.QueryBuilder;
-import com.j256.ormlite.stmt.UpdateBuilder;
-
-import android.content.Context;
-import android.os.AsyncTask;
-import android.text.TextUtils;
-import android.util.Log;
-import android.widget.TextView.BufferType;
 
 public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 	
@@ -1096,32 +1092,16 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         }
 	}
 	
-	public void handleResponseUploadGraveJSON(String graveJSON) throws Exception {	
-		ArrayList<Grave> graveList = parseGraveJSON(graveJSON);                
-        for(int i = 0; i < graveList.size(); i++){
-        	Grave grave = graveList.get(i);
-        	Place dbPlace = null;
-        	Grave dbGrave = null;
-        	RuntimeExceptionDao<Place, Integer> placeDAO = DB.dao(Place.class);
-        	RuntimeExceptionDao<Grave, Integer> graveDAO = DB.dao(Grave.class);
-        	QueryBuilder<Place, Integer> placeBuilder = placeDAO.queryBuilder();
-			placeBuilder.where().eq(BaseDTO.COLUMN_SERVER_ID, grave.ParentServerId);
-			List<Place> findedPlace = placeDAO.query(placeBuilder.prepare());
-			if(findedPlace.size() > 0){
-				dbPlace = findedPlace.get(0);
-			}
-			
-        	QueryBuilder<Grave, Integer> graveBuilder = graveDAO.queryBuilder();
-			graveBuilder.where().eq("Place_id", dbPlace.Id).and().eq(BaseDTO.COLUMN_NAME, grave.Name);
-			List<Grave> findedGrave = graveDAO.query(graveBuilder.prepare());
-			if(findedGrave.size() > 0){
-				dbGrave = findedGrave.get(0);
-				dbGrave.ServerId = grave.ServerId;
-				dbGrave.ParentServerId = grave.ParentServerId;
-				graveDAO.createOrUpdate(dbGrave);
-			}     			
-			
-        }
+	public void handleResponseUploadGraveJSON(Grave dbClientGrave, String graveJSON) throws Exception {	
+		ArrayList<Grave> graveList = parseGraveJSON(graveJSON);
+		if(graveList.size() == 1) {             
+            RuntimeExceptionDao<Grave, Integer> graveDAO = DB.dao(Grave.class);
+        	Grave grave = graveList.get(0);
+        	dbClientGrave.Name = grave.Name;
+        	dbClientGrave.ServerId = grave.ServerId;
+        	dbClientGrave.ParentServerId = grave.ParentServerId;
+            graveDAO.createOrUpdate(dbClientGrave);
+		}
 	}
 	
 	private ArrayList<Burial> parseBurialJSON(String burialJSON) throws Exception {	

@@ -1,6 +1,5 @@
 package com.coolchoice.monumentphoto.dal;
 
-import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,18 +34,15 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	
     private final String LOG_TAG = getClass().getSimpleName();
     
-    public static final String DATABASE_NAME = "/mnt/sdcard/monument.db";
-    //public static final String DATABASE_NAME = "monument.db";
+    //public static final String DATABASE_NAME = "/mnt/sdcard/monument.db";
+    public static final String DATABASE_NAME = "monument.db";
     
     public static final int DATABASE_VERSION = 12;
     
-    private Context context;
-
     private static final ArrayList<Class<?>> entityClassesArray = new ArrayList<Class<?>>();
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        this.context = context;
         
         entityClassesArray.add(ResponsibleUser.class);
         entityClassesArray.add(Cemetery.class);

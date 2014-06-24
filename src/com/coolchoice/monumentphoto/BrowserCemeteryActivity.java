@@ -1114,7 +1114,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		
 	}
 	
-	private void handleGraveList(View contentView, int placeId){
+	private void handleGraveList(View contentView, int placeId){	    
 		this.btnLinkCemetery.setVisibility(View.VISIBLE);
 		this.btnLinkRegion.setVisibility(View.VISIBLE);
 		if((mType & AddObjectActivity.MASK_ROW) == AddObjectActivity.MASK_ROW){
@@ -1168,6 +1168,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		this.btnLinkPrevPlace.setOnClickListener(btnLinkPrevAndNextPlaceListener);
 		
 		Button btnAddGrave = (Button) contentView.findViewById(R.id.btnAddGrave);
+		Button btnAddNewGrave = (Button) contentView.findViewById(R.id.btnAddNewGrave);
 		this.mGVGrave = (GridView) contentView.findViewById(R.id.gvGraves);
 		this.gridPhotos = (GridView) contentView.findViewById(R.id.gvPhotos);
 		this.etPlaceLength = (EditText) contentView.findViewById(R.id.etPlaceLength);
@@ -1201,6 +1202,20 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 				startActivityForResult(intent, ADD_OBJECT_REQUEST_CODE);
 			}
 		});
+		
+		btnAddNewGrave.setOnClickListener(new View.OnClickListener() {
+            
+            @Override
+            public void onClick(View v) {
+                Place dbPlace = DB.dao(Place.class).queryForId(mPlaceId);
+                Grave newGrave = new Grave();
+                newGrave.Place = dbPlace;
+                newGrave.IsChanged = 1;
+                newGrave.Name = null;
+                DB.dao(Grave.class).create(newGrave);
+                ((GraveGridAdapter) mGVGrave.getAdapter()).addGrave(newGrave);
+            }
+        });
 		
 		this.btnMakePlacePhoto.setOnClickListener(new View.OnClickListener() {
             
@@ -1729,7 +1744,12 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		
         public GraveGridAdapter(List<Grave> items) {
         	this.mItems = items;
-        }        
+        }
+        
+        public void addGrave(Grave grave){
+            this.mItems.add(grave);
+            this.notifyDataSetChanged();
+        }
 
         public View getView(int position, View convertView, ViewGroup parent) {
             if (convertView == null) {
@@ -1742,8 +1762,11 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
             TextView tvFIO = (TextView) convertView.findViewById(R.id.tvFIO);
             Button btnBindBurial = (Button) convertView.findViewById(R.id.btnBind);
             btnBindBurial.setTag(grave.Id);            
-            String value = grave.Name;
-            tvGrave.setText(value);
+            if(grave.Name != null){
+                tvGrave.setText(grave.Name);
+            } else {
+                tvGrave.setText(R.string.new_grave_name);
+            }            
             btnBindBurial.setOnClickListener(new View.OnClickListener() {
                 
                 @Override

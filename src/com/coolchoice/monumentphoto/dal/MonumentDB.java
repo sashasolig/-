@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import android.text.TextUtils;
+
 import com.coolchoice.monumentphoto.data.Burial;
 import com.coolchoice.monumentphoto.data.Cemetery;
 import com.coolchoice.monumentphoto.data.ComplexGrave;
@@ -190,9 +192,11 @@ public class MonumentDB {
 	public static void deleteGrave(int graveId){
 		ComplexGrave complexGrave = new ComplexGrave();
 		complexGrave.loadByGraveId(graveId);
-		File photoFolder = complexGrave.getPhotoFolder();
-		if(photoFolder != null){
-			deleteFolder(photoFolder);
+		if(!TextUtils.isEmpty(complexGrave.Grave.Name)){
+    		File photoFolder = complexGrave.getPhotoFolder();
+    		if(photoFolder != null){
+    			deleteFolder(photoFolder);
+    		}
 		}
 		
 		DB.dao(Grave.class).deleteById(graveId);
