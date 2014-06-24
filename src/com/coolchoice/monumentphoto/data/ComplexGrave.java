@@ -1,6 +1,7 @@
 package com.coolchoice.monumentphoto.data;
 
 import java.io.File;
+import java.io.IOException;
 
 import android.net.Uri;
 
@@ -173,7 +174,8 @@ public class ComplexGrave {
     			}
     		}
 		}
-		File newFile = null;
+		createFile(dir, Settings.NO_MEDIA_FILENAME);
+		File newFile = null;		
 		if(fileName != null){
 		    newFile = new File(dir.getPath() + File.separator + fileName);
 		} else {
@@ -183,6 +185,19 @@ public class ComplexGrave {
 		
 		return Uri.fromFile(newFile);
 	}
+	
+	private void createFile(File rootDir, String fileName){
+	    File file = new File(rootDir, Settings.NO_MEDIA_FILENAME);
+	    if(file != null && !file.exists()){
+	        try {
+	            file.createNewFile();
+	        } catch (IOException e) {
+	            //do nothing
+	        }
+	    }
+	}
+	
+	
 	
 	public File getPhotoFolder(){
 		File rootDir = Settings.getRootDirPhoto();

@@ -94,6 +94,8 @@ public class Settings {
     
     
     private static final String StorageDirPhoto = "MobileKeeper";
+    public static final String NO_MEDIA_FILENAME = ".momedia";
+    
     private static Location CurrentLocation;
     
     private static String pdSession;

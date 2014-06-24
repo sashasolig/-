@@ -47,7 +47,7 @@ public class MonumentPhotoApplication extends Application {
     private void createNoMediaFile(){
         File rootDirPhoto = Settings.getRootDirPhoto();
         if(rootDirPhoto != null && rootDirPhoto.exists()){
-            File noMediaFile = new File(rootDirPhoto, ".momedia");
+            File noMediaFile = new File(rootDirPhoto, Settings.NO_MEDIA_FILENAME);
             if(noMediaFile != null && !noMediaFile.exists()){
                 try {
                     noMediaFile.createNewFile();
