@@ -45,7 +45,7 @@ public class UploadGraveTask extends BaseTask {
 				Dictionary<String, String> dictPostData = new Hashtable<String, String>();
             	dictPostData.put("placeId", Integer.toString(grave.Place.ServerId));
             	dictPostData.put("graveId", Integer.toString(grave.ServerId));
-            	dictPostData.put("graveName", grave.Name != null ? grave.Name : "");
+            	dictPostData.put("grave_number", grave.Name != null ? grave.Name : "");
             	int intWrongFIO = 0, intMilitary = 0;
             	if(grave.Place.isWrongFIO()){
             		intWrongFIO = 1; 

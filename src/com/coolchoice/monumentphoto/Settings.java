@@ -89,7 +89,7 @@ public class Settings {
     private static String RelativeUploadRegionDataUrl = "/mobile/area/upload/";
     private static String RelativeUploadPlaceDataUrl = "/mobile/place/upload/";
     private static String RelativeUploadGraveDataUrl = "/mobile/grave/upload/";
-    private static String RelativeUploadBurialDataUrl = "/mobile/burial/upload/";
+    private static String RelativeUploadBurialDataUrl = "/mobile/burial/bind_burial_grave/";
     
     
     

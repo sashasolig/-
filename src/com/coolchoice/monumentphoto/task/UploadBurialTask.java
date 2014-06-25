@@ -46,8 +46,7 @@ public class UploadBurialTask extends BaseTask {
 				Dictionary<String, String> dictPostData = new Hashtable<String, String>();
             	dictPostData.put("burialId", Integer.toString(burial.ServerId));
             	dictPostData.put("graveId", Integer.toString(burial.Grave.ServerId));
-            	dictPostData.put("factDate", serializeDate(burial.FactDate));           	          	
-            	dictPostData.put("status", burial.Status.name().toLowerCase());
+            	dictPostData.put("factDate", serializeDate(burial.FactDate));
             	String responseString = postData(params[0], dictPostData);
             	if(responseString != null){
             		//ok	            		
