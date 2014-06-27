@@ -71,9 +71,7 @@ public class Settings {
     
     //private static String DefaultServerAddress = "http://k.pohoronnoedelo.ru:8000";
     //private static String DefaultServerAddress = "http://192.168.53.11:8000";
-    private static String DefaultServerAddress = "http://pd2.pohoronnoedelo.ru";
-    private static String RelativeUploadGravePhotoUrl = "/mobile/gravephoto/upload/";
-    private static String RelativeRemoveGravePhotoUrl = "/mobile/gravephoto/delete/";
+    private static String DefaultServerAddress = "http://pd2.pohoronnoedelo.ru";    
     private static String RelativeUploadPlacePhotoUrl = "/mobile/placephoto/upload/";
     private static String RelativeRemovePlacePhotoUrl = "/mobile/placephoto/delete/";
     private static String RelativeLoginUrl = "/api/auth/signin";
@@ -133,15 +131,7 @@ public class Settings {
     	CurrentLocation = newLocation;
     }
     
-    public static String getUploadGravePhotoUrl(Context context){
-    	String serverAddress = getServerAddress(context);
-    	return serverAddress + RelativeUploadGravePhotoUrl;
-    }
     
-    public static String getRemoveGravePhotoUrl(Context context){
-    	String serverAddress = getServerAddress(context);
-    	return serverAddress + RelativeRemoveGravePhotoUrl;
-    }
     
     public static String getUploadPlacePhotoUrl(Context context){
         String serverAddress = getServerAddress(context);

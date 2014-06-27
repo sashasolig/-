@@ -17,10 +17,7 @@ public class Grave extends BaseDTO {
 	
 	@DatabaseField(foreign = true, foreignAutoRefresh = false, index = true)
 	public Place Place;
-	
-	@ForeignCollectionField
-	public Collection<GravePhoto> Photos;
-	
+		
 	@ForeignCollectionField
 	public Collection<GPSGrave> GPSGraveList;
 	

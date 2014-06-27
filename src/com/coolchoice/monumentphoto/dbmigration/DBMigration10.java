@@ -9,10 +9,7 @@ public class DBMigration10 implements IDBMigrate {
     @Override
     public void migrate(SQLiteDatabase db, ConnectionSource connectionSource) {
         db.beginTransaction();
-        try {
-            db.execSQL("alter table gravephoto add column FileName VARCHAR;");
-            db.execSQL("alter table gravephoto add column ServerFileName VARCHAR;");
-            db.execSQL("alter table gravephoto add column ThumbnailUriString VARCHAR;");
+        try {            
             db.execSQL("alter table placephoto add column FileName VARCHAR;");
             db.execSQL("alter table placephoto add column ServerFileName VARCHAR;");
             db.execSQL("alter table placephoto add column ThumbnailUriString VARCHAR;");

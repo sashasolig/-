@@ -72,19 +72,13 @@ public class RemovePhotoTask extends BaseTask {
 	private boolean removePhoto(Context context, DeletedObject photoDeleteOdj, StringBuilder outResponseSB) throws AuthorizationException, ServerException{
 	    boolean result = false;
 		MultipartEntity multipartEntity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
-		try {
-		    if(photoDeleteOdj.TypeId == DeletedObjectType.GRAVEPHOTO){
-		        multipartEntity.addPart("gravePhotoId", new StringBody(Integer.toString(photoDeleteOdj.ServerId), Charset.forName(Settings.DEFAULT_ENCODING)));
-		    }
+		try {		    
 		    if(photoDeleteOdj.TypeId == DeletedObjectType.PLACEPHOTO){
 		        multipartEntity.addPart("placePhotoId", new StringBody(Integer.toString(photoDeleteOdj.ServerId), Charset.forName(Settings.DEFAULT_ENCODING)));
 		    }
 		} catch (UnsupportedEncodingException e) {
 			return false;
-		}
-		if(photoDeleteOdj.TypeId == DeletedObjectType.GRAVEPHOTO){
-		    result = uploadFile(Settings.getRemoveGravePhotoUrl(context), multipartEntity, context, outResponseSB);
-		}
+		}		
 		if(photoDeleteOdj.TypeId == DeletedObjectType.PLACEPHOTO){
 		    result = uploadFile(Settings.getRemovePlacePhotoUrl(context), multipartEntity, context, outResponseSB);
 		}
@@ -93,8 +87,7 @@ public class RemovePhotoTask extends BaseTask {
 	
 	public List<DeletedObject> getPhotoForRemove(){
 		List<DeletedObject> photoInfoList = null;
-		ArrayList<Integer> photoTypeList = new ArrayList<Integer>();
-		photoTypeList.add(DeletedObjectType.GRAVEPHOTO);
+		ArrayList<Integer> photoTypeList = new ArrayList<Integer>();		
 		photoTypeList.add(DeletedObjectType.PLACEPHOTO);
 		try {
 			photoInfoList = DB.q(DeletedObject.class).where().in("TypeId", photoTypeList).query();		
