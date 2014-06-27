@@ -33,6 +33,7 @@ public class DBMigrateSet {
         mMigrations.add(new DBMigration9());
         mMigrations.add(new DBMigration10());
         mMigrations.add(new DBMigration11());
+        mMigrations.add(new DBMigration12());
         
         
         if((DatabaseHelper.DATABASE_VERSION - 1) != this.mMigrations.size()){

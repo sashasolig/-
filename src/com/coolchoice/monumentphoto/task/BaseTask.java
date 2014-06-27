@@ -51,6 +51,7 @@ import android.text.TextUtils;
 
 import com.coolchoice.monumentphoto.Settings;
 import com.coolchoice.monumentphoto.dal.DB;
+import com.coolchoice.monumentphoto.dal.MonumentDB;
 import com.coolchoice.monumentphoto.data.BaseDTO;
 import com.coolchoice.monumentphoto.data.Burial;
 import com.coolchoice.monumentphoto.data.Cemetery;
@@ -672,32 +673,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	JSONObject jsonResponsibleUser = null;
         	if(!jsonObj.isNull("responsible")){
         		jsonResponsibleUser = jsonObj.getJSONObject("responsible");
-        	}        	
-        	JSONObject jsonAddress = null;
-        	JSONObject jsonCountry = null;
-        	JSONObject jsonRegion = null;
-        	JSONObject jsonCity = null;
-        	JSONObject jsonStreet = null;
-        	if(jsonResponsibleUser != null){
-        		if(!jsonResponsibleUser.isNull("address")){
-        			jsonAddress = jsonResponsibleUser.getJSONObject("address");
-        			if(jsonAddress != null){
-        				if(!jsonAddress.isNull("country")){
-        					jsonCountry = jsonAddress.getJSONObject("country");
-        				}
-        				if(!jsonAddress.isNull("region")){
-        					jsonRegion = jsonAddress.getJSONObject("region");
-        				}
-        				if(!jsonAddress.isNull("city")){
-        					jsonCity = jsonAddress.getJSONObject("city");
-        				}
-        				if(!jsonAddress.isNull("street")){
-        					jsonStreet = jsonAddress.getJSONObject("street");
-        				}
-
-        			}
-            	} 
-        	}        	
+        	}     	
         	Place place = new Place();
         	place.ServerId = jsonObj.getInt("pk");
         	place.Name = jsonObj.getString("place");
@@ -751,50 +727,81 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         		row.Region.ServerId = regionServerId;
         		place.Row = row;
         		place.Region = null;
-        	}
-        	if(jsonResponsibleUser != null){
-	        	ResponsibleUser user = new ResponsibleUser();
-	        	user.FirstName = jsonResponsibleUser.getString("first_name");
-	        	user.LastName = jsonResponsibleUser.getString("last_name");
-	        	user.MiddleName = jsonResponsibleUser.getString("middle_name");
-	        	user.Phones= jsonResponsibleUser.getString("phones");
-	        	user.LoginPhone = jsonResponsibleUser.getString("login_phone");
-	        	if(jsonAddress != null){
-		        	user.House = jsonAddress.getString("house");
-		        	user.Block = jsonAddress.getString("block");
-		        	user.Building = jsonAddress.getString("building");
-		        	user.Flat = jsonAddress.getString("flat");
-		        	if(jsonCountry != null){
-		        		user.Country = jsonCountry.getString("name");
-		        	}
-		        	if(jsonRegion != null){
-		        		user.Region = jsonRegion.getString("name");
-		        	}
-		        	if(jsonCity != null){
-		        		user.City = jsonCity.getString("name");
-		        	}
-		        	if(jsonStreet != null){
-		        		user.Street = jsonStreet.getString("name");
-		        	}
-	        	}
-	        	user.FirstName = getStringOrNull(user.FirstName);
-	        	user.LastName = getStringOrNull(user.LastName);
-	        	user.MiddleName = getStringOrNull(user.MiddleName);
-	        	user.Phones = getStringOrNull(user.Phones);
-	        	user.LoginPhone = getStringOrNull(user.LoginPhone);
-	        	user.House = getStringOrNull(user.House);
-	        	user.Block = getStringOrNull(user.Block);
-	        	user.Building = getStringOrNull(user.Building);
-	        	user.Flat = getStringOrNull(user.Flat);
-	        	user.Country = getStringOrNull(user.Country);
-	        	user.Region = getStringOrNull(user.Region);
-	        	user.City = getStringOrNull(user.City);
-	        	user.Street = getStringOrNull(user.Street);     	
-	        	place.ResponsibleUser = user;
-        	}
+        	}        	
+        	place.ResponsibleUser = parseResponsibleUser(jsonResponsibleUser);
         	placeList.add(place);    	
         }
         return placeList;
+	}
+	
+	private ResponsibleUser parseResponsibleUser(JSONObject jsonResponsibleUser) throws JSONException {
+	    if(jsonResponsibleUser != null){
+	        JSONObject jsonAddress = null;
+            JSONObject jsonCountry = null;
+            JSONObject jsonRegion = null;
+            JSONObject jsonCity = null;
+            JSONObject jsonStreet = null;
+            if(jsonResponsibleUser != null){
+                if(!jsonResponsibleUser.isNull("address")){
+                    jsonAddress = jsonResponsibleUser.getJSONObject("address");
+                    if(jsonAddress != null){
+                        if(!jsonAddress.isNull("country")){
+                            jsonCountry = jsonAddress.getJSONObject("country");
+                        }
+                        if(!jsonAddress.isNull("region")){
+                            jsonRegion = jsonAddress.getJSONObject("region");
+                        }
+                        if(!jsonAddress.isNull("city")){
+                            jsonCity = jsonAddress.getJSONObject("city");
+                        }
+                        if(!jsonAddress.isNull("street")){
+                            jsonStreet = jsonAddress.getJSONObject("street");
+                        }
+
+                    }
+                } 
+            }
+            ResponsibleUser user = new ResponsibleUser();
+            user.ServerId = jsonResponsibleUser.getInt("pk");
+            user.FirstName = jsonResponsibleUser.getString("first_name");
+            user.LastName = jsonResponsibleUser.getString("last_name");
+            user.MiddleName = jsonResponsibleUser.getString("middle_name");
+            user.Phones= jsonResponsibleUser.getString("phones");
+            user.LoginPhone = jsonResponsibleUser.getString("login_phone");
+            if(jsonAddress != null){
+                user.House = jsonAddress.getString("house");
+                user.Block = jsonAddress.getString("block");
+                user.Building = jsonAddress.getString("building");
+                user.Flat = jsonAddress.getString("flat");
+                if(jsonCountry != null){
+                    user.Country = jsonCountry.getString("name");
+                }
+                if(jsonRegion != null){
+                    user.Region = jsonRegion.getString("name");
+                }
+                if(jsonCity != null){
+                    user.City = jsonCity.getString("name");
+                }
+                if(jsonStreet != null){
+                    user.Street = jsonStreet.getString("name");
+                }
+            }
+            user.FirstName = getStringOrNull(user.FirstName);
+            user.LastName = getStringOrNull(user.LastName);
+            user.MiddleName = getStringOrNull(user.MiddleName);
+            user.Phones = getStringOrNull(user.Phones);
+            user.LoginPhone = getStringOrNull(user.LoginPhone);
+            user.House = getStringOrNull(user.House);
+            user.Block = getStringOrNull(user.Block);
+            user.Building = getStringOrNull(user.Building);
+            user.Flat = getStringOrNull(user.Flat);
+            user.Country = getStringOrNull(user.Country);
+            user.Region = getStringOrNull(user.Region);
+            user.City = getStringOrNull(user.City);
+            user.Street = getStringOrNull(user.Street);
+            return user;
+        }
+	    return null;
 	}
 	
 	private String getStringOrNull(String value){
@@ -809,8 +816,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 		RuntimeExceptionDao<Place, Integer> placeDAO = DB.dao(Place.class);
         for(int i = 0; i < placeList.size(); i++){
         	checkIsCancelTask();
-        	Place place = placeList.get(i);
-        	ResponsibleUser responsibleUser = place.ResponsibleUser;
+        	Place place = placeList.get(i);        	
         	RuntimeExceptionDao<Region, Integer> regionDAO = DB.dao(Region.class);
         	RuntimeExceptionDao<Row, Integer> rowDAO = DB.dao(Row.class);
         	if(place.Row != null){
@@ -837,16 +843,23 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 				}
 			}
 			if(!isChangePlaceOnClient){
+			    ResponsibleUser dbResponsibleUser = null;
+			    if(place.ResponsibleUser != null){
+			        dbResponsibleUser = MonumentDB.getResponsibleUser(place.ResponsibleUser.ServerId);
+	                if(dbResponsibleUser != null){
+	                    place.ResponsibleUser.Id = dbResponsibleUser.Id;
+	                }
+			    }
+			    
 				if(dbPlace != null){
 					//update place
 					if(dbPlace.ResponsibleUser == null){
-						dbPlace.ResponsibleUser = responsibleUser;
+						dbPlace.ResponsibleUser = place.ResponsibleUser;
 					} else {
-						if(responsibleUser == null){
+						if(place.ResponsibleUser == null){
 							dbPlace.ResponsibleUser = null;
-						} else {
-							responsibleUser.Id = dbPlace.ResponsibleUser.Id;
-							dbPlace.ResponsibleUser = responsibleUser;
+						} else {							
+							dbPlace.ResponsibleUser = place.ResponsibleUser;
 						}
 					}
 					if(dbPlace.ResponsibleUser != null){
@@ -900,7 +913,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 					}
 				} else{
 					//insert place
-					if(place.ResponsibleUser != null){
+					if(place.ResponsibleUser != null){					    
 						DB.dao(ResponsibleUser.class).createOrUpdate(place.ResponsibleUser);
 					}
 					if(place.Row != null){
@@ -1113,24 +1126,50 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	Burial burial = new Burial();
         	JSONObject jsonObj = jsonArray.getJSONObject(i);
         	burial.ServerId = jsonObj.getInt("pk");
+        	JSONObject jsonCemetery = null;
+        	JSONObject jsonArea = null;
+        	JSONObject jsonPlace = null;
         	JSONObject jsonGrave = null;
+        	JSONObject jsonResponsibleUser = null;
+        	JSONObject jsonDeadman = null;
         	if(!jsonObj.isNull("grave")){
         	    jsonGrave = jsonObj.getJSONObject("grave");
-        	}
-        	JSONObject jsonCemetery = jsonObj.getJSONObject("cemetery");
-        	JSONObject jsonDeadman = null;
+        	}        	
+            if(!jsonObj.isNull("responsible")){
+                jsonResponsibleUser = jsonObj.getJSONObject("responsible");
+            }            
+            if(!jsonObj.isNull("cemetery")){
+                jsonCemetery = jsonObj.getJSONObject("cemetery");
+            }            
+            if(!jsonObj.isNull("area")){
+                jsonArea = jsonObj.getJSONObject("area");
+            }            
+            if(!jsonObj.isNull("place")){
+                jsonPlace = jsonObj.getJSONObject("place");
+            }
         	if(!jsonObj.isNull("deadman")){
         		jsonDeadman = jsonObj.getJSONObject("deadman");
         	}        	
         	if(jsonGrave != null){
-        	    burial.ParentServerId = Integer.parseInt(jsonGrave.getString("pk"));
-        	    burial.Cemetery = null;
+        	    burial.ParentServerId = jsonGrave.getInt("pk");
+        	    burial.Grave = new Grave();
+        	    burial.Grave.ServerId = burial.ParentServerId;
         	} else {
-        	    burial.ParentServerId = BaseDTO.INT_NULL_VALUE;
-        	    burial.Cemetery = new Cemetery();
-        	    burial.Cemetery.ServerId = jsonCemetery.getInt("pk");
+        	    burial.ParentServerId = BaseDTO.INT_NULL_VALUE;        	   
         	}
-        	
+        	if(jsonPlace != null){
+        	    burial.Place = new Place();
+                burial.Place.ServerId = jsonPlace.getInt("pk");
+        	}
+        	if(jsonArea != null){
+        	    burial.Region = new Region();
+                burial.Region.ServerId = jsonArea.getInt("pk");
+        	}
+        	if(jsonCemetery != null){
+        	    burial.Cemetery = new Cemetery();
+                burial.Cemetery.ServerId = jsonCemetery.getInt("pk");
+        	}
+        	burial.Row = getStringOrNull(jsonObj.getString("row"));        	
         	String containerString = jsonObj.getString("burial_container");
         	try{
         	    burial.ContainerType = Burial.ContainerTypeEnum.getEnum(containerString);
@@ -1156,8 +1195,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	String planTimeString = getStringOrNull(jsonObj.getString("plan_time"));
         	if(planDateString != null){
         	    burial.PlanDate = parseDateAndTime(planDateString, planTimeString);
-        	}
-        	
+        	}        	
         	
         	if(jsonDeadman != null){
         		burial.FName = jsonDeadman.getString("first_name");
@@ -1176,6 +1214,8 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         			burial.MName = burial.MName.toLowerCase();
         		}
         	}
+        	burial.ResponsibleUser = parseResponsibleUser(jsonResponsibleUser);
+        	
         	burialList.add(burial);    	
         }
         return burialList;
@@ -1186,11 +1226,16 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         for(int i = 0; i < burialList.size(); i++){
         	checkIsCancelTask();
         	Burial burial = burialList.get(i);
-        	if(burial.Cemetery == null && !BaseDTO.isNullValue(burial.ParentServerId)){
-            	RuntimeExceptionDao<Burial, Integer> burialDAO = DB.dao(Burial.class);
+        	if(burial.Grave != null && !BaseDTO.isNullValue(burial.ParentServerId)){
+            	RuntimeExceptionDao<Burial, Integer> burialDAO = DB.dao(Burial.class);            	
             	DeleteBuilder<Burial, Integer> deleteBuilder = burialDAO.deleteBuilder();
             	deleteBuilder.where().eq(BaseDTO.COLUMN_PARENT_SERVER_ID, burial.ParentServerId).and().isNotNull("Grave_id");
-            	burialDAO.delete(deleteBuilder.prepare());        	
+            	burialDAO.delete(deleteBuilder.prepare());
+            	burial.Cemetery = null;
+            	burial.Region = null;
+            	burial.Place = null;
+            	burial.Row = null;
+            	burial.ResponsibleUser = null;
     			burialDAO.create(burial);
         	}
         }        
@@ -1209,33 +1254,90 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         for(int i = 0; i < burialList.size(); i++){
             checkIsCancelTask();
             Burial burial = burialList.get(i);
-            if(burial.Cemetery != null && BaseDTO.isNullValue(burial.ParentServerId)){
+            if(BaseDTO.isNullValue(burial.ParentServerId)){
                 RuntimeExceptionDao<Burial, Integer> burialDAO = DB.dao(Burial.class);
+                RuntimeExceptionDao<ResponsibleUser, Integer> responsibleUserDAO = DB.dao(ResponsibleUser.class);
                 QueryBuilder<Burial, Integer> burialBuilder = burialDAO.queryBuilder();
                 burialBuilder.where().eq(BaseDTO.COLUMN_SERVER_ID, burial.ServerId);
                 List<Burial> findedBurials = burialDAO.query(burialBuilder.prepare());
+                Burial dbBurial = null;
+                Cemetery dbCemetery = null;
+                Region dbRegion= null;
+                Place dbPlace = null;
+                Grave dbGrave = null;
+                ResponsibleUser dbResponsibleUser = null;
+                if(burial.Cemetery != null){
+                    List<Cemetery> cemeteryList = DB.dao(Cemetery.class).queryBuilder().where().eq(BaseDTO.COLUMN_SERVER_ID, burial.Cemetery.ServerId).query();                        
+                    if(cemeteryList.size() > 0){
+                        dbCemetery = cemeteryList.get(0);
+                    }
+                }
+                if(burial.Region != null){
+                    List<Region> regionList = DB.dao(Region.class).queryBuilder().where().eq(BaseDTO.COLUMN_SERVER_ID, burial.Region.ServerId).query();                        
+                    if(regionList.size() > 0){
+                        dbRegion = regionList.get(0);
+                    }
+                }
+                if(burial.Place != null){
+                    List<Place> placeList = DB.dao(Place.class).queryBuilder().where().eq(BaseDTO.COLUMN_SERVER_ID, burial.Place.ServerId).query();                        
+                    if(placeList.size() > 0){
+                        dbPlace = placeList.get(0);
+                    }
+                }
+                if(burial.Grave != null){
+                    List<Grave> graveList = DB.dao(Grave.class).queryBuilder().where().eq(BaseDTO.COLUMN_SERVER_ID, burial.Grave.ServerId).query();
+                    if(graveList.size() > 0){
+                        dbGrave = graveList.get(0);
+                    }
+                    
+                }
+                if(burial.ResponsibleUser != null){
+                    List<ResponsibleUser> responsibleUserList = DB.dao(ResponsibleUser.class).queryBuilder().where().eq(BaseDTO.COLUMN_SERVER_ID, burial.ResponsibleUser.ServerId).query();
+                    if(responsibleUserList.size() > 0){
+                        dbResponsibleUser = responsibleUserList.get(0);
+                    }
+                }
                 if(findedBurials.size() > 0){
-                    Burial dbBurial = findedBurials.get(0);
-                    dbBurial.ContainerType = burial.ContainerType;
-                    dbBurial.Status = burial.Status;
+                    dbBurial = findedBurials.get(0);
+                    dbBurial.ContainerType = burial.ContainerType;                    
                     dbBurial.FName = burial.FName;
                     dbBurial.MName = burial.MName;
                     dbBurial.LName = burial.LName;
                     dbBurial.PlanDate = burial.PlanDate;
+                    dbBurial.Row = burial.Row;
                     if(dbBurial.Cemetery == null){
-                        List<Cemetery> cemeteryList = DB.dao(Cemetery.class).queryBuilder().where().eq(BaseDTO.COLUMN_SERVER_ID, burial.Cemetery.ServerId).query();
-                        if(cemeteryList.size() > 0){
-                            dbBurial.Cemetery = cemeteryList.get(0);
+                        dbBurial.Cemetery = dbCemetery;
+                    }
+                    if(dbBurial.Region == null){
+                        dbBurial.Region = dbRegion;
+                    }
+                    if(dbBurial.Place == null){
+                        dbBurial.Place = dbPlace;
+                    }
+                    if(dbBurial.Grave == null){
+                        dbBurial.Grave = dbGrave;
+                    }
+                    if(dbBurial.ResponsibleUser == null && burial.ResponsibleUser != null){
+                        if(dbResponsibleUser != null){
+                            burial.ResponsibleUser.Id = dbResponsibleUser.Id;
                         }
+                        responsibleUserDAO.createOrUpdate(burial.ResponsibleUser);
+                        dbBurial.ResponsibleUser = burial.ResponsibleUser;
                     }
                     burialDAO.update(dbBurial);
-                } else {
-                    List<Cemetery> cemeteryList = DB.dao(Cemetery.class).queryBuilder().where().eq(BaseDTO.COLUMN_SERVER_ID, burial.Cemetery.ServerId).query();
-                    Cemetery dbCemetery = null;
-                    if(cemeteryList.size() > 0){
-                        dbCemetery = cemeteryList.get(0);
-                    }
+                } else {                
                     burial.Cemetery = dbCemetery;
+                    burial.Region = dbRegion;
+                    burial.Place = dbPlace;
+                    burial.Grave = dbGrave;
+                    if(burial.ResponsibleUser != null){
+                        if(dbResponsibleUser != null){
+                            burial.ResponsibleUser.Id = dbResponsibleUser.Id;
+                        } 
+                        responsibleUserDAO.createOrUpdate(burial.ResponsibleUser);
+                    } else {
+                        burial.ResponsibleUser = null;
+                    }                    
                     burialDAO.create(burial);
                 }
             }

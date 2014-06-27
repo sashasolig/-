@@ -10,6 +10,7 @@ import java.util.List;
 
 import android.text.TextUtils;
 
+import com.coolchoice.monumentphoto.data.BaseDTO;
 import com.coolchoice.monumentphoto.data.Burial;
 import com.coolchoice.monumentphoto.data.Cemetery;
 import com.coolchoice.monumentphoto.data.ComplexGrave;
@@ -20,6 +21,7 @@ import com.coolchoice.monumentphoto.data.Photo;
 import com.coolchoice.monumentphoto.data.Place;
 import com.coolchoice.monumentphoto.data.PlacePhoto;
 import com.coolchoice.monumentphoto.data.Region;
+import com.coolchoice.monumentphoto.data.ResponsibleUser;
 import com.coolchoice.monumentphoto.data.Row;
 import com.j256.ormlite.dao.GenericRawResults;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
@@ -38,7 +40,7 @@ public class MonumentDB {
         }
         DB.dao(PlacePhoto.class).delete(placePhoto);
     }
-	
+		
 	public static ArrayList<PlacePhoto> getPhotos(Place place){
 	    ArrayList<PlacePhoto> photoList = new ArrayList<PlacePhoto>();
         for(PlacePhoto photo : place.Photos){                   
@@ -93,6 +95,20 @@ public class MonumentDB {
 		}
 		return listResults;
 	}
+	
+	public static ResponsibleUser getResponsibleUser(int serverId){
+	    ResponsibleUser user = null;
+        List<ResponsibleUser> users;
+        try {
+            users = DB.dao(ResponsibleUser.class).queryBuilder().where().eq(BaseDTO.COLUMN_SERVER_ID, serverId).query();
+            if(users.size() > 0){
+                user = users.get(0);
+            }
+        } catch (SQLException e) {            
+            e.printStackTrace();
+        }        
+        return user;
+    }
 		
 	//search Place by name
 	private String selectPlaceByName1 = "select distinct b.FName, b.MName, b.LName, p.Name, p.OldName, p.Id from burial b, grave g, place p, row row, region reg, cemetery c where b.Grave_id = g.id and g.Place_id = p.id and p.Row_id = row.id and row.Region_id = reg.Id and reg.Cemetery_id = c.Id and c.Id = %d and b.LName like '%s%%' ORDER BY b.LName LIMIT 20 OFFSET 0";

@@ -33,10 +33,10 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	
     private final String LOG_TAG = getClass().getSimpleName();
     
-    //public static final String DATABASE_NAME = "/mnt/sdcard/monument.db";
-    public static final String DATABASE_NAME = "monument.db";
+    public static final String DATABASE_NAME = "/mnt/sdcard/monument.db";
+    //public static final String DATABASE_NAME = "monument.db";
     
-    public static final int DATABASE_VERSION = 12;
+    public static final int DATABASE_VERSION = 13;
     
     private static final ArrayList<Class<?>> entityClassesArray = new ArrayList<Class<?>>();
 

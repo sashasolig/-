@@ -88,11 +88,23 @@ public class Burial extends BaseDTO {
 	@DatabaseField(foreign = true, foreignAutoRefresh = false, index = true)
     public Cemetery Cemetery;
 	
+	@DatabaseField(foreign = true, foreignAutoRefresh = false, index = true)
+    public Region Region;
+	
+	@DatabaseField(foreign = true, foreignAutoRefresh = false, index = true)
+    public Place Place;
+	
+	@DatabaseField
+    public String Row;
+	
 	@DatabaseField
     public Date PlanDate;
 	
 	@DatabaseField(dataType = DataType.ENUM_INTEGER)
     public StatusEnum Status;
+	
+	@DatabaseField(foreign = true, foreignAutoRefresh = false, index = true)
+    public ResponsibleUser ResponsibleUser;
 	
 	public void toLowerCaseFIO(){
 		if(this.FName != null){
