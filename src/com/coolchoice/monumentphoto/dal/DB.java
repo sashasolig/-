@@ -1,8 +1,6 @@
 package com.coolchoice.monumentphoto.dal;
 
 
-import java.util.UUID;
-
 import android.content.Context;
 
 import com.j256.ormlite.android.apptools.OpenHelperManager;

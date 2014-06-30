@@ -3,12 +3,17 @@ package com.coolchoice.monumentphoto.data;
 import java.util.Collection;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable
 public class Place extends BaseDTO {
+    
+    public static final String PLACE_LOGGER_PATTERN = "Region=%d, Row=%d, OldName=%s, IsOwnerLess=%b, Width=%f, Length=%f," +
+            "SizeViolatedDate=%s, UnindentifiedDate=%s, UnownedDate=%s, MilitaryDate=%s, WrongFIODate=%s";
 		
 	@DatabaseField
     public Date SizeViolatedDate;
@@ -70,6 +75,16 @@ public class Place extends BaseDTO {
 
     public boolean isWrongFIO(){
         return this.WrongFIODate != null ? true : false;
+    }
+    
+    @Override
+    public void toLog(Logger logger, LogOperation operation){
+        super.toLog(logger, operation); 
+        logger.info(String.format(PLACE_LOGGER_PATTERN, this.Region != null ? this.Region.Id : INT_NULL_VALUE, this.Row != null ? this.Row.Id : INT_NULL_VALUE,
+                this.OldName, this.IsOwnerLess, this.Width, this.Length,
+                this.SizeViolatedDate != null ? this.SizeViolatedDate.toGMTString() : NULL, this.UnindentifiedDate != null ? this.UnindentifiedDate.toGMTString() : NULL,
+                this.UnownedDate != null ? this.UnownedDate.toGMTString() : NULL, this.MilitaryDate != null ? this.MilitaryDate.toGMTString() : NULL,
+                this.WrongFIODate != null ? this.WrongFIODate.toGMTString() : NULL));        
     }
     
 }

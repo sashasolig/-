@@ -75,6 +75,7 @@ import com.coolchoice.monumentphoto.data.Region;
 import com.coolchoice.monumentphoto.data.ResponsibleUser;
 import com.coolchoice.monumentphoto.data.Row;
 import com.coolchoice.monumentphoto.data.SettingsData;
+import com.coolchoice.monumentphoto.data.ILogable.LogOperation;
 import com.coolchoice.monumentphoto.photomanager.ThreadManager;
 import com.coolchoice.monumentphoto.task.TaskResult;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
@@ -1290,6 +1291,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                 place.IsOwnerLess  = isChecked;
                 place.IsChanged = 1;
                 DB.dao(Place.class).update(place);
+                place.toLog(mFileLog, LogOperation.UPDATE);
                 
             }
         });
@@ -1305,7 +1307,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                 }
                 place.MilitaryDate  = militaryDate;
                 place.IsChanged = 1;
-                DB.dao(Place.class).update(place);          
+                DB.dao(Place.class).update(place);
+                place.toLog(mFileLog, LogOperation.UPDATE);
             }
         });
         
@@ -1320,7 +1323,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                 }
                 place.WrongFIODate  = wrongFIODate;
                 place.IsChanged = 1;
-                DB.dao(Place.class).update(place);      
+                DB.dao(Place.class).update(place);
+                place.toLog(mFileLog, LogOperation.UPDATE);
                 
             }
         });
@@ -1336,7 +1340,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                 }
                 place.SizeViolatedDate  = sizeVioletedate;
                 place.IsChanged = 1;
-                DB.dao(Place.class).update(place);      
+                DB.dao(Place.class).update(place);
+                place.toLog(mFileLog, LogOperation.UPDATE);
                 
             }
         });
@@ -1353,6 +1358,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                 place.UnindentifiedDate  = unindentifiedDate;
                 place.IsChanged = 1;
                 DB.dao(Place.class).update(place);
+                place.toLog(mFileLog, LogOperation.UPDATE);
             }
         });
         
@@ -1382,6 +1388,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                 place.Width = width;
                 place.IsChanged = 1;
                 DB.dao(Place.class).update(place);
+                place.toLog(mFileLog, LogOperation.UPDATE);
             }
         });
         
@@ -1411,6 +1418,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                 place.Length = length;
                 place.IsChanged = 1;
                 DB.dao(Place.class).update(place);
+                place.toLog(mFileLog, LogOperation.UPDATE);
             }
         });
 		
@@ -1869,7 +1877,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
         Place nextPlace = null;        
         RuntimeExceptionDao<Place, Integer> placeDAO = DB.dao(Place.class);        
         nextPlace = getPlaceForMakePhotoInNextPlace(filterOldPlaceName, complexGrave);      
-        placeDAO.createOrUpdate(nextPlace);       
+        placeDAO.createOrUpdate(nextPlace);
+        nextPlace.toLog(mFileLog, LogOperation.INSERT);
                
         complexGrave = new ComplexGrave();
         complexGrave.loadByPlaceId(nextPlace.Id);
@@ -2120,7 +2129,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	    if(status == ThreadManager.STATUS_DOWNLOAD_COMPLETE){	        
 	        dbPlacePhoto.UriString = placePhoto.UriString;
 	        dbPlacePhoto.ThumbnailUriString = placePhoto.ThumbnailUriString;
-	        DB.dao(PlacePhoto.class).update(dbPlacePhoto);	        
+	        DB.dao(PlacePhoto.class).update(dbPlacePhoto);
+	        dbPlacePhoto.toLog(mFileLog, LogOperation.UPDATE);
 	    }
 	    for(PhotoGridItem photoGridItem : gridPhotoItems){
 	        if(photoGridItem.getPlacePhoto() != null && photoGridItem.getPlacePhoto().Id == placePhoto.Id){
@@ -2137,7 +2147,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	    PlacePhoto dbPlacePhoto = DB.dao(PlacePhoto.class).queryForId(placePhoto.Id);
         if(status == ThreadManager.STATUS_CREATE_THUMBNAIL_COMPLETE){
             dbPlacePhoto.ThumbnailUriString = placePhoto.ThumbnailUriString;
-            DB.dao(PlacePhoto.class).update(dbPlacePhoto);          
+            DB.dao(PlacePhoto.class).update(dbPlacePhoto);
+            dbPlacePhoto.toLog(mFileLog, LogOperation.UPDATE);
         }
         for(PhotoGridItem photoGridItem : gridPhotoItems){
             if(photoGridItem.getPlacePhoto() != null && photoGridItem.getPlacePhoto().Id == placePhoto.Id){
@@ -2388,7 +2399,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                     } else {
                         placePhoto.Status = Photo.STATUS_FORMATE;
                     }
-                    DB.dao(PlacePhoto.class).create(placePhoto);                                                                        
+                    DB.dao(PlacePhoto.class).create(placePhoto);
+                    placePhoto.toLog(mFileLog, LogOperation.INSERT);
                     gridPhotoItems.clear();
                     mType = getIntent().getIntExtra(EXTRA_TYPE, -1);                
                     updateContent(mType, extraPlaceId);

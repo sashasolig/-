@@ -1,15 +1,7 @@
 package com.coolchoice.monumentphoto;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-
-import com.coolchoice.monumentphoto.dal.DB;
-import com.coolchoice.monumentphoto.dal.MonumentDB;
-import com.coolchoice.monumentphoto.data.Burial;
-import com.coolchoice.monumentphoto.data.Cemetery;
-import com.coolchoice.monumentphoto.data.ComplexGrave;
-import com.coolchoice.monumentphoto.data.Grave;
 
 import android.app.Activity;
 import android.content.Context;
@@ -27,7 +19,9 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import com.coolchoice.monumentphoto.dal.MonumentDB;
+import com.coolchoice.monumentphoto.data.ComplexGrave;
 
 public class PlaceSearchActivity extends Activity {
 	

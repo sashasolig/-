@@ -2,6 +2,8 @@ package com.coolchoice.monumentphoto.data;
 
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+
 import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
@@ -147,5 +149,16 @@ public class Burial extends BaseDTO {
 	            this.FName != null ? this.FName : "",
 	            this.MName != null ? this.MName : "");
 	}
+	
+	@Override
+    public void toLog(Logger logger, LogOperation operation){
+        super.toLog(logger, operation);
+        logger.info(String.format("Cemetery=%d, Region=%d, Row=%s, Place=%d, Grave=%d, PlanDate=%s, FactDate=%s, LName=%s, FName=%s, MName=%s, ContainerType=%s, Status=%s",
+                this.Cemetery != null ? this.Cemetery.Id : INT_NULL_VALUE, this.Region != null ? this.Region.Id : INT_NULL_VALUE,
+                this.Row, this.Place != null ? this.Place.Id : INT_NULL_VALUE, this.Grave != null ? this.Grave.Id : INT_NULL_VALUE,
+                this.PlanDate != null ? this.PlanDate.toGMTString() : NULL, this.FactDate != null ? this.FactDate.toGMTString() : NULL,
+                this.LName, this.FName, this.MName, this.ContainerType != null ? this.ContainerType.name() : NULL,
+                this.Status != null ? this.Status.name() : NULL));
+    }
 	
 }

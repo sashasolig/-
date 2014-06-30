@@ -8,8 +8,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import android.text.TextUtils;
 
+import com.coolchoice.monumentphoto.BrowserCemeteryActivity;
 import com.coolchoice.monumentphoto.data.BaseDTO;
 import com.coolchoice.monumentphoto.data.Burial;
 import com.coolchoice.monumentphoto.data.Cemetery;
@@ -23,12 +26,15 @@ import com.coolchoice.monumentphoto.data.PlacePhoto;
 import com.coolchoice.monumentphoto.data.Region;
 import com.coolchoice.monumentphoto.data.ResponsibleUser;
 import com.coolchoice.monumentphoto.data.Row;
+import com.coolchoice.monumentphoto.data.ILogable.LogOperation;
 import com.j256.ormlite.dao.GenericRawResults;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
 
-public class MonumentDB {		
+public class MonumentDB {
 	
-	public static void deletePlacePhoto(PlacePhoto placePhoto){
+    protected final static Logger mFileLog = Logger.getLogger(BrowserCemeteryActivity.class);
+    
+ 	public static void deletePlacePhoto(PlacePhoto placePhoto){
         DB.dao(PlacePhoto.class).refresh(placePhoto);
         if(placePhoto.ServerId > 0){
             DeletedObject deletedObject = new DeletedObject();
@@ -37,6 +43,7 @@ public class MonumentDB {
             deletedObject.TypeId = DeletedObjectType.PLACEPHOTO;
             DB.dao(DeletedObject.class).create(deletedObject);
         }
+        placePhoto.toLog(mFileLog, LogOperation.DELETE);
         DB.dao(PlacePhoto.class).delete(placePhoto);
     }
 		
@@ -154,6 +161,7 @@ public class MonumentDB {
 		if(photoFolder != null){
 			deleteFolder(photoFolder);
 		}
+		complexGrave.Cemetery.toLog(mFileLog, LogOperation.DELETE);
 		DB.dao(Cemetery.class).deleteById(cemeteryId);
 		deleteNonLinkedRegion();
 		deleteNonLinkedRow();
@@ -169,7 +177,7 @@ public class MonumentDB {
 		if(photoFolder != null){
 			deleteFolder(photoFolder);
 		}
-		
+		complexGrave.Region.toLog(mFileLog, LogOperation.DELETE);
 		DB.dao(Region.class).deleteById(regionId);
 		deleteNonLinkedRow();
 		deleteNonLinkedPlace();
@@ -184,7 +192,7 @@ public class MonumentDB {
 		if(photoFolder != null){
 			deleteFolder(photoFolder);
 		}
-		
+		complexGrave.Row.toLog(mFileLog, LogOperation.DELETE);
 		DB.dao(Row.class).deleteById(rowId);
 		deleteNonLinkedPlace();
 		deleteNonLinkedGrave();
@@ -198,7 +206,7 @@ public class MonumentDB {
 		if(photoFolder != null){
 			deleteFolder(photoFolder);
 		}
-		
+		complexGrave.Place.toLog(mFileLog, LogOperation.DELETE);
 		DB.dao(Place.class).deleteById(placeId);
 		deleteNonLinkedGrave();
 		deleteNonLinkedPhoto();
@@ -213,7 +221,7 @@ public class MonumentDB {
     			deleteFolder(photoFolder);
     		}
 		}
-		
+		complexGrave.Grave.toLog(mFileLog, LogOperation.DELETE);
 		DB.dao(Grave.class).deleteById(graveId);
 		deleteNonLinkedPhoto();
 	}

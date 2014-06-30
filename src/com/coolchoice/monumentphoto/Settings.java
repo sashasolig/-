@@ -1,10 +1,6 @@
 package com.coolchoice.monumentphoto;
 
 import java.io.File;
-import java.net.ServerSocket;
-import java.util.regex.Pattern;
-
-import com.coolchoice.monumentphoto.data.SettingsData;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -18,7 +14,8 @@ import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Environment;
-import android.util.Log;
+
+import com.coolchoice.monumentphoto.data.SettingsData;
 
 public class Settings {
 	

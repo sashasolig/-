@@ -8,6 +8,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
+import org.apache.log4j.Logger;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -33,6 +35,7 @@ import com.coolchoice.monumentphoto.data.ComplexGrave;
 import com.coolchoice.monumentphoto.data.Grave;
 import com.coolchoice.monumentphoto.data.ResponsibleUser;
 import com.coolchoice.monumentphoto.data.SettingsData;
+import com.coolchoice.monumentphoto.data.ILogable.LogOperation;
 import com.coolchoice.monumentphoto.task.TaskResult;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
 
@@ -53,6 +56,8 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
     private int mGraveId;
     
     private static Date mLastSyncDate = null;
+    
+    protected final Logger mFileLog = Logger.getLogger(BurialPlanActivity.class);
 
     private void updateOptionsMenu() {
         if (this.mOptionsMenu == null)
@@ -363,6 +368,7 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
                 item.setBurial(dbBurial);
                 break;
             }
+            dbBurial.toLog(mFileLog, LogOperation.UPDATE);
             notifyDataSetChanged();            
         }
     }

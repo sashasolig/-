@@ -2,7 +2,6 @@ package com.coolchoice.monumentphoto;
 
 import java.sql.SQLException;
 import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,7 +11,19 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import ru.yandex.yandexmapkit.utils.Utils;
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.data.BaseDTO;
@@ -28,26 +39,11 @@ import com.coolchoice.monumentphoto.data.Grave;
 import com.coolchoice.monumentphoto.data.Place;
 import com.coolchoice.monumentphoto.data.Region;
 import com.coolchoice.monumentphoto.data.Row;
+import com.coolchoice.monumentphoto.data.ILogable.LogOperation;
 import com.coolchoice.monumentphoto.map.AddGPSActivity;
-import com.coolchoice.monumentphoto.task.BaseTask;
 import com.coolchoice.monumentphoto.util.FindingSquare;
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.stmt.QueryBuilder;
-
-import android.app.Activity;
-import android.content.Intent;
-import android.os.Bundle;
-import android.text.TextUtils;
-import android.view.TextureView;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 public class AddObjectActivity extends Activity {
 	
@@ -79,8 +75,6 @@ public class AddObjectActivity extends Activity {
 	private TextView tvCemeterySquare, tvRegionSquare;
 	private Double mCemeterySquare = null, mRegionSquare = null;
 		
-	//private CheckBox cbIsGraveWrongFIO, cbIsGraveMilitary;
-	
 	private LinearLayout llCemetery, llRegion, llRow, llPlace, llGrave;
 	
 	private Button btnNewToOldPlace, btnFindOldPlace;
@@ -618,7 +612,8 @@ public class AddObjectActivity extends Activity {
 				cemetery.Square = mCemeterySquare;
 				cemetery.IsChanged = 1;
 				DB.dao(Cemetery.class).update(cemetery);
-				ComplexGrave.renameCemetery(cemetery, oldCemeteryName);				
+				ComplexGrave.renameCemetery(cemetery, oldCemeteryName);
+				cemetery.toLog(this.mFileLog, LogOperation.UPDATE);
 			}
 		} else {
 			//create
@@ -627,6 +622,7 @@ public class AddObjectActivity extends Activity {
 			cemetery.Square = mCemeterySquare;
 			cemetery.IsChanged = 1;
 			DB.dao(Cemetery.class).create(cemetery);
+			cemetery.toLog(this.mFileLog, LogOperation.INSERT);
 			this.mId = cemetery.Id;
 			setNewIdInExtras(EXTRA_ID, mId);
 		}
@@ -673,6 +669,7 @@ public class AddObjectActivity extends Activity {
 				region.IsChanged = 1;
 				DB.dao(Region.class).update(region);
 				ComplexGrave.renameRegion(region, oldRegionName);
+				region.toLog(this.mFileLog, LogOperation.UPDATE);
 			}
 		} else {
 			//create
@@ -682,6 +679,7 @@ public class AddObjectActivity extends Activity {
 			region.Square = mRegionSquare;
 			region.IsChanged = 1;
 			DB.dao(Region.class).create(region);
+			region.toLog(this.mFileLog, LogOperation.INSERT);
 			this.mId = region.Id;
 			setNewIdInExtras(EXTRA_ID, mId);
 		}
@@ -727,6 +725,7 @@ public class AddObjectActivity extends Activity {
 				row.IsChanged = 1;
 				DB.dao(Row.class).update(row);
 				ComplexGrave.renameRow(row, oldRowName);
+				row.toLog(this.mFileLog, LogOperation.UPDATE);
 			}
 		} else {
 			//create
@@ -735,6 +734,7 @@ public class AddObjectActivity extends Activity {
 			row.Name = etRow.getText().toString();
 			row.IsChanged = 1;
 			DB.dao(Row.class).create(row);
+			row.toLog(this.mFileLog, LogOperation.INSERT);
 			this.mId = row.Id;
 			setNewIdInExtras(EXTRA_ID, mId);
 		}
@@ -835,7 +835,8 @@ public class AddObjectActivity extends Activity {
             DB.dao(Place.class).update(dbPlace);
             if(isRenamePlace){
                 ComplexGrave.renamePlace(dbPlace, previousPlaceName);
-            }		
+            }
+            dbPlace.toLog(this.mFileLog, LogOperation.UPDATE);
 			
 		} else {
 			Place newPlace = new Place();						
@@ -853,6 +854,7 @@ public class AddObjectActivity extends Activity {
 			newPlace.Width = placeSizes[1];			
 			newPlace.IsChanged = 1;
 			DB.dao(Place.class).create(newPlace);
+			newPlace.toLog(this.mFileLog, LogOperation.INSERT);
 			this.mId = newPlace.Id;
 			setNewIdInExtras(EXTRA_ID, mId);
 		}
@@ -910,8 +912,8 @@ public class AddObjectActivity extends Activity {
             DB.dao(Place.class).update(dbPlace);
             if(isRenamePlace){
                 ComplexGrave.renamePlace(dbPlace, previousPlaceName);
-            }						
-			
+            }
+            dbPlace.toLog(this.mFileLog, LogOperation.UPDATE);			
 		} else {
 			Place newPlace = new Place();
 			newPlace.Row = null;
@@ -928,6 +930,7 @@ public class AddObjectActivity extends Activity {
 			newPlace.Width = placeSizes[1];			
 			newPlace.IsChanged = 1;			
 			DB.dao(Place.class).create(newPlace);
+			newPlace.toLog(this.mFileLog, LogOperation.INSERT);
 			this.mId = newPlace.Id;
 			setNewIdInExtras(EXTRA_ID, mId);
 		}
@@ -1004,6 +1007,7 @@ public class AddObjectActivity extends Activity {
             if(isRenameGrave){
                 ComplexGrave.renameGrave(dbGrave, previousGraveName);
             }
+            dbGrave.toLog(this.mFileLog, LogOperation.UPDATE);
 			
 			dbPlace.IsOwnerLess = this.cbPlaceUnowned.isChecked();
 			dbPlace.UnownedDate = unownedDate;
@@ -1014,7 +1018,8 @@ public class AddObjectActivity extends Activity {
 			dbPlace.Length = placeSizes[0];
 			dbPlace.Width = placeSizes[1];
 			dbPlace.IsChanged = 1;
-			DB.dao(Place.class).createOrUpdate(dbPlace);						
+			DB.dao(Place.class).createOrUpdate(dbPlace);
+			dbPlace.toLog(this.mFileLog, LogOperation.UPDATE);
 					
 		} else {			
 			
@@ -1028,6 +1033,7 @@ public class AddObjectActivity extends Activity {
             dbPlace.Width = placeSizes[1];
             dbPlace.IsChanged = 1;
             DB.dao(Place.class).createOrUpdate(dbPlace);
+            dbPlace.toLog(this.mFileLog, LogOperation.UPDATE);
 			
 			Grave newGrave = new Grave();
 			newGrave.Place = dbPlace;
@@ -1036,6 +1042,7 @@ public class AddObjectActivity extends Activity {
 			newGrave.IsWrongFIO = cbPlaceWrongFIO.isChecked();
 			newGrave.IsChanged = 1;
 			DB.dao(Grave.class).create(newGrave);
+			newGrave.toLog(this.mFileLog, LogOperation.INSERT);
 			this.mId = newGrave.Id;
 			setNewIdInExtras(EXTRA_ID, mId);
 		}

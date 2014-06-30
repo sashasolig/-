@@ -4,6 +4,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -47,7 +49,9 @@ public class CemeteryListActivity extends Activity implements SyncTaskHandler.Sy
 	
 	private static SyncTaskHandler mSyncTaskHandler;
 	
-	private Menu mOptionsMenu;	
+	private Menu mOptionsMenu;
+	
+	protected final Logger mFileLog = Logger.getLogger(CemeteryListActivity.class);
 	
 	private void updateOptionsMenu() {
 		if(this.mOptionsMenu == null) return;
