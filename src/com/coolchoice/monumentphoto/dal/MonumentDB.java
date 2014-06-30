@@ -26,8 +26,7 @@ import com.coolchoice.monumentphoto.data.Row;
 import com.j256.ormlite.dao.GenericRawResults;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
 
-public class MonumentDB {
-		
+public class MonumentDB {		
 	
 	public static void deletePlacePhoto(PlacePhoto placePhoto){
         DB.dao(PlacePhoto.class).refresh(placePhoto);
@@ -109,6 +108,32 @@ public class MonumentDB {
         }        
         return user;
     }
+	
+	public static String getCurrentAddress(Burial burial){
+	    String result = null;
+	    boolean isInit = false;
+	    ComplexGrave complexGrave = new ComplexGrave();
+	    if(burial.Grave != null && !isInit){
+	        complexGrave.loadByGraveId(burial.Grave.Id);
+	        isInit = true;
+	    }
+	    if(burial.Place != null && !isInit){
+	        complexGrave.loadByPlaceId(burial.Place.Id);
+	        isInit = true;
+	    }
+	    if(burial.Region != null && !isInit){
+	        complexGrave.loadByRegionId(burial.Region.Id);
+	        isInit = true;
+	    }
+	    if(burial.Cemetery != null && !isInit){
+	        complexGrave.loadByCemeteryId(burial.Cemetery.Id);
+	        isInit = true;
+	    }	    
+	    if(isInit){
+	        result = complexGrave.toString();
+	    }
+	    return result;
+	}
 		
 	//search Place by name
 	private String selectPlaceByName1 = "select distinct b.FName, b.MName, b.LName, p.Name, p.OldName, p.Id from burial b, grave g, place p, row row, region reg, cemetery c where b.Grave_id = g.id and g.Place_id = p.id and p.Row_id = row.id and row.Region_id = reg.Id and reg.Cemetery_id = c.Id and c.Id = %d and b.LName like '%s%%' ORDER BY b.LName LIMIT 20 OFFSET 0";

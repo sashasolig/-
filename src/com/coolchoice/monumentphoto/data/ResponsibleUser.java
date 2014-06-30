@@ -51,10 +51,10 @@ public class ResponsibleUser {
 	@DatabaseField
 	public String Street;
 	
-	/*{"last_name": "", "first_name": "", "middle_name": "", "phones": "", "login_phone": null,
-		"address": {"house": "12", "block": "", "building": "", "flat": "31", 
-		"country": {"name": ""}, 
-		"region": {"name": ""}, 
-		"city": {"name": ""}, "street": {"name": ""}}}*/
+	public String getFIO(){
+        return String.format("%s %s %s", this.LastName != null ? this.LastName : "",
+                this.FirstName != null ? this.FirstName : "",
+                this.MiddleName != null ? this.MiddleName : "");
+    }
 
 }

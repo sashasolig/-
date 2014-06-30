@@ -24,6 +24,13 @@
 	        android:singleLine="false"
 	        android:layout_margin="5dp"
 	        style="@style/tvBurialItem" />
+    	<TextView
+	        android:id="@+id/tvResponsibleUser"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:singleLine="false"
+	        android:layout_margin="5dp"
+	        style="@style/tvBurialItem" />
     </LinearLayout>
     
     <LinearLayout 
@@ -50,7 +57,14 @@
 	        android:layout_height="wrap_content"	        
 	        android:padding="5dp"
 	        android:text="@string/burial_close"
-	        style="@android:style/Widget.Button" /> 
+	        style="@android:style/Widget.Button" />
+    	<TextView
+	        android:id="@+id/tvCurrentBinding"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:singleLine="false"
+	        android:layout_margin="5dp"
+	        style="@style/tvBurialItem" />
     </LinearLayout>
 
     

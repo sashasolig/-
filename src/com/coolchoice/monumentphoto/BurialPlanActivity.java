@@ -5,7 +5,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -13,15 +12,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.BaseAdapter;
 import android.widget.Button;
@@ -30,17 +25,16 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.coolchoice.monumentphoto.SyncTaskHandler.OperationType;
-import com.coolchoice.monumentphoto.SyncTaskHandler.SyncCompleteListener;
 import com.coolchoice.monumentphoto.dal.DB;
+import com.coolchoice.monumentphoto.dal.MonumentDB;
 import com.coolchoice.monumentphoto.data.BaseDTO;
 import com.coolchoice.monumentphoto.data.Burial;
-import com.coolchoice.monumentphoto.data.Cemetery;
 import com.coolchoice.monumentphoto.data.ComplexGrave;
 import com.coolchoice.monumentphoto.data.Grave;
+import com.coolchoice.monumentphoto.data.ResponsibleUser;
 import com.coolchoice.monumentphoto.data.SettingsData;
 import com.coolchoice.monumentphoto.task.TaskResult;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
-import com.j256.ormlite.stmt.QueryBuilder;
 
 public class BurialPlanActivity extends Activity implements SyncTaskHandler.SyncCompleteListener {
     
@@ -104,7 +98,8 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
     }
     
     private void updateBurialPlanListView(){               
-        RuntimeExceptionDao<Burial, Integer> burialDao = DB.dao(Burial.class); 
+        RuntimeExceptionDao<Burial, Integer> burialDao = DB.dao(Burial.class);
+        RuntimeExceptionDao<ResponsibleUser, Integer> responsibleDao = DB.dao(ResponsibleUser.class); 
         List<Burial> burials = null;
         try {
             burials = burialDao.queryBuilder().orderBy(Burial.PLANDATE_COLUMN_NAME, true).where().eq(Burial.STATUS_COLUMN_NAME, Burial.StatusEnum.APPROVED).query();
@@ -116,6 +111,9 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
         if(burials.size() > 0){
             for(int i = 0; i < burials.size(); i++){
                 Burial burial = burials.get(i);
+                if(burial.ResponsibleUser != null){
+                    responsibleDao.refresh(burial.ResponsibleUser);
+                }
                 if((currentDate == null) || (burial.PlanDate.getTime() / (86400  * 1000)) != (currentDate.getTime() / (86400  * 1000))){
                     currentDate = burial.PlanDate;
                     BurialItem item = new BurialItem();
@@ -136,6 +134,9 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
 
     @Override
     public void onComplete(OperationType operationType, TaskResult taskResult) {
+        if(!taskResult.isError()){
+            mLastSyncDate = new Date();
+        }
         this.updateBurialPlanListView();
     }
 
@@ -149,8 +150,7 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
     
     private void autoGetData(){
         Date curDate = new Date();
-        if(mLastSyncDate == null || (curDate.getTime() - mLastSyncDate.getTime()) > (3 * 60 * 60 * 1000)){
-            mLastSyncDate = curDate;
+        if(mLastSyncDate == null || (curDate.getTime() - mLastSyncDate.getTime()) > (3 * 60 * 60 * 1000)){            
             actionGet();
         }
     }
@@ -266,6 +266,8 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
                 Burial burial = item.getBurial();
                 TextView tvFIO = (TextView) convertView.findViewById(R.id.tvFIO);
                 TextView tvBurialPlanDate = (TextView) convertView.findViewById(R.id.tvBurialPlanDate);
+                TextView tvResponsibleUser = (TextView) convertView.findViewById(R.id.tvResponsibleUser);
+                TextView tvCurrentBinding = (TextView) convertView.findViewById(R.id.tvCurrentBinding);
                 Button btnBind = (Button) convertView.findViewById(R.id.btnBind);
                 Button btnUnbind = (Button) convertView.findViewById(R.id.btnUnbind);
                 Button btnClose = (Button) convertView.findViewById(R.id.btnClose);
@@ -278,6 +280,12 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
                 burial.toUpperFirstCharacterInFIO();
                 tvFIO.setText(burial.getFIO());
                 tvBurialPlanDate.setText(mItemDateFormat.format(burial.PlanDate));
+                if(burial.ResponsibleUser != null){
+                    tvResponsibleUser.setText(String.format("Ответственный: %s", burial.ResponsibleUser.getFIO()));
+                } else {
+                    tvResponsibleUser.setText("Нет ответственного лица");
+                }
+                tvCurrentBinding.setText(MonumentDB.getCurrentAddress(burial));
                 if(!BaseDTO.isNullValue(mGraveId)){
                     if(burial.Status == Burial.StatusEnum.APPROVED){                        
                         if(burial.Grave != null){
@@ -327,6 +335,9 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
             int position = (Integer) btn.getTag();
             BurialItem item = (BurialItem) getItem(position);
             Burial dbBurial = DB.dao(Burial.class).queryForId(item.getBurial().Id);
+            if(dbBurial.ResponsibleUser != null){
+                DB.dao(ResponsibleUser.class).queryForId(dbBurial.ResponsibleUser.Id);
+            }
             Grave dbGrave = DB.dao(Grave.class).queryForId(mGraveId);            
             switch (btn.getId()) {
             case R.id.btnBind:                
