@@ -391,6 +391,8 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 		}
 		String responseString = null;
 		try{
+		    String infoMessage = url + " " + dictPostData.toString();
+		    mFileLog.info(infoMessage);
 			responseString = postHTTPRequest(url, multipartEntity);
 		} catch (ServerException exc){
 			if(!exc.isIOException()){
