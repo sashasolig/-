@@ -2,6 +2,7 @@ package com.coolchoice.monumentphoto.task;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,6 +32,11 @@ public class LoginTask extends BaseTask {
 	private final static String KEY_CSRFMIDDLETOKEN = "csrfmiddlewaretoken";
 	private final static String KEY_USERNAME = "username";
 	private final static String KEY_PASSWORD = "password";
+	
+	private static final int LIVE_TIME_TOKEN_MS = 5 * 60 * 1000; //5 min
+	private static Date mLastSuccessLoginDate = null;
+	private static String mLastSuccessUrl = null;
+	private static String mLastSuccessUserName = null;
 			
 	private String csrfToken = null;
 	
@@ -58,11 +64,19 @@ public class LoginTask extends BaseTask {
     protected TaskResult doInBackground(String... params) {
     	TaskResult result = new TaskResult();
     	result.setTaskName(Settings.TASK_LOGIN);
-    	result.setStatus(TaskResult.Status.OK);
+    	result.setStatus(TaskResult.Status.OK);    	
         try {
         	String url = params[0];
         	this.userName = params[1];
-            this.password = params[2];        	
+            this.password = params[2];
+            Date now = new Date();
+            if(mLastSuccessLoginDate != null && (this.mLastSuccessLoginDate.getTime() + LIVE_TIME_TOKEN_MS) > now.getTime() &&
+            		url.equals(mLastSuccessUrl) && this.userName.equals(mLastSuccessUserName)){
+            	result.setError(false);
+                result.setStatus(TaskResult.Status.LOGIN_SUCCESSED);
+                mLastSuccessLoginDate = now;
+                return result;            	
+            }
             HttpClient client = new DefaultHttpClient();
             if(WebHttpsClient.isHttps(url)){
                 client = WebHttpsClient.wrapClient(client);
@@ -89,22 +103,34 @@ public class LoginTask extends BaseTask {
 		        SettingsData settingsData = parseUserDataJSON(userResponseDataJSON);
 		        if(settingsData != null){
 		            this.settingsData = settingsData;
+		            Settings.setPDSession(this.settingsData.Session);
+					Settings.setToken(this.settingsData.Token);					
 		            result.setError(false);
 	                result.setStatus(TaskResult.Status.LOGIN_SUCCESSED);
+	                mLastSuccessLoginDate = new Date();
+	                mLastSuccessUrl = url;
+	                mLastSuccessUserName = this.userName;
 		        } else {
 		            result.setError(true);
-                    result.setStatus(TaskResult.Status.LOGIN_FAILED);
+                    result.setStatus(TaskResult.Status.LOGIN_FAILED);                    
 		        }
 		        
 			} else {
 			    result.setError(true);
-                result.setStatus(TaskResult.Status.SERVER_UNAVALAIBLE);
+                result.setStatus(TaskResult.Status.SERVER_UNAVALAIBLE);                
 			}
         	
         } catch (Exception e) {                
             result.setError(true);
-    		result.setStatus(TaskResult.Status.SERVER_UNAVALAIBLE);
+    		result.setStatus(TaskResult.Status.SERVER_UNAVALAIBLE);    		
     	}
+        if(result.isError()){
+        	Settings.setPDSession(null);
+			Settings.setToken(null);
+			mLastSuccessLoginDate = null;
+			mLastSuccessUrl = null;
+			mLastSuccessUserName = null;
+        }
         return result;
     }
     
