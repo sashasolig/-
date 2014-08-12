@@ -247,7 +247,7 @@ public class AddObjectActivity extends Activity {
 			(this.mId < 0 && this.mParentId > 0 && this.etPlace.getText().length() == 0)){
 			if(this.mType == ADD_PLACE_WITHOUTROW){				
 				try {
-					PreparedQuery<Place> query = DB.dao(Place.class).queryBuilder().orderByRaw(BaseDTO.ORDER_BY_DESC_COLUMN_NAME).where().eq("Region_id", this.mParentId).prepare();
+					PreparedQuery<Place> query = DB.dao(Place.class).queryBuilder().orderByRaw(BaseDTO.ORDER_BY_DESC_COLUMN_NAME).where().eq(Place.REGION_ID_COLUMN, this.mParentId).prepare();
 					List<Place> list = DB.dao(Place.class).query(query);
 					if(list.size() > 0){
 						nextPlaceName = list.get(0).Name;
@@ -258,7 +258,7 @@ public class AddObjectActivity extends Activity {
 			}
 			if(this.mType == ADD_PLACE_WITHROW){
 				try {
-					PreparedQuery<Place> query = DB.dao(Place.class).queryBuilder().orderByRaw(BaseDTO.ORDER_BY_DESC_COLUMN_NAME).where().eq("Row_id", this.mParentId).prepare();
+					PreparedQuery<Place> query = DB.dao(Place.class).queryBuilder().orderByRaw(BaseDTO.ORDER_BY_DESC_COLUMN_NAME).where().eq(Place.ROW_ID_COLUMN, this.mParentId).prepare();
 					List<Place> list = DB.dao(Place.class).query(query);
 					if(list.size() > 0){
 						nextPlaceName = list.get(0).Name;
@@ -692,7 +692,7 @@ public class AddObjectActivity extends Activity {
 		}
 		QueryBuilder<Row, Integer> builder = DB.dao(Row.class).queryBuilder();
 		try {
-			builder.where().eq("Region_id", region.Id).and().eq("Name", newRowName).and().ne("Id", curRowId);
+			builder.where().eq(Place.REGION_ID_COLUMN, region.Id).and().eq("Name", newRowName).and().ne("Id", curRowId);
 			List<Row> findedRows = DB.dao(Row.class).query(builder.prepare());
 			if(findedRows.size() > 0){
 				return false;
@@ -748,9 +748,9 @@ public class AddObjectActivity extends Activity {
 		QueryBuilder<Place, Integer> builder = DB.dao(Place.class).queryBuilder();
 		try {
 			if(row != null){
-				builder.where().eq("Row_id", row.Id).and().eq("Name", newPlaceName).and().ne("Id", curPlaceId);
+				builder.where().eq(Place.ROW_ID_COLUMN, row.Id).and().eq("Name", newPlaceName).and().ne("Id", curPlaceId);
 			} else {
-				builder.where().eq("Region_id", region.Id).and().eq("Name", newPlaceName).and().ne("Id", curPlaceId);
+				builder.where().eq(Place.REGION_ID_COLUMN, region.Id).and().eq("Name", newPlaceName).and().ne("Id", curPlaceId);
 			}
 			List<Place> findedPlaces = DB.dao(Place.class).query(builder.prepare());
 			if(findedPlaces.size() > 0){
@@ -1067,7 +1067,7 @@ public class AddObjectActivity extends Activity {
 		case AddObjectActivity.ADD_REGION:
 			try {
 				QueryBuilder<GPSRegion, Integer> qbGPSRegion = DB.dao(GPSRegion.class).queryBuilder();
-				qbGPSRegion.orderBy(GPS.ORDINAL_COLUMN, true).where().eq("Region_id", mId);
+				qbGPSRegion.orderBy(GPS.ORDINAL_COLUMN, true).where().eq(Place.REGION_ID_COLUMN, mId);
 				List<GPSRegion> tempGPSRegionList = DB.dao(GPSRegion.class).query(qbGPSRegion.prepare());
 				for(GPSRegion gpsRegion: tempGPSRegionList){
 					dbGPSList.add(gpsRegion);
@@ -1079,7 +1079,7 @@ public class AddObjectActivity extends Activity {
 		case AddObjectActivity.ADD_ROW:
 			try {
 				QueryBuilder<GPSRow, Integer> qbGPSRow = DB.dao(GPSRow.class).queryBuilder();
-				qbGPSRow.orderBy(GPS.ORDINAL_COLUMN, true).where().eq("Row_id", mId);
+				qbGPSRow.orderBy(GPS.ORDINAL_COLUMN, true).where().eq(Place.ROW_ID_COLUMN, mId);
 				List<GPSRow> tempGPSRowList = DB.dao(GPSRow.class).query(qbGPSRow.prepare());
 				for(GPSRow gpsRow: tempGPSRowList){
 					dbGPSList.add(gpsRow);
@@ -1179,7 +1179,7 @@ public class AddObjectActivity extends Activity {
 	}
 	
     private void saveGPSRegion(Region region, List<GPS> gpsList){
-		List<GPSRegion> deletedGPS = DB.dao(GPSRegion.class).queryForEq("Region_id", region.Id);
+		List<GPSRegion> deletedGPS = DB.dao(GPSRegion.class).queryForEq(Place.REGION_ID_COLUMN, region.Id);
 		DB.dao(GPSRegion.class).delete(deletedGPS);
 		for(GPS gps : gpsList){
 			GPSRegion gpsRegion = new GPSRegion();
@@ -1195,7 +1195,7 @@ public class AddObjectActivity extends Activity {
 	}
 	
 	private void saveGPSRow(Row row, List<GPS> gpsList){
-		List<GPSRow> deletedGPS = DB.dao(GPSRow.class).queryForEq("Row_id", row.Id);
+		List<GPSRow> deletedGPS = DB.dao(GPSRow.class).queryForEq(Place.ROW_ID_COLUMN, row.Id);
 		DB.dao(GPSRow.class).delete(deletedGPS);
 		for(GPS gps : gpsList){			
 			GPSRow gpsRow = new GPSRow();

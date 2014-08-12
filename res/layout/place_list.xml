@@ -15,6 +15,13 @@
 	        android:layout_height="wrap_content"
 	        android:text="Добавить место"
 	        android:drawableBottom="@android:drawable/ic_menu_add" />
+	    <Button
+	        android:id="@+id/btnInvertPlaceOrder"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="Обратить номера мест"
+	        android:layout_marginLeft="10dp"
+	        android:drawableBottom="@android:drawable/ic_menu_revert" />
 	</LinearLayout>
     <GridView
         android:id="@+id/gvPlaces"

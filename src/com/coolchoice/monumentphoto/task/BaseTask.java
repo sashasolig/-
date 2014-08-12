@@ -623,7 +623,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 			
 			if(region.IsGPSChanged == 0 && region.GPSRegionList != null){
 				DeleteBuilder<GPSRegion, Integer> deleteBuilderGPS = gpsRegionDao.deleteBuilder();					
-				deleteBuilderGPS.where().eq("Region_id", region.Id);
+				deleteBuilderGPS.where().eq(Place.REGION_ID_COLUMN, region.Id);
 				gpsRegionDao.delete(deleteBuilderGPS.prepare());
 				for(GPSRegion gps : region.GPSRegionList){
 					gps.Region = region;
@@ -930,7 +930,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 							Region dbRegion = null;
 							dbRegion =  regionDAO.queryForEq(BaseDTO.COLUMN_SERVER_ID, place.Row.ParentServerId).get(0);
 							rowBuilder = rowDAO.queryBuilder();
-							rowBuilder.where().eq("Region_id", dbRegion.Id).and().eq(BaseDTO.COLUMN_NAME, place.Row.Name);
+							rowBuilder.where().eq(Place.REGION_ID_COLUMN, dbRegion.Id).and().eq(BaseDTO.COLUMN_NAME, place.Row.Name);
 							findedRow = rowDAO.query(rowBuilder.prepare());
 							if(findedRow.size() > 0){
 								dbRow = findedRow.get(0);
@@ -992,7 +992,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         	
 			if(place.Row != null){
 				QueryBuilder<Row, Integer> rowBuilder = rowDAO.queryBuilder();
-				rowBuilder.where().eq("Region_id", dbRegion.Id).and().eq(BaseDTO.COLUMN_NAME, rowName);
+				rowBuilder.where().eq(Place.REGION_ID_COLUMN, dbRegion.Id).and().eq(BaseDTO.COLUMN_NAME, rowName);
 				List<Row> findedRows = rowDAO.query(rowBuilder.prepare());
 				if(findedRows.size() > 0){
 					dbRow = findedRows.get(0);
@@ -1001,7 +1001,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 				}
 				
 				QueryBuilder<Place, Integer> placeBuilder = placeDAO.queryBuilder();
-				placeBuilder.where().eq("Row_id", dbRow.Id).and().eq(BaseDTO.COLUMN_NAME, placeName);
+				placeBuilder.where().eq(Place.ROW_ID_COLUMN, dbRow.Id).and().eq(BaseDTO.COLUMN_NAME, placeName);
 				List<Place> findedPlace = placeDAO.query(placeBuilder.prepare());
 				if(findedPlace.size() > 0 ){
 					dbPlace = findedPlace.get(0);
@@ -1011,7 +1011,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 				
 			} else {
 				QueryBuilder<Place, Integer> placeBuilder = placeDAO.queryBuilder();
-				placeBuilder.where().eq("Region_id", dbRegion.Id).and().eq(BaseDTO.COLUMN_NAME, placeName);
+				placeBuilder.where().eq(Place.REGION_ID_COLUMN, dbRegion.Id).and().eq(BaseDTO.COLUMN_NAME, placeName);
 				List<Place> findedPlaces = placeDAO.query(placeBuilder.prepare());
 				if(findedPlaces.size() > 0){
 					dbPlace = findedPlaces.get(0);

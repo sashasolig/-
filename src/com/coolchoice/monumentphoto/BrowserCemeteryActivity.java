@@ -1054,6 +1054,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		this.btnLinkPlace.setVisibility(View.GONE);
 		this.btnLinkGrave.setVisibility(View.GONE);
 		Button btnAddPlace = (Button) contentView.findViewById(R.id.btnAddPlace);
+		Button btnInvertPlaceOrder = (Button) contentView.findViewById(R.id.btnInvertPlaceOrder);
 		this.mGVPlace = (GridView) contentView.findViewById(R.id.gvPlaces);
 		registerForContextMenu(this.mGVPlace);
 		List<Place> places = getPlaces(rowId);
@@ -1074,6 +1075,17 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 			}
 		});
 		
+		boolean isPossibleInvertOrder = isPossibleInvertPlaceOrder(rowId);
+		btnInvertPlaceOrder.setEnabled(isPossibleInvertOrder);
+		btnInvertPlaceOrder.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				invertPlaceOrder(mRowId);
+				updateContent(AddObjectActivity.ADD_ROW, mRowId);
+			}
+		});
+		
 		mGVPlace.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
 			@Override
@@ -1091,6 +1103,42 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 			}
 		});		
 		
+	}
+	
+	private boolean isPossibleInvertPlaceOrder(int rowId){
+		boolean result = false;
+		try {
+	        long clientPlaceCount = DB.dao(Place.class).countOf(DB.dao(Place.class).queryBuilder().setCountOf(true).where().eq(Place.ROW_ID_COLUMN, rowId).and().eq(BaseDTO.COLUMN_SERVER_ID, BaseDTO.INT_NULL_VALUE).and().eq(BaseDTO.COLUMN_IS_CHANGED, 1).prepare());
+	        long totalPlaceCount = DB.dao(Place.class).countOf(DB.dao(Place.class).queryBuilder().setCountOf(true).where().eq(Place.ROW_ID_COLUMN, rowId).prepare());
+	        if(clientPlaceCount == totalPlaceCount && clientPlaceCount > 1){
+	        	result = true;
+	        }
+        } catch (SQLException e) {	        
+	        e.printStackTrace();
+        }
+		return result;
+	}
+	
+	private void invertPlaceOrder(int rowId){
+		try {
+			boolean isPosibleInvertOrder = isPossibleInvertPlaceOrder(rowId);
+			if(isPosibleInvertOrder){
+				List<Place> listPlace = DB.dao(Place.class).queryBuilder().orderByRaw(BaseDTO.ORDER_BY_COLUMN_NAME).where().eq(Place.ROW_ID_COLUMN, rowId).query();
+				String[] arrayNames = new String[listPlace.size()];
+	        	for(int i = 0; i < listPlace.size(); i++){
+	        		arrayNames[i] = listPlace.get(i).Name;
+	        	}
+	        	for(int i = 0; i < listPlace.size(); i++){
+	        		int j = listPlace.size() - 1 - i;
+	        		listPlace.get(i).Name = arrayNames[j];
+	        		DB.dao(Place.class).update(listPlace.get(i));
+	        	}
+	        	Toast.makeText(this, "Порядок мест изменен", Toast.LENGTH_LONG).show();
+			}
+        } catch (SQLException e) {
+	        // TODO Auto-generated catch block
+	        e.printStackTrace();
+        }
 	}
 	
 	private void handleGraveList(View contentView, int placeId){	    
@@ -1465,9 +1513,9 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
     	List<Row> rows = new ArrayList<Row>();
     	List<Place> places = new ArrayList<Place>();
     	try {    		
-			rowBuilder.orderByRaw(BaseDTO.ORDER_BY_COLUMN_NAME).where().eq("Region_id", regionId);
+			rowBuilder.orderByRaw(BaseDTO.ORDER_BY_COLUMN_NAME).where().eq(Place.REGION_ID_COLUMN, regionId);
 			rows = rowDAO.query(rowBuilder.prepare());
-			placeBuilder.orderByRaw(BaseDTO.ORDER_BY_COLUMN_NAME).where().eq("Region_id", regionId);
+			placeBuilder.orderByRaw(BaseDTO.ORDER_BY_COLUMN_NAME).where().eq(Place.REGION_ID_COLUMN, regionId);
 			places = placeDAO.query(placeBuilder.prepare());
 		} catch (SQLException e) {
 			this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
@@ -1492,7 +1540,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
     	QueryBuilder<Place, Integer> placeBuilder = placeDAO.queryBuilder();
     	List<Place> placeList = new ArrayList<Place>();
     	try {
-			placeBuilder.orderByRaw(BaseDTO.ORDER_BY_COLUMN_NAME).where().eq("Row_id", rowId);
+			placeBuilder.orderByRaw(BaseDTO.ORDER_BY_COLUMN_NAME).where().eq(Place.ROW_ID_COLUMN, rowId);
 			placeList = placeDAO.query(placeBuilder.prepare());		
 		} catch (SQLException e) {
 			this.mFileLog.error(Settings.UNEXPECTED_ERROR_MESSAGE, e);
@@ -1510,21 +1558,20 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
         QueryBuilder<Place, Integer> placeNextBuilder = placeDAO.queryBuilder();
         List<Place> placeList = null;
         
-        try {
-            //where().eq("Region_id", regionId)
+        try {            
             if(currentPlace.Row != null){
-                placePrevBuilder.limit(1).orderByRaw(BaseDTO.ORDER_BY_DESC_COLUMN_NAME).where().eq("Row_id", currentPlace.Row.Id).and().raw(String.format("CAST (Name As INTEGER) < CAST ('%s' As INTEGER)", currentPlace.Name));
+                placePrevBuilder.limit(1).orderByRaw(BaseDTO.ORDER_BY_DESC_COLUMN_NAME).where().eq(Place.ROW_ID_COLUMN, currentPlace.Row.Id).and().raw(String.format("CAST (Name As INTEGER) < CAST ('%s' As INTEGER)", currentPlace.Name));
             } else {
-                placePrevBuilder.limit(1).orderByRaw(BaseDTO.ORDER_BY_DESC_COLUMN_NAME).where().eq("Region_id", currentPlace.Region.Id).and().raw(String.format("CAST (Name As INTEGER) < CAST ('%s' As INTEGER)", currentPlace.Name));
+                placePrevBuilder.limit(1).orderByRaw(BaseDTO.ORDER_BY_DESC_COLUMN_NAME).where().eq(Place.REGION_ID_COLUMN, currentPlace.Region.Id).and().raw(String.format("CAST (Name As INTEGER) < CAST ('%s' As INTEGER)", currentPlace.Name));
             }
             placeList = placeDAO.query(placePrevBuilder.prepare()); 
             if(placeList.size() > 0){
                 prevPlace = placeList.get(0);
             }
             if(currentPlace.Row != null) {
-                placeNextBuilder.limit(1).orderByRaw(BaseDTO.ORDER_BY_COLUMN_NAME).where().eq("Row_id", currentPlace.Row.Id).and().raw(String.format("CAST (Name As INTEGER) > CAST ('%s' As INTEGER)", currentPlace.Name));
+                placeNextBuilder.limit(1).orderByRaw(BaseDTO.ORDER_BY_COLUMN_NAME).where().eq(Place.ROW_ID_COLUMN, currentPlace.Row.Id).and().raw(String.format("CAST (Name As INTEGER) > CAST ('%s' As INTEGER)", currentPlace.Name));
             } else {
-                placeNextBuilder.limit(1).orderByRaw(BaseDTO.ORDER_BY_COLUMN_NAME).where().eq("Region_id", currentPlace.Region.Id).and().raw(String.format("CAST (Name As INTEGER) > CAST ('%s' As INTEGER)", currentPlace.Name));
+                placeNextBuilder.limit(1).orderByRaw(BaseDTO.ORDER_BY_COLUMN_NAME).where().eq(Place.REGION_ID_COLUMN, currentPlace.Region.Id).and().raw(String.format("CAST (Name As INTEGER) > CAST ('%s' As INTEGER)", currentPlace.Name));
             }           
             placeList = placeDAO.query(placeNextBuilder.prepare());
             if(placeList.size() > 0){
@@ -1902,13 +1949,13 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
             if(complexGrave.Row != null){
                 QueryBuilder<Place, Integer> placeBuilder = placeDAO.queryBuilder();
                 if(!TextUtils.isEmpty(filterOldPlaceName)){
-                    placeBuilder.where().eq("Name", filterOldPlaceName).and().eq("Row_id", complexGrave.Row.Id);
+                    placeBuilder.where().eq("Name", filterOldPlaceName).and().eq(Place.ROW_ID_COLUMN, complexGrave.Row.Id);
                     findedPlaces = placeDAO.query(placeBuilder.prepare());
                     if(findedPlaces.size() > 0 ){
                         isFindByOldName = true;
                     } else {
                         placeBuilder = placeDAO.queryBuilder();
-                        placeBuilder.where().eq("OldName", filterOldPlaceName).and().eq("Row_id", complexGrave.Row.Id);
+                        placeBuilder.where().eq("OldName", filterOldPlaceName).and().eq(Place.ROW_ID_COLUMN, complexGrave.Row.Id);
                         findedPlaces = placeDAO.query(placeBuilder.prepare());
                         if(findedPlaces.size() > 0 ){
                             isFindByOldName = true;
@@ -1917,19 +1964,19 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                 }
                 if(isFindByOldName == false){
                     placeBuilder = placeDAO.queryBuilder();
-                    placeBuilder.where().eq("Name", nextPlaceName).and().eq("Row_id", complexGrave.Row.Id);
+                    placeBuilder.where().eq("Name", nextPlaceName).and().eq(Place.ROW_ID_COLUMN, complexGrave.Row.Id);
                     findedPlaces = placeDAO.query(placeBuilder.prepare());
                 }
             } else {
                 QueryBuilder<Place, Integer> placeBuilder = placeDAO.queryBuilder();
                 if(filterOldPlaceName != null && filterOldPlaceName != ""){
-                    placeBuilder.where().eq("Name", filterOldPlaceName).and().eq("Region_id", complexGrave.Region.Id);
+                    placeBuilder.where().eq("Name", filterOldPlaceName).and().eq(Place.REGION_ID_COLUMN, complexGrave.Region.Id);
                     findedPlaces = placeDAO.query(placeBuilder.prepare());
                     if(findedPlaces.size() > 0 ){
                         isFindByOldName = true;
                     } else {
                         placeBuilder = placeDAO.queryBuilder();
-                        placeBuilder.where().eq("OldName", filterOldPlaceName).and().eq("Region_id", complexGrave.Region.Id);
+                        placeBuilder.where().eq("OldName", filterOldPlaceName).and().eq(Place.REGION_ID_COLUMN, complexGrave.Region.Id);
                         findedPlaces = placeDAO.query(placeBuilder.prepare());
                         if(findedPlaces.size() > 0 ){
                             isFindByOldName = true;
@@ -1938,7 +1985,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                 }
                 if(isFindByOldName == false){
                     placeBuilder = placeDAO.queryBuilder();
-                    placeBuilder.where().eq("Name", nextPlaceName).and().eq("Region_id", complexGrave.Region.Id);
+                    placeBuilder.where().eq("Name", nextPlaceName).and().eq(Place.REGION_ID_COLUMN, complexGrave.Region.Id);
                     findedPlaces = placeDAO.query(placeBuilder.prepare());
                 }
             }                   

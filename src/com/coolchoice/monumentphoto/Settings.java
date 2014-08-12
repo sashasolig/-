@@ -68,7 +68,7 @@ public class Settings {
     
     //private static String DefaultServerAddress = "http://k.pohoronnoedelo.ru:8000";
     //private static String DefaultServerAddress = "http://192.168.53.11:8000";
-    private static String DefaultServerAddress = "http://pd2.pohoronnoedelo.ru";    
+    private static String DefaultServerAddress = "https://org.pohoronnoedelo.ru";    
     private static String RelativeUploadPlacePhotoUrl = "/mobile/placephoto/upload/";
     private static String RelativeRemovePlacePhotoUrl = "/mobile/placephoto/delete/";
     private static String RelativeLoginUrl = "/api/auth/signin";

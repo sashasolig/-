@@ -38,7 +38,7 @@ public class UploadPlaceTask extends BaseTask {
     	for(Row row : rowList){
     		QueryBuilder<Place, Integer> builder = DB.dao(Place.class).queryBuilder();
 			try {
-				builder.where().eq("Row_id", row.Id).and().eq("IsChanged", 0);
+				builder.where().eq(Place.ROW_ID_COLUMN, row.Id).and().eq("IsChanged", 0);
 				List<Place> findedPlaces = DB.dao(Place.class).query(builder.prepare());
     			if(findedPlaces.size() > 0){
     				placeList.addAll(findedPlaces);

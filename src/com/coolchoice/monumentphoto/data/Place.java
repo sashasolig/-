@@ -11,6 +11,10 @@ import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable
 public class Place extends BaseDTO {
+	
+	public static final String ROW_ID_COLUMN = "Row_id";
+	
+	public static final String REGION_ID_COLUMN = "Region_id";
     
     public static final String PLACE_LOGGER_PATTERN = "Region=%d, Row=%d, OldName=%s, IsOwnerLess=%b, Width=%f, Length=%f," +
             "SizeViolatedDate=%s, UnindentifiedDate=%s, UnownedDate=%s, MilitaryDate=%s, WrongFIODate=%s";
