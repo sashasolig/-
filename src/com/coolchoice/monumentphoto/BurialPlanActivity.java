@@ -42,6 +42,8 @@ import com.j256.ormlite.dao.RuntimeExceptionDao;
 public class BurialPlanActivity extends Activity implements SyncTaskHandler.SyncCompleteListener {
     
     public static final String EXTRA_GRAVE_ID = "graveId";
+    
+    public static final String EXTRA_IS_DOWNLOADED = "isDownloaded";
 
     private ListView lvBurialPlan;
     
@@ -154,10 +156,14 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
     }
     
     private void autoGetData(){
-        Date curDate = new Date();
+        /*Date curDate = new Date();
         if(mLastSyncDate == null || (curDate.getTime() - mLastSyncDate.getTime()) > (3 * 60 * 60 * 1000)){            
             actionGet();
-        }
+        }*/
+    	if(Settings.IsAutoDownloadData(this) && !getIntent().getBooleanExtra(EXTRA_IS_DOWNLOADED, false)){
+    		actionGet();
+    		getIntent().putExtra(EXTRA_IS_DOWNLOADED, true);
+    	}
     }
 
     
