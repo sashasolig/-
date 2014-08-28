@@ -2459,8 +2459,19 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                 
                 break;
             case ADD_OBJECT_REQUEST_CODE:
+            	if(data != null){
+                	if(data.getIntExtra(AddObjectActivity.EXTRA_TYPE, -1) == AddObjectActivity.ADD_PLACE_WITHOUTROW || 
+                			data.getIntExtra(AddObjectActivity.EXTRA_TYPE, -1) == AddObjectActivity.ADD_PLACE_WITHROW ){
+                		if(data.getBooleanExtra(AddObjectActivity.EXTRA_IS_ADD_NEW, false)){            			
+                			mType = data.getIntExtra(AddObjectActivity.EXTRA_TYPE, -1);
+                			mPlaceId = data.getIntExtra(AddObjectActivity.EXTRA_ID, -1);
+                			setNewIdInExtras(EXTRA_TYPE, mType);
+                			setNewIdInExtras(EXTRA_PLACE_ID, mPlaceId);
+                		}
+                	}
+            	}
                 mType = getIntent().getIntExtra(EXTRA_TYPE, -1);                
-                updateContent(mType);
+                updateContent(mType);                
                 break;
             case EDIT_OBJECT_REQUEST_CODE:
                 mType = getIntent().getIntExtra(EXTRA_TYPE, -1);                

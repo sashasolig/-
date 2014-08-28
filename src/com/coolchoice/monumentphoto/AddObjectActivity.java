@@ -51,6 +51,7 @@ public class AddObjectActivity extends Activity {
 	public static final String EXTRA_ID = "extra_id";
 	public static final String EXTRA_PARENT_ID = "extra_parent_id";
 	public static final String EXTRA_EDIT = "extra_edit";
+	public static final String EXTRA_IS_ADD_NEW = "is_add_new";
 	
 	public static final int MASK_CEMETERY = 1;
 	public static final int MASK_REGION = 2;
@@ -159,7 +160,7 @@ public class AddObjectActivity extends Activity {
 			public void onClick(View v) {
 				boolean isSave = saveObjectToDB();
 				if(isSave){
-					setResult(Activity.RESULT_OK);
+					setResult(Activity.RESULT_OK, getIntent());
 					finish();	
 				} else {
 					Toast.makeText(AddObjectActivity.this, "Недопустимое значение", Toast.LENGTH_LONG).show();
@@ -479,6 +480,11 @@ public class AddObjectActivity extends Activity {
 	public void setNewIdInExtras(String extraName, int id){
 		getIntent().removeExtra(extraName);
 		getIntent().putExtra(extraName, id);
+	}
+	
+	public void setNewIdInExtras(String extraName, boolean value){
+		getIntent().removeExtra(extraName);
+		getIntent().putExtra(extraName, value);
 	}
 	
 	public void updateAccessibilityUI(int type){
@@ -857,6 +863,7 @@ public class AddObjectActivity extends Activity {
 			newPlace.toLog(this.mFileLog, LogOperation.INSERT);
 			this.mId = newPlace.Id;
 			setNewIdInExtras(EXTRA_ID, mId);
+			setNewIdInExtras(EXTRA_IS_ADD_NEW, true);
 		}
 		return true;
 	}
@@ -933,6 +940,7 @@ public class AddObjectActivity extends Activity {
 			newPlace.toLog(this.mFileLog, LogOperation.INSERT);
 			this.mId = newPlace.Id;
 			setNewIdInExtras(EXTRA_ID, mId);
+			setNewIdInExtras(EXTRA_IS_ADD_NEW, true);
 		}
 		return true;
 	}
