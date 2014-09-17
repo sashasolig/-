@@ -11,9 +11,12 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.coolchoice.monumentphoto.SyncTaskHandler.OperationType;
+import com.coolchoice.monumentphoto.dal.UserDB;
 import com.coolchoice.monumentphoto.data.SettingsData;
+import com.coolchoice.monumentphoto.data.User;
 import com.coolchoice.monumentphoto.task.TaskResult;
 
 public class SettingsActivity extends Activity implements SyncTaskHandler.SyncCompleteListener {
@@ -133,6 +136,7 @@ public class SettingsActivity extends Activity implements SyncTaskHandler.SyncCo
 		mSyncTaskHandler.setContext(this);
 		mSyncTaskHandler.checkResumeDataOperation(this);
 		mSyncTaskHandler.setOnSyncCompleteListener(this);
+		showUserInfo();
 	}
 	
 	@Override
@@ -181,6 +185,13 @@ public class SettingsActivity extends Activity implements SyncTaskHandler.SyncCo
         updateStatusServerInUI();        
 	}
 	
+	private void showUserInfo(){
+		User currentUser = UserDB.getCurrentUser();
+		if(currentUser != null){
+			Toast.makeText(this, currentUser.toString(), Toast.LENGTH_LONG).show();
+		}
+	}
+	
 	private void updateStatusServerInUI(){
 		this.tvStatusServer = (TextView) findViewById(R.id.tvStatusServer);
 		this.ivStatusServer = (ImageView) findViewById(R.id.ivStatusServer);
@@ -205,6 +216,7 @@ public class SettingsActivity extends Activity implements SyncTaskHandler.SyncCo
 	public void onComplete(SyncTaskHandler.OperationType operationType, TaskResult taskResult) {
 		if(operationType == OperationType.CHECK_LOGIN){
 			setStatusServer(taskResult);
+			showUserInfo();
 		}
 		
 	}	

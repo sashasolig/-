@@ -411,8 +411,8 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         ArrayList<Cemetery> cemeteryList = new ArrayList<Cemetery>();
         for(int i = 0; i < jsonArray.length(); i++){  
         	checkIsCancelTask();        	
-        	JSONObject jsonObj = jsonArray.getJSONObject(i);
-        	JSONArray jsonGPSArray = jsonObj.getJSONArray("coordinates");
+        	JSONObject jsonObj = jsonArray.getJSONObject(i);        	
+        	JSONArray jsonGPSArray = jsonObj.getJSONArray("coordinates");        	
         	Cemetery cemetery = new Cemetery();
             cemetery.ServerId = jsonObj.getInt("pk");            	
             cemetery.Name = jsonObj.getString("name");
@@ -421,6 +421,10 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
             	if(!TextUtils.isEmpty(squareString) && !squareString.equalsIgnoreCase("null")){
             		cemetery.Square = Double.valueOf(squareString);
             	}
+            }
+            if(jsonObj.has("ugh")){
+            	JSONObject jsonUgh = jsonObj.getJSONObject("ugh");
+            	cemetery.OrgId = jsonUgh.getInt("pk");
             }
             cemetery.GPSCemeteryList = new ArrayList<GPSCemetery>();            
             for(int j = 0; j < jsonGPSArray.length(); j++){
@@ -477,7 +481,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
 				findedCemetery = findedCemeteries.get(0);
 				cemetery.Id = findedCemetery.Id;
 				cemetery.RegionSyncDate = findedCemetery.RegionSyncDate;
-				cemetery.IsGPSChanged = findedCemetery.IsGPSChanged;
+				cemetery.IsGPSChanged = findedCemetery.IsGPSChanged;				
 				if(findedCemetery.IsChanged == 0){
 					dao.createOrUpdate(cemetery);
 				}
@@ -507,7 +511,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
         }    
 	}
 	
-	public void handleResponseUploadCemeteryJSON(String cemeteryJSON) throws Exception {    	
+	public void handleResponseUploadCemeteryJSON(String cemeteryJSON) throws Exception {   	
         ArrayList<Cemetery> cemeteryList = parseCemeteryJSON(cemeteryJSON);
         for(int i = 0; i < cemeteryList.size(); i++){
         	Cemetery cemetery = cemeteryList.get(i);
@@ -1237,6 +1241,7 @@ public abstract class BaseTask extends AsyncTask<String, String, TaskResult> {
             	burial.Region = null;
             	burial.Place = null;
             	burial.Row = null;
+            	burial.Grave = null;
             	burial.ResponsibleUser = null;
     			burialDAO.create(burial);
         	}

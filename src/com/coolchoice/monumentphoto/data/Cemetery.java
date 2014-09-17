@@ -24,6 +24,13 @@ public class Cemetery extends BaseDTO {
 	@DatabaseField
 	public Double Square;
 	
+	@DatabaseField
+	public int OrgId;
+	
+	public Cemetery(){
+		this.OrgId = BaseDTO.INT_NULL_VALUE;
+	}
+	
 	@Override
 	public void toLog(Logger logger, LogOperation operation){
         super.toLog(logger, operation);                

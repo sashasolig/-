@@ -23,6 +23,7 @@ import com.coolchoice.monumentphoto.data.PlacePhoto;
 import com.coolchoice.monumentphoto.data.Region;
 import com.coolchoice.monumentphoto.data.ResponsibleUser;
 import com.coolchoice.monumentphoto.data.Row;
+import com.coolchoice.monumentphoto.data.User;
 import com.coolchoice.monumentphoto.dbmigration.DBMigrateSet;
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
@@ -33,10 +34,10 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	
     private final String LOG_TAG = getClass().getSimpleName();
     
-    //public static final String DATABASE_NAME = "/mnt/sdcard/monument.db";
-    public static final String DATABASE_NAME = "monument.db";
+    public static final String DATABASE_NAME = "/mnt/sdcard/monument.db";
+    //public static final String DATABASE_NAME = "monument.db";
     
-    public static final int DATABASE_VERSION = 13;
+    public static final int DATABASE_VERSION = 14;
     
     private static final ArrayList<Class<?>> entityClassesArray = new ArrayList<Class<?>>();
 
@@ -56,6 +57,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         entityClassesArray.add(GPSRow.class);
         entityClassesArray.add(GPSPlace.class);
         entityClassesArray.add(GPSGrave.class);
+        entityClassesArray.add(User.class);
         
         
         entityClassesArray.add(DeletedObject.class);                

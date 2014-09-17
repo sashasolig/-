@@ -21,7 +21,9 @@ import org.json.JSONTokener;
 import android.content.Context;
 
 import com.coolchoice.monumentphoto.Settings;
+import com.coolchoice.monumentphoto.dal.UserDB;
 import com.coolchoice.monumentphoto.data.SettingsData;
+import com.coolchoice.monumentphoto.data.User;
 
 public class LoginTask extends BaseTask {
 	
@@ -110,6 +112,13 @@ public class LoginTask extends BaseTask {
 	                mLastSuccessLoginDate = new Date();
 	                mLastSuccessUrl = url;
 	                mLastSuccessUserName = this.userName;
+	                User user = new User();
+	                user.UserName = this.settingsData.Login;
+	                user.LName = this.settingsData.LName;
+	                user.MName = this.settingsData.MName;
+	                user.FName = this.settingsData.FName;
+	                user.OrgId = this.settingsData.OrgId;
+	                UserDB.loginUser(user);
 		        } else {
 		            result.setError(true);
                     result.setStatus(TaskResult.Status.LOGIN_FAILED);                    
@@ -141,15 +150,31 @@ public class LoginTask extends BaseTask {
         String status = jsonObject.getString("status");
         if(status.equalsIgnoreCase("success")){            
             settingData.Token = jsonObject.getString("token");
-            settingData.Session = jsonObject.getString("sessionId");
+            settingData.Session = jsonObject.getString("sessionId");            
             JSONObject jsonProfile = jsonObject.getJSONObject("profile");
+            JSONObject jsonOrg = jsonObject.getJSONObject("org");
             if(jsonProfile != null){
+            	settingData.Login = jsonProfile.getString("username");
                 settingData.FName = jsonProfile.getString("firstname");
                 settingData.LName = jsonProfile.getString("lastname");
                 settingData.MName = jsonProfile.getString("middlename");
                 settingData.Email = jsonProfile.getString("email");
+                if(settingData.FName != null && settingData.FName.equalsIgnoreCase("null")){
+                	settingData.FName = null;
+                }
+                if(settingData.LName != null && settingData.LName.equalsIgnoreCase("null")){
+                	settingData.LName = null;
+                }
+                if(settingData.MName != null && settingData.MName.equalsIgnoreCase("null")){
+                	settingData.MName = null;
+                }
+                if(settingData.Email != null && settingData.Email.equalsIgnoreCase("null")){
+                	settingData.Email = null;
+                }
             }
-            
+            if(jsonOrg != null){
+            	settingData.OrgId = jsonOrg.getInt("id");
+            }            
         } else {
             settingData = null;
         }        

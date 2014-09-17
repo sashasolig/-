@@ -29,6 +29,7 @@ import android.widget.TextView;
 import com.coolchoice.monumentphoto.SyncTaskHandler.OperationType;
 import com.coolchoice.monumentphoto.dal.DB;
 import com.coolchoice.monumentphoto.dal.MonumentDB;
+import com.coolchoice.monumentphoto.dal.UserDB;
 import com.coolchoice.monumentphoto.data.BaseDTO;
 import com.coolchoice.monumentphoto.data.Burial;
 import com.coolchoice.monumentphoto.data.ComplexGrave;
@@ -36,6 +37,7 @@ import com.coolchoice.monumentphoto.data.Grave;
 import com.coolchoice.monumentphoto.data.ResponsibleUser;
 import com.coolchoice.monumentphoto.data.SettingsData;
 import com.coolchoice.monumentphoto.data.ILogable.LogOperation;
+import com.coolchoice.monumentphoto.data.User;
 import com.coolchoice.monumentphoto.task.TaskResult;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
 
@@ -79,8 +81,15 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
         if (getIntent().getBooleanExtra(SettingsActivity.EXTRA_EXIT, false)) {
             finish();
         }
+        User currentUser = UserDB.getCurrentUser();
+        String currentUserFIO = null;
+        if(currentUser != null){
+        	currentUserFIO = currentUser.toString();
+        } else {
+        	currentUserFIO = getString(R.string.unauthorize_user);
+        }
         String title = getTitle().toString();
-        title = title + String.format("(%s)", getString(R.string.action_burial_plan));
+        title = title + String.format("(%s) - %s", getString(R.string.action_burial_plan), currentUserFIO);
         setTitle(title);        
         this.mGraveId = getIntent().getIntExtra(EXTRA_GRAVE_ID, BaseDTO.INT_NULL_VALUE);
         super.onCreate(savedInstanceState);

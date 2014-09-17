@@ -27,5 +27,7 @@ public class SettingsData {
 	public String Token;
 	
 	public String Session;
+	
+	public int OrgId;
 
 }
