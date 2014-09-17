@@ -103,7 +103,8 @@
             android:ems="30"
             android:inputType="number|numberDecimal"
             android:maxLength="8"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:hint="@string/metr" />
 
         <TextView
             android:id="@+id/tvPlaceLength"
@@ -119,7 +120,8 @@
             android:ems="30"
             android:inputType="number|numberDecimal"
             android:maxLength="8"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:hint="@string/metr" />
         
         <CheckBox
             android:id="@+id/cb_place_is_size_violated"
