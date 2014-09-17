@@ -12,6 +12,8 @@ import com.j256.ormlite.table.DatabaseTable;
 @DatabaseTable
 public class Cemetery extends BaseDTO {
 	
+	public static final String ORG_ID_COLUMN = "OrgId";
+	
 	@ForeignCollectionField
 	public Collection<GPSCemetery> GPSCemeteryList;
 	
@@ -24,7 +26,7 @@ public class Cemetery extends BaseDTO {
 	@DatabaseField
 	public Double Square;
 	
-	@DatabaseField
+	@DatabaseField(columnName = ORG_ID_COLUMN)
 	public int OrgId;
 	
 	public Cemetery(){

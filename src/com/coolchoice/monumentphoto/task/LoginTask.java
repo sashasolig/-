@@ -134,6 +134,7 @@ public class LoginTask extends BaseTask {
     		result.setStatus(TaskResult.Status.SERVER_UNAVALAIBLE);    		
     	}
         if(result.isError()){
+        	UserDB.setAllUsersDisabled();
         	Settings.setPDSession(null);
 			Settings.setToken(null);
 			mLastSuccessLoginDate = null;

@@ -32,6 +32,7 @@ import com.coolchoice.monumentphoto.dal.MonumentDB;
 import com.coolchoice.monumentphoto.dal.UserDB;
 import com.coolchoice.monumentphoto.data.BaseDTO;
 import com.coolchoice.monumentphoto.data.Burial;
+import com.coolchoice.monumentphoto.data.Cemetery;
 import com.coolchoice.monumentphoto.data.ComplexGrave;
 import com.coolchoice.monumentphoto.data.Grave;
 import com.coolchoice.monumentphoto.data.ResponsibleUser;
@@ -40,6 +41,7 @@ import com.coolchoice.monumentphoto.data.ILogable.LogOperation;
 import com.coolchoice.monumentphoto.data.User;
 import com.coolchoice.monumentphoto.task.TaskResult;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
+import com.j256.ormlite.stmt.QueryBuilder;
 
 public class BurialPlanActivity extends Activity implements SyncTaskHandler.SyncCompleteListener {
     
@@ -75,22 +77,24 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
         MenuItem actionBurialPlanMenuItem = this.mOptionsMenu.findItem(R.id.action_burial_plan);
         actionBurialPlanMenuItem.setIcon(R.drawable.burial_plan_enable);
     }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        if (getIntent().getBooleanExtra(SettingsActivity.EXTRA_EXIT, false)) {
-            finish();
-        }
-        User currentUser = UserDB.getCurrentUser();
+    
+    public void setTitleActivity(){
+    	User currentUser = UserDB.getCurrentUser();
         String currentUserFIO = null;
         if(currentUser != null){
         	currentUserFIO = currentUser.toString();
         } else {
         	currentUserFIO = getString(R.string.unauthorize_user);
         }
-        String title = getTitle().toString();
-        title = title + String.format("(%s) - %s", getString(R.string.action_burial_plan), currentUserFIO);
-        setTitle(title);        
+        String title = String.format("%s - %s", getString(R.string.burial_plan_activity_title), currentUserFIO);
+        setTitle(title);   
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        if (getIntent().getBooleanExtra(SettingsActivity.EXTRA_EXIT, false)) {
+            finish();
+        }             
         this.mGraveId = getIntent().getIntExtra(EXTRA_GRAVE_ID, BaseDTO.INT_NULL_VALUE);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.burial_plan_activity);
@@ -113,12 +117,19 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
         mSyncTaskHandler.setOnSyncCompleteListener(this);
     }
     
-    private void updateBurialPlanListView(){               
+    private void updateBurialPlanListView(){
+    	User currentUser = UserDB.getCurrentUser();
         RuntimeExceptionDao<Burial, Integer> burialDao = DB.dao(Burial.class);
-        RuntimeExceptionDao<ResponsibleUser, Integer> responsibleDao = DB.dao(ResponsibleUser.class); 
+        RuntimeExceptionDao<ResponsibleUser, Integer> responsibleDao = DB.dao(ResponsibleUser.class);
+        QueryBuilder<Cemetery, Integer> qbCemetery = DB.dao(Cemetery.class).queryBuilder();
         List<Burial> burials = null;
         try {
-            burials = burialDao.queryBuilder().orderBy(Burial.PLANDATE_COLUMN_NAME, true).where().eq(Burial.STATUS_COLUMN_NAME, Burial.StatusEnum.APPROVED).query();
+        	if(currentUser != null){
+        		qbCemetery.where().eq(Cemetery.ORG_ID_COLUMN, currentUser.OrgId).or().isNull(Cemetery.ORG_ID_COLUMN).or().eq(Cemetery.ORG_ID_COLUMN, BaseDTO.INT_NULL_VALUE);
+        	} else {
+        		qbCemetery.where().isNull(Cemetery.ORG_ID_COLUMN).or().eq(Cemetery.ORG_ID_COLUMN, BaseDTO.INT_NULL_VALUE);
+        	}
+            burials = burialDao.queryBuilder().join(qbCemetery).orderBy(Burial.PLANDATE_COLUMN_NAME, true).where().eq(Burial.STATUS_COLUMN_NAME, Burial.StatusEnum.APPROVED).query();
         } catch (SQLException e) {            
             e.printStackTrace();
         }
@@ -159,6 +170,7 @@ public class BurialPlanActivity extends Activity implements SyncTaskHandler.Sync
     @Override
     protected void onResume() {
         super.onResume();
+        setTitleActivity();
         this.updateBurialPlanListView();
         updateOptionsMenu();
         autoGetData();

@@ -9,7 +9,7 @@ public class UserDB {
 	public static User loginUser(User user){
 		User dbUser = null;
 		user.IsActive = 1;
-		DB.db().execManualSQL("update user set IsActive = 0;");
+		setAllUsersDisabled();
 		List<User> users = DB.dao(User.class).queryForEq(User.USER_NAME_COLUMN, user.UserName);
 		if(users.size() > 0){
 			dbUser = users.get(0);
@@ -34,6 +34,10 @@ public class UserDB {
 			activeUser = activeUsers.get(0);
 		}
 		return activeUser;
+	}
+	
+	public static void setAllUsersDisabled(){
+		DB.db().execManualSQL("update user set IsActive = 0;");
 	}
 
 }

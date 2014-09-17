@@ -15,7 +15,8 @@
     <string name="burial_bind">Прикрепить</string>
     <string name="burial_unbind">Открепить</string>
     <string name="burial_close">Закрыть</string>
-    <string name="unauthorize_user">Неавторизированный полбзователь</string>
+    <string name="unauthorize_user">Неавторизированный пользователь</string>
+    <string name="burial_plan_activity_title">Мобильный смотритель(План захоронений)</string>
     
     
     <string name="cb_place_is_unowner">  Заброшенное место</string>
