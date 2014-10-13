@@ -15,6 +15,9 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -96,6 +99,25 @@ public class AddObjectActivity extends Activity {
 	private static boolean mIsStoreGPS = false;
 	
 	protected final Logger mFileLog = Logger.getLogger(AddObjectActivity.class);
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+	    MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.menu_add_object, menu);
+	    return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+	    switch (item.getItemId()) {
+	        case R.id.action_settings:
+	        	Intent intent = new Intent(this, SettingsActivity.class);
+	    		startActivity(intent);
+	            return true;	        
+	        default:
+	            return super.onOptionsItemSelected(item);
+	    }
+	}
           	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
