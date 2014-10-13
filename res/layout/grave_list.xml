@@ -167,7 +167,7 @@
     <GridView
         android:id="@+id/gvGraves"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"                  
+        android:layout_height="match_parent"                  
         android:horizontalSpacing="@dimen/grid_column_space"
         android:verticalSpacing="@dimen/grid_column_space"
         android:numColumns="auto_fit"
@@ -176,7 +176,7 @@
         android:fadeScrollbars="false"  >
     </GridView>
     
-    <GridView        
+    <!-- <GridView        
         android:id="@+id/gvPhotos"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
@@ -186,6 +186,6 @@
         android:stretchMode="columnWidth"
         android:verticalSpacing="3dp"
         android:horizontalSpacing="3dp"        
-        android:fadeScrollbars="false" />
+        android:fadeScrollbars="false" /> -->
 
 </LinearLayout>

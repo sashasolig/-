@@ -125,6 +125,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	
 	private GridView mGVRegion, mGVRow, mGVPlace, mGVGrave;
 	
+	private GraveGridAdapter mGraveGridAdapter;
+	
 	private HorizontalScrollView mAddressBarSV;
 	
 	private static SyncTaskHandler mSyncTaskHandler;
@@ -1197,7 +1199,6 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		Button btnAddGrave = (Button) contentView.findViewById(R.id.btnAddGrave);
 		Button btnAddNewGrave = (Button) contentView.findViewById(R.id.btnAddNewGrave);
 		this.mGVGrave = (GridView) contentView.findViewById(R.id.gvGraves);
-		this.gridPhotos = (GridView) contentView.findViewById(R.id.gvPhotos);
 		this.etPlaceLength = (EditText) contentView.findViewById(R.id.etPlaceLength);
 		this.etPlaceWidth = (EditText) contentView.findViewById(R.id.etPlaceWidth);
 		
@@ -1212,9 +1213,50 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		this.btnMakePlacePhotoNextPlace = (Button) contentView.findViewById(R.id.btnMakePhotoNextPlace);
 		
 		registerForContextMenu(this.mGVGrave);
+		setColumnWidthForPhoto();
+        updatePhotoGridItems();
 		List<Grave> graves = getGraves(placeId);
-		GraveGridAdapter graveGridAdapter = new GraveGridAdapter(graves);
-		mGVGrave.setAdapter(graveGridAdapter);
+		this.mGraveGridAdapter = new GraveGridAdapter(graves);
+		mGVGrave.setAdapter(this.mGraveGridAdapter);
+		
+		this.mGVGrave.setOnItemClickListener(new OnItemClickListener() {            
+            @Override
+            public void onItemClick(AdapterView<?> parent, View v, int position, long id ) {
+            	int photoPosition = mGraveGridAdapter.getPositionPhoto(position);
+            	if(photoPosition >= 0){
+            		PhotoGridItem item = gridPhotoItems.get(photoPosition);
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    Uri imageUri = item.getImageUri();
+                    if(imageUri == null){
+                        imageUri = item.getThumbnailUri();
+                    }
+                    intent.setDataAndType(imageUri, "image/*");
+                    startActivity(intent); 
+            	}
+                             
+            }
+        });
+        this.mGVGrave.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View v, int position, long id) {
+            	int photoPosition = mGraveGridAdapter.getPositionPhoto(position);
+            	if(photoPosition >= 0){
+            		gridPhotoItems.get(photoPosition).setChecked(!gridPhotoItems.get(photoPosition).isChecked());
+                    ((BaseAdapter)mGVGrave.getAdapter()).notifyDataSetChanged();              
+                    MenuItem actionRemoveMenuItem = BrowserCemeteryActivity.this.mOptionsMenu.findItem(R.id.action_remove);
+                    actionRemoveMenuItem.setEnabled(mGraveGridAdapter.isChoosePhoto());
+                    return true;
+            	}
+            	return false;
+                
+            }
+        });        
+        if(BrowserCemeteryActivity.this.mOptionsMenu != null){
+            MenuItem actionRemoveMenuItem = BrowserCemeteryActivity.this.mOptionsMenu.findItem(R.id.action_remove);
+            actionRemoveMenuItem.setEnabled(mGraveGridAdapter.isChoosePhoto());
+        }
+		
 		btnAddGrave.setOnClickListener( new View.OnClickListener() {
 			
 			@Override
@@ -1469,10 +1511,6 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                 place.toLog(mFileLog, LogOperation.UPDATE);
             }
         });
-		
-		updatePhotoGrid();
-		
-		
 		
 	}
 	
@@ -1779,21 +1817,35 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
         	this.mItems = items;
         }
         
+        public int getPositionPhoto(int position){
+        	if(position < mItems.size()){
+        		return -1;
+        	} else {
+        		return position - mItems.size(); 
+        	}
+        }
+        
         public void addGrave(Grave grave){
             this.mItems.add(grave);
             this.notifyDataSetChanged();
         }
-
+        
         public View getView(int position, View convertView, ViewGroup parent) {
-            if (convertView == null) {
-            	LayoutInflater inflater = (LayoutInflater) BrowserCemeteryActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                convertView = inflater.inflate(R.layout.grave_item, parent, false);
-            }
+        	if(position < mItems.size()){
+        		return getGraveView(position, convertView, parent);
+        	} else {
+        		return getPhotoView(position, convertView, parent);
+        	}
+        }
+
+        public View getGraveView(int position, View convertView, ViewGroup parent) {
+            LayoutInflater inflater = (LayoutInflater) BrowserCemeteryActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            convertView = inflater.inflate(R.layout.grave_item, parent, false);
             Grave grave = mItems.get(position);
             ImageView ivIcon = (ImageView) convertView.findViewById(R.id.ivGrave);
             TextView tvGrave = (TextView) convertView.findViewById(R.id.tvGrave);
             TextView tvFIO = (TextView) convertView.findViewById(R.id.tvFIO);
-            Button btnBindBurial = (Button) convertView.findViewById(R.id.btnBind);
+            Button btnBindBurial = (Button) convertView.findViewById(R.id.btnBind);            
             btnBindBurial.setTag(grave.Id);            
             if(grave.Name != null){
                 tvGrave.setText(grave.Name);
@@ -1812,32 +1864,109 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
             });
             
             tvFIO.setText(Html.fromHtml(getGraveItemText(grave.Id)));
+            convertView.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, Settings.THUMBNAIL_SIZE));
             return convertView;
         }
         
+        public View getPhotoView(int position, View convertView, ViewGroup parent) {
+            LayoutInflater inflater = (LayoutInflater) BrowserCemeteryActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            convertView = inflater.inflate(R.layout.photo_grid_item, parent, false);
+            ImageView ivPhoto = (ImageView) convertView.findViewById(R.id.ivPhoto);
+            ImageView ivPhotoChoose = (ImageView) convertView.findViewById(R.id.ivChoosePhoto);
+            ImageView ivIsSend = (ImageView) convertView.findViewById(R.id.ivStatus);
+            TextView tvGPS = (TextView) convertView.findViewById(R.id.tvGPS);
+            ProgressBar pbDownload = (ProgressBar) convertView.findViewById(R.id.pbDownload);
+            TextView tvDownloadStatus = (TextView) convertView.findViewById(R.id.tvStatusDownload);
+            PhotoGridItem item = gridPhotoItems.get(position - mItems.size());
+            item.setImageView(ivPhoto);            
+            if(item.isChecked()) {
+            	ivPhotoChoose.setVisibility(View.VISIBLE);
+            } else {
+            	ivPhotoChoose.setVisibility(View.GONE);
+            }
+            Photo photo = item.getPhoto();
+            
+            if(photo != null){                
+                if(photo.ThumbnailUriString != null){                    
+                    ivPhoto.setImageURI(Uri.parse(photo.ThumbnailUriString));
+                }
+            	ivIsSend.getDrawable().setLevel(photo.Status);
+            	double lat = photo.Latitude;
+                double lng = photo.Longitude;
+                String gpsString = String.format("GPS:%s, %s", Location.convert(lat, Location.FORMAT_SECONDS), Location.convert(lat, Location.FORMAT_SECONDS) );
+                tvGPS.setText(gpsString);
+            }
+            if(item.getStatus() != BaseDTO.INT_NULL_VALUE){
+                pbDownload.setVisibility(View.GONE);
+                tvDownloadStatus.setVisibility(View.GONE);
+                switch (item.getStatus()) {
+                case ThreadManager.STATUS_INITIAL:
+                case ThreadManager.STATUS_DOWNLOAD_START:                
+                case ThreadManager.STATUS_CREATE_THUMBNAIL_START:
+                    pbDownload.setVisibility(View.VISIBLE);
+                    break;
+                case ThreadManager.STATUS_DOWNLOAD_ERROR:
+                    tvDownloadStatus.setVisibility(View.VISIBLE);
+                    tvDownloadStatus.setText(R.string.photo_download_error);
+                    break;
+                case ThreadManager.STATUS_CREATE_THUMBNAIL_ERROR:
+                    tvDownloadStatus.setVisibility(View.VISIBLE);
+                    tvDownloadStatus.setText(R.string.photo_create_thumbnail_error);
+                    break;
+                case ThreadManager.STATUS_DOWNLOAD_COMPLETE:
+                    break;
+                default:                    
+                    break;
+                }                
+                
+            } else {
+                pbDownload.setVisibility(View.GONE);
+                tvDownloadStatus.setVisibility(View.GONE);
+                if(photo.ThumbnailUriString == null && photo.UriString == null){
+                    tvDownloadStatus.setVisibility(View.VISIBLE);
+                    tvDownloadStatus.setText(R.string.photo_not_found);
+                }                
+                
+            }
+            convertView.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, Settings.THUMBNAIL_SIZE));
+            return convertView;
+        }  
+        
         public final int getCount() {
-            return mItems.size();
+            return mItems.size() + gridPhotoItems.size();
         }
 
         public final Object getItem(int position) {
-            return mItems.get(position);
+        	if(position < mItems.size()){
+        		return mItems.get(position);
+        	} else {
+        		return gridPhotoItems.get(position - mItems.size());
+        	}
         }
-
-        public final long getItemId(int position) {
-            return position;
+        
+        @Override
+        public long getItemId(int position) {	        
+	        return position;
         }
+        
+        public boolean isChoosePhoto(){
+        	for(PhotoGridItem item : gridPhotoItems){
+        		if(item.isChecked()){
+        			return true;
+        		}
+        	}
+        	return false;
+        }
+        
     }
 
 	//make photo
 	private Button btnMakePlacePhoto, btnMakePlacePhotoNextPlace;
 	
-	private GridView gridPhotos;
-	
 	private static List<PhotoGridItem> gridPhotoItems = new ArrayList<PhotoGridItem>();
 		
 	private static Uri mUri;
 		
-	private PhotoGridAdapter mPhotoGridAdapter;
 	
 	private final int REQUEST_CODE_PHOTO_INTENT = 101;
 	
@@ -1894,9 +2023,9 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 			}
 		}
 		gridPhotoItems.removeAll(deletedItems);
-		((BaseAdapter)gridPhotos.getAdapter()).notifyDataSetChanged();
+		((BaseAdapter)mGVGrave.getAdapter()).notifyDataSetChanged();
 		MenuItem actionRemoveMenuItem = BrowserCemeteryActivity.this.mOptionsMenu.findItem(R.id.action_remove);
-		actionRemoveMenuItem.setEnabled(mPhotoGridAdapter.isChoosePhoto());	
+		actionRemoveMenuItem.setEnabled(mGraveGridAdapter.isChoosePhoto());	
 	}
 	
 	private void startIntentForMakePhoto(ComplexGrave complexGrave){
@@ -2038,8 +2167,9 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 		return result;
 	}
 	
-	private void updatePhotoGrid(){
-        DisplayMetrics metrics = new DisplayMetrics();
+	
+	private void setColumnWidthForPhoto(){
+		DisplayMetrics metrics = new DisplayMetrics();
         this.getWindowManager().getDefaultDisplay().getMetrics(metrics);
         screenHeight = metrics.heightPixels;
         screenWidth = metrics.widthPixels;
@@ -2060,40 +2190,8 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
         }        
         widthPhotoDp = gridPhotoWidthDp;
         widthPhoto =(int) (widthPhotoDp * metrics.density);
-        this.gridPhotos.setColumnWidth(gridPhotoWidthDp);        
-        
-        updatePhotoGridItems();
-        this.mPhotoGridAdapter = new PhotoGridAdapter();
-        this.gridPhotos.setAdapter(this.mPhotoGridAdapter);
-        this.gridPhotos.setOnItemClickListener(new OnItemClickListener() {            
-            @Override
-            public void onItemClick(AdapterView<?> parent, View v, int position, long id ) {
-                PhotoGridItem item = gridPhotoItems.get(position);
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                Uri imageUri = item.getImageUri();
-                if(imageUri == null){
-                    imageUri = item.getThumbnailUri();
-                }
-                intent.setDataAndType(imageUri, "image/*");
-                startActivity(intent);              
-            }
-        });
-        this.gridPhotos.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View v, int position, long id) {
-                gridPhotoItems.get(position).setChecked(!gridPhotoItems.get(position).isChecked());
-                ((BaseAdapter)gridPhotos.getAdapter()).notifyDataSetChanged();              
-                MenuItem actionRemoveMenuItem = BrowserCemeteryActivity.this.mOptionsMenu.findItem(R.id.action_remove);
-                actionRemoveMenuItem.setEnabled(mPhotoGridAdapter.isChoosePhoto());
-                return true;
-            }
-        });        
-        if(BrowserCemeteryActivity.this.mOptionsMenu != null){
-            MenuItem actionRemoveMenuItem = BrowserCemeteryActivity.this.mOptionsMenu.findItem(R.id.action_remove);
-            actionRemoveMenuItem.setEnabled(mPhotoGridAdapter.isChoosePhoto());
-        }        
-    }
+        this.mGVGrave.setColumnWidth(gridPhotoWidthDp);   
+	}
 	
 	private void updatePhotoGridItems(){
 	    Grave grave = null;
@@ -2186,7 +2284,7 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
 	            break;
 	        }
 	    }
-	    this.mPhotoGridAdapter.notifyDataSetChanged();
+	    this.mGraveGridAdapter.notifyDataSetChanged();
     }
 	
 	@Override
@@ -2204,102 +2302,10 @@ public class BrowserCemeteryActivity extends Activity implements LocationListene
                 break;
             }
         }
-        this.mPhotoGridAdapter.notifyDataSetChanged();      
+        this.mGraveGridAdapter.notifyDataSetChanged();      
     }
 		
-	public class PhotoGridAdapter extends BaseAdapter {
-	    
-        public PhotoGridAdapter() {
-            super();                                    
-        }        
-
-        public View getView(int position, View convertView, ViewGroup parent) {
-            if (convertView == null) {
-            	LayoutInflater inflater = (LayoutInflater) BrowserCemeteryActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                convertView = inflater.inflate(R.layout.photo_grid_item, parent, false);
-            }
-            ImageView ivPhoto = (ImageView) convertView.findViewById(R.id.ivPhoto);
-            ImageView ivPhotoChoose = (ImageView) convertView.findViewById(R.id.ivChoosePhoto);
-            ImageView ivIsSend = (ImageView) convertView.findViewById(R.id.ivStatus);
-            TextView tvGPS = (TextView) convertView.findViewById(R.id.tvGPS);
-            ProgressBar pbDownload = (ProgressBar) convertView.findViewById(R.id.pbDownload);
-            TextView tvDownloadStatus = (TextView) convertView.findViewById(R.id.tvStatusDownload);
-            PhotoGridItem item = gridPhotoItems.get(position);
-            item.setImageView(ivPhoto);            
-            if(item.isChecked()) {
-            	ivPhotoChoose.setVisibility(View.VISIBLE);
-            } else {
-            	ivPhotoChoose.setVisibility(View.GONE);
-            }
-            Photo photo = item.getPhoto();
-            
-            if(photo != null){                
-                if(photo.ThumbnailUriString != null){                    
-                    ivPhoto.setImageURI(Uri.parse(photo.ThumbnailUriString));
-                }
-            	ivIsSend.getDrawable().setLevel(photo.Status);
-            	double lat = photo.Latitude;
-                double lng = photo.Longitude;
-                String gpsString = String.format("GPS:%s, %s", Location.convert(lat, Location.FORMAT_SECONDS), Location.convert(lat, Location.FORMAT_SECONDS) );
-                tvGPS.setText(gpsString);
-            }
-            if(item.getStatus() != BaseDTO.INT_NULL_VALUE){
-                pbDownload.setVisibility(View.GONE);
-                tvDownloadStatus.setVisibility(View.GONE);
-                switch (item.getStatus()) {
-                case ThreadManager.STATUS_INITIAL:
-                case ThreadManager.STATUS_DOWNLOAD_START:                
-                case ThreadManager.STATUS_CREATE_THUMBNAIL_START:
-                    pbDownload.setVisibility(View.VISIBLE);
-                    break;
-                case ThreadManager.STATUS_DOWNLOAD_ERROR:
-                    tvDownloadStatus.setVisibility(View.VISIBLE);
-                    tvDownloadStatus.setText(R.string.photo_download_error);
-                    break;
-                case ThreadManager.STATUS_CREATE_THUMBNAIL_ERROR:
-                    tvDownloadStatus.setVisibility(View.VISIBLE);
-                    tvDownloadStatus.setText(R.string.photo_create_thumbnail_error);
-                    break;
-                case ThreadManager.STATUS_DOWNLOAD_COMPLETE:
-                    break;
-                default:                    
-                    break;
-                }                
-                
-            } else {
-                pbDownload.setVisibility(View.GONE);
-                tvDownloadStatus.setVisibility(View.GONE);
-                if(photo.ThumbnailUriString == null && photo.UriString == null){
-                    tvDownloadStatus.setVisibility(View.VISIBLE);
-                    tvDownloadStatus.setText(R.string.photo_not_found);
-                }                
-                
-            }
-            convertView.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, Settings.THUMBNAIL_SIZE));
-            return convertView;
-        }  
-        
-        public boolean isChoosePhoto(){
-        	for(PhotoGridItem item : gridPhotoItems){
-        		if(item.isChecked()){
-        			return true;
-        		}
-        	}
-        	return false;
-        }
-
-        public final int getCount() {
-            return gridPhotoItems.size();
-        }
-
-        public final Object getItem(int position) {
-            return gridPhotoItems.get(position);
-        }
-
-        public final long getItemId(int position) {
-            return position;
-        }
-    }
+	
    
     class PhotoGridItem {
 		    	
